@@ -39,7 +39,11 @@ struct MacBuildView: View {
     /// Display-only grid cells of the wide room; saves keep their normalized coordinates.
     private var selectedCell: CGPoint? {
         guard let point = selectedPosition else { return nil }
-        let grid = scene.arrangementGrid68, world = grid.transform.point(point)
+        let grid = scene.arrangementGrid68
+        // Furniture is normalized to the aspect-filled artwork; the bowl to the full scene size.
+        let size = grid.transform.sceneSize
+        let world = store.selectedFurnitureID == nil
+            ? CGPoint(x: size.width * point.x, y: size.height * (1 - point.y)) : grid.transform.point(point)
         var cell = grid.gridPoint(world: world)
         // Wall pieces live on the back wall, so only their position along it is meaningful.
         if selectedIsWall, let model = MacRoomReservations.projection(transform: grid.transform), model.logicalBounds.width > 0 {

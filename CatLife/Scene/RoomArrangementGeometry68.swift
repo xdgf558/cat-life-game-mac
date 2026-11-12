@@ -93,10 +93,14 @@ enum RoomArrangementPlanning68 {
         #if os(macOS)
         if let model = MacRoomReservations.projection(transform: world.transform) {
             if !wall, MacRoomReservations.intersects(rectangle, projection: model) { return .outside }
-            if wall, model.logicalBounds.width > 0 {
-                let scale = MacRoomProjection.columns / model.logicalBounds.width
-                if MacRoomProjection.wallSpanCoversWindow(center: (center.x - model.logicalBounds.minX) * scale,
-                                                          halfWidth: footprint.width / 2 * scale) { return .outside }
+            if wall {
+                // Map the piece's wall rectangle to wall cells (across, height) and test real overlap.
+                var projection = RoomViewProjection(worldSize: world.transform.sceneSize, angle: .front)
+                projection.macRoom = model
+                let corners = [CGPoint(x: rectangle.minX, y: rectangle.minY), CGPoint(x: rectangle.maxX, y: rectangle.minY),
+                               CGPoint(x: rectangle.minX, y: rectangle.maxY), CGPoint(x: rectangle.maxX, y: rectangle.maxY)]
+                    .map { model.wallCoordinates(projected: projection.wallPoint($0)) }
+                if MacRoomProjection.wallRectCoversWindow(MacRoomProjection.bounds(corners)) { return .outside }
             }
         }
         #endif

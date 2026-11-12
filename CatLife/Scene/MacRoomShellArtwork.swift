@@ -72,7 +72,7 @@ final class MacRoomShellArtwork: SKNode {
         } }
         for x in MacRoomProjection.windowCenters {
             let half = MacRoomProjection.windowHalfWidth
-            textured(windowArt, tint: .white, blend: 0, z: -30) { u, v in p(x - half + 2 * half * u, 1.5 + 2.4 * v, 6.99) }
+            textured(windowArt, tint: .white, blend: 0, z: -30) { u, v in p(x - half + 2 * half * u, MacRoomProjection.windowHeights.lowerBound + (MacRoomProjection.windowHeights.upperBound - MacRoomProjection.windowHeights.lowerBound) * v, 6.99) }
             children.last?.name = "mac-room-window"
         }
         if isDaylight {

@@ -36,6 +36,26 @@ struct MacBuildView: View {
         if let id = store.selectedFurnitureID { return store.draftFurniture?.first { $0.itemID == id }?.position }
         return store.arrangement68.bowlSelected ? store.draftBowlPosition : nil
     }
+    /// Display-only grid cells of the wide room; saves keep their normalized coordinates.
+    private var selectedCell: CGPoint? {
+        guard let point = selectedPosition else { return nil }
+        let grid = scene.arrangementGrid68, world = grid.transform.point(point)
+        var cell = grid.gridPoint(world: world)
+        // Wall pieces live on the back wall, so only their position along it is meaningful.
+        if selectedIsWall, let model = MacRoomReservations.projection(transform: grid.transform), model.logicalBounds.width > 0 {
+            cell = CGPoint(x: (world.x - model.logicalBounds.minX) / model.logicalBounds.width * MacRoomProjection.columns, y: 0)
+        }
+        guard cell.x.isFinite, cell.y.isFinite else { return nil }
+        return CGPoint(x: min(MacRoomProjection.columns, max(0, cell.x)), y: min(MacRoomProjection.rows, max(0, cell.y)))
+    }
+    private var selectedIsWall: Bool { selected.map { FurnitureCatalog.metadata(for: $0.kind).isWall } ?? false }
+    private func cellValue(_ key: String, _ value: CGFloat) -> some View {
+        HStack(spacing: 6) {
+            Text(GameStrings.text(key)).foregroundStyle(RoomTheme.secondary)
+            Text(String(format: "%.1f", value)).font(.system(size: 15, weight: .heavy, design: .rounded)).monospacedDigit()
+        }.font(.system(size: 13, weight: .bold)).frame(maxWidth: .infinity).padding(.vertical, 8)
+            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 11))
+    }
     private var canSave: Bool {
         store.canEditArrangement68 && !store.arrangement68.hasInvalidPlacement
     }
@@ -286,8 +306,11 @@ struct MacBuildView: View {
                 Text(GameStrings.text("mac.build.position")); Spacer()
                 Text(GameStrings.text(store.arrangement68.snapEnabled ? "build68.nudgeHalf" : "build68.nudgeFine"))
             }.font(.caption.weight(.bold))
-            if let point = selectedPosition {
-                Text(String(format: "X %.2f · Y %.2f", point.x, point.y)).monospacedDigit().foregroundStyle(RoomTheme.secondary)
+            if let cell = selectedCell {
+                HStack(spacing: 8) {
+                    cellValue("mac.build.v2.across", cell.x)
+                    if !selectedIsWall { cellValue("mac.build.v2.depth", cell.y) }
+                }
             }
             HStack(spacing: 8) {
                 tool("arrow.left", .nudgeLeft) { store.nudgeSelectedFurniture68(dx: -1, dy: 0) }

@@ -91,8 +91,14 @@ enum RoomArrangementPlanning68 {
         let rectangle = CGRect(x: center.x - footprint.width / 2, y: center.y - footprint.height / 2,
                                width: footprint.width, height: footprint.height)
         #if os(macOS)
-        if !wall, let model = MacRoomReservations.projection(transform: world.transform),
-           MacRoomReservations.intersects(rectangle, projection: model) { return .outside }
+        if let model = MacRoomReservations.projection(transform: world.transform) {
+            if !wall, MacRoomReservations.intersects(rectangle, projection: model) { return .outside }
+            if wall, model.logicalBounds.width > 0 {
+                let scale = MacRoomProjection.columns / model.logicalBounds.width
+                if MacRoomProjection.wallSpanCoversWindow(center: (center.x - model.logicalBounds.minX) * scale,
+                                                          halfWidth: footprint.width / 2 * scale) { return .outside }
+            }
+        }
         #endif
         for placement in world.placements where placement.itemID != id {
             guard let other = world.item(placement.itemID), FurnitureCatalog.metadata(for: other.kind).isWall == wall else { continue }

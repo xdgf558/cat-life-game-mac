@@ -2,7 +2,7 @@ import Foundation
 
 extension GameTaskState {
     var isValid: Bool {
-        guard [dailyWorkCount, dailyFeedCount, dailyPlayCount, dailyCleanCount, totalCleanCount, totalFeedCount, furniturePurchaseCount]
+        guard [dailyWorkCount, dailyWorkGold, dailyWorkExp, dailyFeedCount, dailyPlayCount, dailyCleanCount, totalCleanCount, totalFeedCount, furniturePurchaseCount]
             .allSatisfy({ (0...GameSnapshot.maximumGold).contains($0) }),
               dailyFeedCount <= totalFeedCount, dailyCleanCount <= totalCleanCount,
               Set(claimedTaskIDs).count == claimedTaskIDs.count,
@@ -14,7 +14,7 @@ extension GameTaskState {
                   GameTaskCatalog.task(id: id)?.category == .daily
               }) else { return false }
         guard let key = dailyDayKey else {
-            return dailyWorkCount == 0 && dailyFeedCount == 0 && dailyPlayCount == 0 && dailyCleanCount == 0 && dailyClaimedTaskIDs.isEmpty
+            return dailyWorkCount == 0 && dailyWorkGold == 0 && dailyWorkExp == 0 && dailyFeedCount == 0 && dailyPlayCount == 0 && dailyCleanCount == 0 && dailyClaimedTaskIDs.isEmpty
         }
         let pieces = key.split(separator: "-", omittingEmptySubsequences: false)
         guard key.utf8.count == 10, pieces.count == 3,

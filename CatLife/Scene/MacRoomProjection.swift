@@ -9,6 +9,12 @@ struct MacRoomProjection: Sendable {
     static let wallCells: CGFloat = 4.6
     static let stairCells = CGRect(x: 10, y: 4, width: 2, height: 3)
     static let doorClearanceCells = CGRect(x: 0, y: 1, width: 2, height: 2)
+    /// Fixed back-wall windows (centre column, half width); wall pieces may not cover them.
+    static let windowCenters: [CGFloat] = [2.2, 6.6]
+    static let windowHalfWidth: CGFloat = 0.9
+    static func wallSpanCoversWindow(center: CGFloat, halfWidth: CGFloat) -> Bool {
+        windowCenters.contains { abs($0 - center) < windowHalfWidth + halfWidth }
+    }
     /// Phone-world sprites are drawn for a tall diamond floor; the wide 12×7 room needs them
     /// smaller so a cat is about one cell and tall furniture stays under the 4.6-cell walls.
     static let spriteScale: CGFloat = 0.6

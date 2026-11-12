@@ -34,7 +34,7 @@ struct CompanionExperienceTests {
                 object["home"] = home
             }
             let loaded = try decode(object)
-            #expect(loaded.schemaVersion == 15 && loaded.isValid)
+            #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.isValid)
             #expect(loaded.player == original.player && loaded.inventory == original.inventory)
             #expect(loaded.cats[0].customName == original.cats[0].customName)
             #expect(loaded.cats[0].intimacy == original.cats[0].intimacy)

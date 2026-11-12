@@ -1,0 +1,12 @@
+{
+  "images": [
+    {
+      "filename": "town-map-landscape.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

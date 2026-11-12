@@ -1,0 +1,19 @@
+# Local build output and editor state
+.DS_Store
+.build/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcresult/
+*.log
+__pycache__/
+*.xcarchive/
+*.ipa
+*.dSYM/
+*.xcdistributionlogs/
+*.app/
+QA/
+Distribution/
+ArtSource/
+AudioSource/

@@ -57,6 +57,8 @@ extension GameStrings {
         "mac.work.v2.count": "次数",
         "mac.work.v2.income": "收入",
         "mac.work.v2.lifetime": "累计完成 %d 次",
+        "mac.settings.backgroundAudio": "切到后台时继续播放声音",
+        "mac.settings.backgroundAudioHint": "切到其他应用或最小化窗口时，音乐、音效和猫咪声音照常播放。",
     ]
     static let macRoomV2Traditional: [String: String] = [
         "mac.room.door": "去貓町的門",
@@ -114,6 +116,8 @@ extension GameStrings {
         "mac.work.v2.count": "次數",
         "mac.work.v2.income": "收入",
         "mac.work.v2.lifetime": "累計完成 %d 次",
+        "mac.settings.backgroundAudio": "切到背景時繼續播放聲音",
+        "mac.settings.backgroundAudioHint": "切到其他 App 或縮小視窗時，音樂、音效和貓咪聲音照常播放。",
     ]
     static let macRoomV2English: [String: String] = [
         "mac.room.door": "Door to Cat Town",
@@ -171,5 +175,7 @@ extension GameStrings {
         "mac.work.v2.count": "Shifts",
         "mac.work.v2.income": "Income",
         "mac.work.v2.lifetime": "%d shifts completed in total",
+        "mac.settings.backgroundAudio": "Keep playing sound in the background",
+        "mac.settings.backgroundAudioHint": "Music, effects and cat sounds keep playing when you switch apps or minimize the window.",
     ]
 }

@@ -250,6 +250,10 @@ final class GameStore {
     var cat: CatState? { snapshot?.activeCat }
     var audioSettings: AudioSettings { snapshot?.settings.audio ?? AudioSettings() }
 
+    /// Desktop preference: keep audio running while the app is not frontmost. Timers and
+    /// other foreground-only behavior still follow `setForeground`.
+    var audioContinuesInBackground = false { didSet { if oldValue != audioContinuesInBackground { syncAudio() } } }
+
     private func syncAudio() {
         let track: GameMusicTrack
         if !hasEnteredHome { track = .cover }
@@ -262,7 +266,7 @@ final class GameStore {
         else if activeSheet == .work { track = .work }
         else if cat?.activeRest != nil { track = .sleep }
         else { track = visibleHomeFloor == .upper ? .upstairs : .home }
-        audio.configure(settings: audioSettings, track: track, foreground: foreground,
+        audio.configure(settings: audioSettings, track: track, foreground: foreground || audioContinuesInBackground,
                         ready: snapshot != nil && !isLoading && !loadFailed)
     }
 

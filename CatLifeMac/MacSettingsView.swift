@@ -149,6 +149,7 @@ struct MacSettingsView: View {
             audioRow("audio.cat", enabled: $audioDraft.catEnabled, volume: $audioDraft.catVolume, preview: store.previewCatVoice)
             toggleRow("audio.sceneMusic", detail: "audio.sceneMusicDetail", value: $audioDraft.sceneMusic, id: "macSceneMusic")
             toggleRow("audio.nightQuiet", detail: "audio.nightQuietDetail", value: $audioDraft.nightQuiet, id: "macQuietHours")
+            toggleRow("mac.settings.backgroundAudio", detail: "mac.settings.backgroundAudioHint", value: $preferences.backgroundAudio, id: "macBackgroundAudio")
             HStack {
                 if audioSaving { ProgressView().controlSize(.small); Text(GameStrings.text("common.saving")) }
                 else if audioFailure { Label(GameStrings.text("save.writeTitle"), systemImage: "exclamationmark.triangle.fill").foregroundStyle(RoomTheme.coral) }

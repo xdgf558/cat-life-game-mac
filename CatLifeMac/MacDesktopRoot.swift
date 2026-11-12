@@ -112,6 +112,7 @@ struct MacDesktopRoot: View {
     }
     private var observedContent: some View {
         presentedContent.task { await start() }
+        .onChange(of: preferences.backgroundAudio && !quitting, initial: true) { _, keep in store.audioContinuesInBackground = keep }
         .onChange(of: phase) { _, _ in store.setForeground(appForeground) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             appIsActive = true; store.setForeground(appForeground)
@@ -419,6 +420,7 @@ struct MacDesktopRoot: View {
         let settingsObserver = settings.save.map { save in
             Task { @MainActor in await save.value; completion.finished = true }
         }
+        store.audioContinuesInBackground = false
         store.setForeground(false)
         Task { @MainActor in
             defer { settingsObserver?.cancel() }

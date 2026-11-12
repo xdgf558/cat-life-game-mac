@@ -51,6 +51,14 @@ extension GameStrings {
         "mac.top.v2.shop": "家具、装备、用品和邻里礼物",
         "mac.top.v2.town": "整张地图一屏看完 · 右侧是选中地点",
         "mac.top.v2.cats": "档案 · 成长 · 小习惯 · 回忆，一页看完",
+        "mac.build.v2.across": "左右",
+        "mac.build.v2.depth": "前后",
+        "mac.work.v2.today": "今天的打工",
+        "mac.work.v2.count": "次数",
+        "mac.work.v2.income": "收入",
+        "mac.work.v2.lifetime": "累计完成 %d 次",
+        "mac.settings.backgroundAudio": "切到后台时继续播放声音",
+        "mac.settings.backgroundAudioHint": "切到其他应用或最小化窗口时，音乐、音效和猫咪声音照常播放。",
     ]
     static let macRoomV2Traditional: [String: String] = [
         "mac.room.door": "去貓町的門",
@@ -102,6 +110,14 @@ extension GameStrings {
         "mac.top.v2.shop": "家具、裝備、用品和鄰里禮物",
         "mac.top.v2.town": "整張地圖一屏看完 · 右側是選中地點",
         "mac.top.v2.cats": "檔案 · 成長 · 小習慣 · 回憶，一頁看完",
+        "mac.build.v2.across": "左右",
+        "mac.build.v2.depth": "前後",
+        "mac.work.v2.today": "今天的打工",
+        "mac.work.v2.count": "次數",
+        "mac.work.v2.income": "收入",
+        "mac.work.v2.lifetime": "累計完成 %d 次",
+        "mac.settings.backgroundAudio": "切到背景時繼續播放聲音",
+        "mac.settings.backgroundAudioHint": "切到其他 App 或縮小視窗時，音樂、音效和貓咪聲音照常播放。",
     ]
     static let macRoomV2English: [String: String] = [
         "mac.room.door": "Door to Cat Town",
@@ -153,5 +169,13 @@ extension GameStrings {
         "mac.top.v2.shop": "Furniture, gear, supplies and neighbor gifts",
         "mac.top.v2.town": "The whole map on one screen · Details on the right",
         "mac.top.v2.cats": "Profile, growth, habits and memories on one page",
+        "mac.build.v2.across": "Across",
+        "mac.build.v2.depth": "Depth",
+        "mac.work.v2.today": "Today’s work",
+        "mac.work.v2.count": "Shifts",
+        "mac.work.v2.income": "Income",
+        "mac.work.v2.lifetime": "%d shifts completed in total",
+        "mac.settings.backgroundAudio": "Keep playing sound in the background",
+        "mac.settings.backgroundAudioHint": "Music, effects and cat sounds keep playing when you switch apps or minimize the window.",
     ]
 }

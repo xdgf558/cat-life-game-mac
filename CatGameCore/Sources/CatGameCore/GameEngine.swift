@@ -447,7 +447,7 @@ public enum GameEngine {
             state.player.level = progress.level
             state.player.exp = progress.exp
             state.player.completedWorkCount = min(GameSnapshot.maximumGold, state.player.completedWorkCount + 1)
-            state.tasks.recordWork(completedAt: work.endsAt)
+            state.tasks.recordWork(completedAt: work.endsAt, gold: goldAwarded, exp: work.expReward)
             state.player.lastWorkResult = WorkResult(
                 id: work.id, jobID: work.jobID, completedAt: work.endsAt,
                 goldReward: goldAwarded, expReward: work.expReward,

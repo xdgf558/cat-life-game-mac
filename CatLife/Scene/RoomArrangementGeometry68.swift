@@ -91,8 +91,18 @@ enum RoomArrangementPlanning68 {
         let rectangle = CGRect(x: center.x - footprint.width / 2, y: center.y - footprint.height / 2,
                                width: footprint.width, height: footprint.height)
         #if os(macOS)
-        if !wall, let model = MacRoomReservations.projection(transform: world.transform),
-           MacRoomReservations.intersects(rectangle, projection: model) { return .outside }
+        if let model = MacRoomReservations.projection(transform: world.transform) {
+            if !wall, MacRoomReservations.intersects(rectangle, projection: model) { return .outside }
+            if wall {
+                // Map the piece's wall rectangle to wall cells (across, height) and test real overlap.
+                var projection = RoomViewProjection(worldSize: world.transform.sceneSize, angle: .front)
+                projection.macRoom = model
+                let corners = [CGPoint(x: rectangle.minX, y: rectangle.minY), CGPoint(x: rectangle.maxX, y: rectangle.minY),
+                               CGPoint(x: rectangle.minX, y: rectangle.maxY), CGPoint(x: rectangle.maxX, y: rectangle.maxY)]
+                    .map { model.wallCoordinates(projected: projection.wallPoint($0)) }
+                if MacRoomProjection.wallRectCoversWindow(MacRoomProjection.bounds(corners)) { return .outside }
+            }
+        }
         #endif
         for placement in world.placements where placement.itemID != id {
             guard let other = world.item(placement.itemID), FurnitureCatalog.metadata(for: other.kind).isWall == wall else { continue }

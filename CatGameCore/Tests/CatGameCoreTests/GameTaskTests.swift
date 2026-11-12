@@ -190,6 +190,39 @@ struct GameTaskTests {
         #expect(state.tasks.dailyWorkCount == 1 && state.player.completedWorkCount == 1)
     }
 
+    @Test func completedWorkAddsTodaysReceivedGoldAndExperienceAndResetsNextDay() throws {
+        var state = GameSnapshot.fresh(now: now)
+        #expect(GameEngine.startWork(&state, now: now).succeeded)
+        let work = try #require(state.player.activeWork)
+        _ = GameEngine.synchronize(&state, now: work.endsAt)
+        let result = try #require(state.player.lastWorkResult)
+        #expect(state.tasks.dailyWorkGold == result.goldReward && state.tasks.dailyWorkExp == work.expReward)
+        _ = GameEngine.synchronize(&state, now: work.endsAt)
+        #expect(state.tasks.dailyWorkGold == result.goldReward)
+        _ = GameEngine.synchronize(&state, now: midnight.addingTimeInterval(60))
+        #expect(state.tasks.dailyWorkGold == 0 && state.tasks.dailyWorkExp == 0)
+    }
+
+    @Test func schema15SavesStartTodaysWorkTalliesAtZeroWhileCurrentSavesRequireThem() throws {
+        var state = GameSnapshot.fresh(now: now)
+        state.tasks.dailyWorkGold = 160; state.tasks.dailyWorkExp = 44
+        let current = try json(state)
+        #expect(try decode(current) == state)
+        var legacy = current
+        legacy["schemaVersion"] = 15
+        var tasks = try #require(legacy["tasks"] as? [String: Any])
+        tasks.removeValue(forKey: "dailyWorkGold"); tasks.removeValue(forKey: "dailyWorkExp")
+        legacy["tasks"] = tasks
+        let migrated = try decode(legacy)
+        #expect(migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
+        #expect(migrated.tasks.dailyWorkGold == 0 && migrated.tasks.dailyWorkExp == 0)
+        #expect(migrated.tasks.dailyWorkCount == state.tasks.dailyWorkCount && migrated.player == state.player)
+        var negative = current
+        var badTasks = try #require(current["tasks"] as? [String: Any]); badTasks["dailyWorkGold"] = -5
+        negative["tasks"] = badTasks
+        #expect(throws: (any Error).self) { try decode(negative) }
+    }
+
     @Test func roomAchievementTracksSuccessfulUpgradeAndUsesExistingLevel() throws {
         var state = GameSnapshot.fresh(now: now)
         #expect(!GameTaskCatalog.isClaimable(try task("achievement_room2"), in: state))

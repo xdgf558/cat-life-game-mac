@@ -248,11 +248,14 @@ struct MacWorkView: View {
         ScrollView {
             VStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 15) {
-                    Label(GameStrings.text("mac.work.today"), systemImage: "calendar.badge.checkmark").font(.headline)
-                    HStack {
-                        metric("mac.work.count", "\(store.snapshot?.tasks.dailyWorkCount ?? 0)", "briefcase.fill", RoomTheme.darkMint)
-                        metric("mac.work.total", "\(store.snapshot?.player.completedWorkCount ?? 0)", "checkmark.seal.fill", RoomTheme.secondary)
+                    Label(GameStrings.text("mac.work.v2.today"), systemImage: "calendar.badge.checkmark").font(.headline)
+                    HStack(spacing: 8) {
+                        metric("mac.work.v2.count", "\(store.snapshot?.tasks.dailyWorkCount ?? 0)", "briefcase.fill", RoomTheme.secondary)
+                        metric("mac.work.v2.income", "+\(store.snapshot?.tasks.dailyWorkGold ?? 0)", "dollarsign.circle.fill", RoomTheme.gold)
+                        metric("mac.work.experience", "+\(store.snapshot?.tasks.dailyWorkExp ?? 0)", "star.fill", RoomTheme.lilac)
                     }
+                    Text(GameStrings.format("mac.work.v2.lifetime", store.snapshot?.player.completedWorkCount ?? 0))
+                        .font(.caption).foregroundStyle(RoomTheme.secondary)
                 }.macContentCard69()
                 Button { showsRest = true } label: {
                     Label(GameStrings.text("work.rest.open"), systemImage: store.snapshot?.player.activeSleep == nil ? "moon.stars.fill" : "sun.max.fill")

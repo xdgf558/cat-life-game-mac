@@ -172,5 +172,13 @@ final class MacRoomProjectionTests: XCTestCase {
         scene.prepareDesktopEntry()
         XCTAssertEqual(scene.desktopInitialViewAngle, .front)
     }
+
+    func testWallPiecesOnlyConflictWithTheWindowItActuallyCovers() {
+        // Same columns as the first window but entirely below its sill, then overlapping it.
+        XCTAssertFalse(MacRoomProjection.wallRectCoversWindow(CGRect(x: 1.8, y: 0.2, width: 0.8, height: 1.1)))
+        XCTAssertTrue(MacRoomProjection.wallRectCoversWindow(CGRect(x: 1.8, y: 1.2, width: 0.8, height: 1.0)))
+        XCTAssertFalse(MacRoomProjection.wallRectCoversWindow(CGRect(x: 4.0, y: 2.0, width: 1.0, height: 1.0)))
+        XCTAssertFalse(MacRoomProjection.wallRectCoversWindow(CGRect(x: 1.8, y: 4.0, width: 0.8, height: 0.5)))
+    }
 }
 #endif

@@ -47,15 +47,19 @@ extension GameTaskState {
         guard let next = Self.dayKey(for: date), dailyDayKey == nil || next > dailyDayKey! else { return }
         dailyDayKey = next
         dailyWorkCount = 0
+        dailyWorkGold = 0
+        dailyWorkExp = 0
         dailyFeedCount = 0
         dailyPlayCount = 0
         dailyCleanCount = 0
         dailyClaimedTaskIDs = []
     }
 
-    mutating func recordWork(completedAt date: Date) {
+    mutating func recordWork(completedAt date: Date, gold: Int = 0, exp: Int = 0) {
         guard dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey else { return }
         dailyWorkCount = min(GameSnapshot.maximumGold, dailyWorkCount + 1)
+        dailyWorkGold = min(GameSnapshot.maximumGold, dailyWorkGold + max(0, gold))
+        dailyWorkExp = min(GameSnapshot.maximumGold, dailyWorkExp + max(0, exp))
     }
 
     // Immediate care follows synchronization and belongs to the open ledger, even after westward travel.

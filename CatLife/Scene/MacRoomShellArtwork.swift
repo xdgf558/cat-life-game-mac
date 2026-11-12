@@ -70,8 +70,9 @@ final class MacRoomShellArtwork: SKNode {
             textured(wood, tint: upper ? NSColor(red: 0.82, green: 0.69, blue: 0.56, alpha: 1) : .white,
                      blend: upper ? 0.18 : 0, z: -15) { u, v in p(x0 + 6 * u, 0, z0 + 3.5 * v) }
         } }
-        for x: CGFloat in [2.2, 6.6] {
-            textured(windowArt, tint: .white, blend: 0, z: -30) { u, v in p(x - 0.9 + 1.8 * u, 1.5 + 2.4 * v, 6.99) }
+        for x in MacRoomProjection.windowCenters {
+            let half = MacRoomProjection.windowHalfWidth
+            textured(windowArt, tint: .white, blend: 0, z: -30) { u, v in p(x - half + 2 * half * u, MacRoomProjection.windowHeights.lowerBound + (MacRoomProjection.windowHeights.upperBound - MacRoomProjection.windowHeights.lowerBound) * v, 6.99) }
             children.last?.name = "mac-room-window"
         }
         if isDaylight {

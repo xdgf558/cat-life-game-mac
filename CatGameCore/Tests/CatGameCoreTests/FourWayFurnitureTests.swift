@@ -172,7 +172,7 @@ struct FourWayFurnitureTests {
         try await repository.save(loaded, now: now)
         #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
         let newObject = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
-        #expect(newObject["schemaVersion"] as? Int == 15)
+        #expect(newObject["schemaVersion"] as? Int == GameSnapshot.currentSchemaVersion)
         let inventory = try #require(newObject["inventory"] as? [String: Any])
         let items = try #require(inventory["furniture"] as? [[String: Any]])
         #expect(items.first?["orientation"] as? String == "left")

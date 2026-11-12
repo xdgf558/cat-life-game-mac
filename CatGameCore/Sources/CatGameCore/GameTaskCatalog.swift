@@ -157,6 +157,9 @@ public enum GameTaskCatalog {
 public struct GameTaskState: Codable, Equatable, Sendable {
     public var dailyDayKey: String?
     public var dailyWorkCount: Int
+    /// Gold and experience actually received from shifts finished today (Mac "today's work" panel).
+    public var dailyWorkGold: Int = 0
+    public var dailyWorkExp: Int = 0
     public var dailyFeedCount: Int
     public var dailyPlayCount: Int
     public var dailyCleanCount: Int
@@ -186,6 +189,7 @@ public struct GameTaskState: Codable, Equatable, Sendable {
         case dailyDayKey, dailyWorkCount, dailyFeedCount, dailyPlayCount
         case totalFeedCount, furniturePurchaseCount, claimedTaskIDs, dailyClaimedTaskIDs
         case dailyCleanCount, totalCleanCount
+        case dailyWorkGold, dailyWorkExp
     }
 
     public init(from decoder: Decoder) throws {
@@ -196,6 +200,8 @@ public struct GameTaskState: Codable, Equatable, Sendable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         for key in CodingKeys.allCases where !values.contains(key) {
             if schemaVersion < 5, key == .dailyCleanCount || key == .totalCleanCount { continue }
+            // v16 added today's received work gold/experience; older saves start that day's tally at 0.
+            if schemaVersion < 16, key == .dailyWorkGold || key == .dailyWorkExp { continue }
             throw DecodingError.keyNotFound(key, .init(codingPath: values.codingPath,
                                                        debugDescription: "Incomplete task state"))
         }
@@ -215,6 +221,10 @@ public struct GameTaskState: Codable, Equatable, Sendable {
             .filter { GameTaskCatalog.task(id: $0) != nil }
         dailyClaimedTaskIDs = try values.decode([String].self, forKey: .dailyClaimedTaskIDs)
             .filter { GameTaskCatalog.task(id: $0) != nil }
+        dailyWorkGold = schemaVersion < 16 && !values.contains(.dailyWorkGold)
+            ? 0 : try values.decode(Int.self, forKey: .dailyWorkGold)
+        dailyWorkExp = schemaVersion < 16 && !values.contains(.dailyWorkExp)
+            ? 0 : try values.decode(Int.self, forKey: .dailyWorkExp)
         guard isValid else { throw SaveRepositoryError.invalidSnapshot }
     }
 
@@ -230,5 +240,7 @@ public struct GameTaskState: Codable, Equatable, Sendable {
         try values.encode(furniturePurchaseCount, forKey: .furniturePurchaseCount)
         try values.encode(claimedTaskIDs, forKey: .claimedTaskIDs)
         try values.encode(dailyClaimedTaskIDs, forKey: .dailyClaimedTaskIDs)
+        try values.encode(dailyWorkGold, forKey: .dailyWorkGold)
+        try values.encode(dailyWorkExp, forKey: .dailyWorkExp)
     }
 }

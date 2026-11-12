@@ -72,6 +72,8 @@ extension GameStrings {
         "mac.hover.cat": "点击查看档案 · 双击近看 · 右键更多",
         "mac.hover.furniture": "点击互动 · 右键布置",
         "mac.hover.floor": "拖动平移 · 滚轮缩放",
+        "releases.70.title": "布置与打工细节",
+        "releases.70.body": "布置时按格显示位置，挂件不再挡住窗户；打工页新增今天的次数、收入和经验；可在声音设置里选择切到后台时继续播放。",
         "releases.69.title": "原生 Mac 核心版",
         "releases.69.body": "新增原生 Mac 桌面界面、鼠标与键盘操作、窗口与显示设置；复用现有玩法和素材，Mac 进度独立保存在本机，Steam 接入后续提供。",
     ]
@@ -146,6 +148,8 @@ extension GameStrings {
         "mac.hover.cat": "點擊查看檔案 · 按兩下近看 · 右鍵更多",
         "mac.hover.furniture": "點擊互動 · 右鍵佈置",
         "mac.hover.floor": "拖曳平移 · 滾輪縮放",
+        "releases.70.title": "布置與打工細節",
+        "releases.70.body": "布置時按格顯示位置，掛件不再擋住窗戶；打工頁新增今天的次數、收入和經驗；可在聲音設定裡選擇切到背景時繼續播放。",
         "releases.69.title": "原生 Mac 核心版",
         "releases.69.body": "新增原生 Mac 桌面介面、滑鼠與鍵盤操作、視窗與顯示設定；共用既有玩法與素材，Mac 進度獨立儲存在本機，Steam 接入後續提供。",
     ]
@@ -220,6 +224,8 @@ extension GameStrings {
         "mac.hover.cat": "Click for profile · Double-click for close-up · Right-click for more",
         "mac.hover.furniture": "Click to interact · Right-click to arrange",
         "mac.hover.floor": "Drag to pan · Scroll to zoom",
+        "releases.70.title": "Arranging and work details",
+        "releases.70.body": "Arranging shows positions in grid cells and wall pieces no longer cover windows. The work page adds today’s shifts, income and experience, and a sound setting can keep audio playing in the background.",
         "releases.69.title": "Native Mac edition",
         "releases.69.body": "Adds native Mac layouts, mouse and keyboard controls, and window/display settings. Existing gameplay and artwork are shared; Mac progress is stored locally. Steam integration will follow.",
     ]

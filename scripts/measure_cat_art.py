@@ -186,7 +186,7 @@ def main():
         ratio_ok = abs(w / h - aspect) < 0.02
         cuts = REST_ROW_CUTS if clip == "rest" else None
         boxes = list(cells(image, columns, rows, cuts))
-        regs = [register(image, b, 25 if (args.appearance == "cow" and clip == "meal") else 0) for b in boxes]
+        regs = [register(image, b) for b in boxes]
         leaks = sum(edge_leaks(image, b) for b in boxes) if columns * rows > 1 else 0
         empty = sum(r is None for r in regs)
         transparent_corner = image.getpixel((0, 0))[3] == 0

@@ -51,10 +51,7 @@ enum CatAtlasRegistration {
                 let bottom = rowCuts.map { Int($0[row + 1] * CGFloat(height)) } ?? (row + 1) * height / rows
                 var minX = right, maxX = left, minY = bottom, maxY = top
                 for y in top..<bottom {
-                    // The preceding cow meal frame's whiskers extend into this
-                    // cell; its own opaque silhouette starts at x >= 27.
-                    let scanLeft = left + (appearance == .cow && clip == .meal ? 25 : 0)
-                    for x in scanLeft..<right where bytes[y * bytesPerRow + x * 4 + 3] >= 128 {
+                    for x in left..<right where bytes[y * bytesPerRow + x * 4 + 3] >= 128 {
                         minX = min(minX, x); maxX = max(maxX, x)
                         minY = min(minY, y); maxY = max(maxY, y)
                     }
@@ -130,15 +127,16 @@ enum CatAtlasRegistration {
                          CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
                 baselines = [426, 425, 419, 417, 380, 334, 337, 391]
             case .cow:
-                front = [CGPoint(x: 262.4, y: 428), CGPoint(x: 388.0, y: 367),
-                         CGPoint(x: 317.7, y: 387), CGPoint(x: 318.4, y: 378),
-                         CGPoint(x: 273.4, y: 381), CGPoint(x: 320.8, y: 398),
-                         CGPoint(x: 284.6, y: 398), CGPoint(x: 279.5, y: 395)]
-                rear = [CGPoint(x: 88.0, y: 418), CGPoint(x: 107.1, y: 421),
-                         CGPoint(x: 106.2, y: 420), CGPoint(x: 116.2, y: 419),
-                         CGPoint(x: 98.0, y: 374), CGPoint(x: 92.4, y: 337),
-                         CGPoint(x: 104.3, y: 341), CGPoint(x: 96.0, y: 379)]
-                baselines = [428, 429, 420, 419, 381, 337, 341, 395]
+                // Redrawn breed art (0.28.0): re-measured with scripts/measure_cat_art.py.
+                front = [CGPoint(x: 269.5, y: 410), CGPoint(x: 346.5, y: 345),
+                         CGPoint(x: 313.7, y: 377), CGPoint(x: 315.1, y: 377),
+                         CGPoint(x: 300.3, y: 379), CGPoint(x: 324.0, y: 406),
+                         CGPoint(x: 293.3, y: 414), CGPoint(x: 276.1, y: 413)]
+                rear = [CGPoint(x: 117.7, y: 407), CGPoint(x: 117.4, y: 407),
+                         CGPoint(x: 116.9, y: 407), CGPoint(x: 124.5, y: 408),
+                         CGPoint(x: 163.5, y: 380), CGPoint(x: 141.0, y: 378),
+                         CGPoint(x: 124.8, y: 374), CGPoint(x: 123.4, y: 407)]
+                baselines = [410, 409, 407, 408, 380, 378, 374, 413]
             case .blue:
                 // Redrawn British Shorthair (0.27.0): re-measured with scripts/measure_cat_art.py.
                 front = [CGPoint(x: 258.9, y: 425), CGPoint(x: 380.0, y: 356),
@@ -151,25 +149,27 @@ enum CatAtlasRegistration {
                          CGPoint(x: 86.8, y: 353), CGPoint(x: 90.1, y: 396)]
                 baselines = [425, 422, 419, 418, 372, 352, 353, 404]
             case .siamese:
-                front = [CGPoint(x: 260.025, y: 429), CGPoint(x: 388.823, y: 364),
-                         CGPoint(x: 318.574, y: 387), CGPoint(x: 321.198, y: 377),
-                         CGPoint(x: 273.129, y: 383), CGPoint(x: 320.722, y: 397),
-                         CGPoint(x: 283.268, y: 397), CGPoint(x: 278.069, y: 394)]
-                rear = [CGPoint(x: 88.203, y: 419), CGPoint(x: 107.758, y: 420),
-                        CGPoint(x: 107.136, y: 420), CGPoint(x: 118.398, y: 419),
-                        CGPoint(x: 99.467, y: 376), CGPoint(x: 93.421, y: 334),
-                        CGPoint(x: 102.908, y: 339), CGPoint(x: 98.203, y: 379)]
-                baselines = [429, 428, 420, 419, 383, 334, 339, 394]
+                // Redrawn breed art (0.28.0): re-measured with scripts/measure_cat_art.py.
+                front = [CGPoint(x: 272.2, y: 413), CGPoint(x: 356.5, y: 349),
+                         CGPoint(x: 293.0, y: 370), CGPoint(x: 305.2, y: 368),
+                         CGPoint(x: 296.8, y: 371), CGPoint(x: 317.8, y: 407),
+                         CGPoint(x: 282.6, y: 413), CGPoint(x: 279.2, y: 413)]
+                rear = [CGPoint(x: 103.5, y: 414), CGPoint(x: 103.9, y: 414),
+                        CGPoint(x: 99.8, y: 414), CGPoint(x: 102.5, y: 412),
+                        CGPoint(x: 136.1, y: 372), CGPoint(x: 130.1, y: 372),
+                        CGPoint(x: 126.6, y: 372), CGPoint(x: 102.8, y: 413)]
+                baselines = [414, 414, 414, 412, 372, 372, 372, 413]
             case .silver:
-                front = [CGPoint(x: 262.446, y: 427), CGPoint(x: 390.472, y: 367),
-                         CGPoint(x: 317.653, y: 386), CGPoint(x: 319.512, y: 378),
-                         CGPoint(x: 273.351, y: 382), CGPoint(x: 321.851, y: 398),
-                         CGPoint(x: 281.91, y: 398), CGPoint(x: 275.237, y: 393)]
-                rear = [CGPoint(x: 89.772, y: 418), CGPoint(x: 110.179, y: 420),
-                        CGPoint(x: 106.448, y: 421), CGPoint(x: 121.341, y: 418),
-                        CGPoint(x: 100.316, y: 374), CGPoint(x: 93.282, y: 335),
-                        CGPoint(x: 104.29, y: 338), CGPoint(x: 97.088, y: 379)]
-                baselines = [427, 428, 421, 418, 382, 335, 338, 393]
+                // Redrawn breed art (0.28.0): re-measured with scripts/measure_cat_art.py.
+                front = [CGPoint(x: 263.3, y: 424), CGPoint(x: 384.0, y: 364),
+                         CGPoint(x: 318.9, y: 388), CGPoint(x: 318.4, y: 383),
+                         CGPoint(x: 274.2, y: 379), CGPoint(x: 316.4, y: 407),
+                         CGPoint(x: 272.5, y: 407), CGPoint(x: 286.1, y: 406)]
+                rear = [CGPoint(x: 82.9, y: 419), CGPoint(x: 82.5, y: 420),
+                        CGPoint(x: 85.9, y: 421), CGPoint(x: 109.5, y: 418),
+                        CGPoint(x: 88.0, y: 378), CGPoint(x: 102.1, y: 349),
+                        CGPoint(x: 114.1, y: 349), CGPoint(x: 92.1, y: 393)]
+                baselines = [424, 424, 421, 418, 379, 349, 349, 406]
             }
             let bodyOffset = frames[0].groundCenter - frames[0].bounds.midX
             return frames.enumerated().map { index, frame in

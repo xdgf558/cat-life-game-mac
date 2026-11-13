@@ -162,7 +162,7 @@ struct MacTopBar: View {
             Button(action: onSaves) {
                 Label(GameStrings.text(store.hasSaveFailure ? "mac.save.failed" : store.isBusy ? "mac.save.saving" : "mac.save.local"), systemImage: store.hasSaveFailure ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
                     .font(.system(size: 11, weight: .semibold)).foregroundStyle(store.hasSaveFailure ? RoomTheme.coral : RoomTheme.darkMint)
-            }.buttonStyle(.plain).help(GameStrings.text("mac.save.steamOffline"))
+            }.buttonStyle(.plain).help(GameStrings.text("mac.save.location"))
             Button(action: onPlayer) {
                 HStack(spacing: 7) {
                     GameIcon(asset: store.snapshot?.player.profile.avatarID.flatMap(PlayerCatalog.avatar(id:))?.assetName ?? "", symbol: "person.crop.circle.fill", size: 36)

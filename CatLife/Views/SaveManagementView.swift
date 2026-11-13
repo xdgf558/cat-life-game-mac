@@ -1,5 +1,10 @@
 import SwiftUI
 import CatGameCore
+#if os(macOS) && APP_STORE
+import AppKit
+import Darwin
+import UniformTypeIdentifiers
+#endif
 
 @MainActor
 struct SaveManagementView: View {
@@ -9,6 +14,10 @@ struct SaveManagementView: View {
     var onWorkingChange: ((Bool) -> Void)?
     var onReturnHome: (() -> Void)?
     var onRetryLoad: (() -> Void)?
+    #if os(macOS) && APP_STORE
+    var openNativeSaveOnAppear = false
+    @State private var openedNativeSaveOnAppear = false
+    #endif
     @Environment(\.dismiss) private var dismiss
     @State private var isWorking = false
     @State private var isRestoring = false
@@ -33,12 +42,14 @@ struct SaveManagementView: View {
     @State private var retryExport = false
     @State private var didRestore = false
     @State private var statusKey: String?
+    @State private var importingNativeSave = false
 
     private struct ImportPreview {
         let archive: NativeSaveArchive
         let filename: String
         let byteCount: Int?
         let isRecovery: Bool
+        let isNativeSave: Bool
     }
 
     private var busy: Bool { isWorking || store.saveTransferInProgress || store.isBusy }
@@ -53,7 +64,15 @@ struct SaveManagementView: View {
             pageContent
         }
         .background(RoomTheme.cream.ignoresSafeArea())
-        .task { if !recoveryOnly { await refreshRecovery() } }
+        .task {
+            if !recoveryOnly { await refreshRecovery() }
+            #if os(macOS) && APP_STORE
+            if openNativeSaveOnAppear && !openedNativeSaveOnAppear && !Task.isCancelled {
+                openedNativeSaveOnAppear = true
+                chooseNativeSave()
+            }
+            #endif
+        }
         .overlay { if isWorking && !isShowingModal { SaveTransferWorkingView(recoveryOnly: recoveryOnly, restoring: isRestoring) } }
         .fileImporter(isPresented: $isImportingFile, allowedContentTypes: [.json]) { result in
             switch result {
@@ -250,12 +269,23 @@ struct SaveManagementView: View {
                 cardHeading("saveTransfer.restoreTitle", subtitle: "saveTransfer.importShortHint",
                             symbol: "square.and.arrow.down", tint: RoomTheme.gold)
             }
-            Button { retryExport = false; statusKey = nil; isImportingFile = true } label: {
+            Button { importingNativeSave = false; retryExport = false; statusKey = nil; isImportingFile = true } label: {
                 Label(GameStrings.text("saveTransfer.chooseFile"), systemImage: "doc.badge.arrow.up")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(SaveTransferOutlineButtonStyle(tint: RoomTheme.gold, fill: RoomTheme.rewardPaper))
             .disabled(busy).accessibilityIdentifier("saveImportButton")
+            #if os(macOS) && APP_STORE
+            Text(GameStrings.text("mac.migration.importHint"))
+                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button { chooseNativeSave() } label: {
+                Label(GameStrings.text("mac.migration.choose"), systemImage: "folder.badge.questionmark")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SaveTransferOutlineButtonStyle(tint: RoomTheme.gold, fill: RoomTheme.rewardPaper))
+            .disabled(busy).accessibilityIdentifier("saveImportNativeMacButton")
+            #endif
         }
         .padding(16).gameCard(cornerRadius: 28)
     }
@@ -343,7 +373,7 @@ struct SaveManagementView: View {
                     SaveTransferNotice(text: GameStrings.text("saveTransfer.failureNewerIntro"), symbol: "arrow.up.circle.fill", tint: RoomTheme.gold)
                 }
                 SaveTransferPostcard(filename: candidate.filename, byteCount: candidate.byteCount,
-                    subtitle: recoveryOnly ? GameStrings.format("saveTransfer.previewIdentity", SaveTransferPresentation.player(candidate.archive.snapshot), dateText(candidate.archive.exportedAt)) : nil,
+                    subtitle: recoveryOnly ? GameStrings.format(candidate.isNativeSave ? "mac.migration.previewIdentity" : "saveTransfer.previewIdentity", SaveTransferPresentation.player(candidate.archive.snapshot), dateText(candidate.archive.exportedAt)) : nil,
                     snapshot: recoveryOnly ? candidate.archive.snapshot : nil, isRecovery: candidate.isRecovery)
                 if !recoveryOnly, let current = store.snapshot {
                     SaveTransferComparisonView(current: current, incoming: candidate.archive.snapshot,
@@ -452,16 +482,42 @@ struct SaveManagementView: View {
         isExportingFile = true
     }
 
-    private func readImport(_ url: URL) {
+    #if os(macOS) && APP_STORE
+    private func chooseNativeSave() {
+        guard !busy else { return }
+        importingNativeSave = true; retryExport = false; statusKey = nil
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
+        panel.allowedContentTypes = [.json]
+        panel.message = GameStrings.text("mac.migration.pickerHint")
+        panel.prompt = GameStrings.text("mac.migration.choose")
+        if let record = getpwuid(getuid()), let path = record.pointee.pw_dir {
+            let home = String(cString: path)
+            if home.hasPrefix("/") {
+                panel.directoryURL = URL(fileURLWithPath: home, isDirectory: true)
+                    .appendingPathComponent("Library/Application Support/CatLifeMac", isDirectory: true)
+            }
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        readImport(url, nativeSave: true)
+    }
+    #endif
+
+    private func readImport(_ url: URL, nativeSave: Bool = false) {
         retryExport = false
+        importingNativeSave = nativeSave
+        let currentSaveDirectory = nativeSave ? store.saveDirectory : nil
         setWorking(true); statusKey = nil
         Task {
             defer { setWorking(false) }
             do {
-                let selection = try await Task.detached { try SaveArchiveFiles.readSelection(url) }.value
+                let selection = try await Task.detached {
+                    try SaveArchiveFiles.readSelection(url, nativeSave: nativeSave, currentSaveDirectory: currentSaveDirectory)
+                }.value
                 if !recoveryOnly { await refreshRecovery() }
                 showPreview(ImportPreview(archive: selection.archive, filename: selection.filename,
-                                          byteCount: selection.byteCount, isRecovery: false))
+                                          byteCount: selection.byteCount, isRecovery: false, isNativeSave: nativeSave))
             } catch { report(error) }
         }
     }
@@ -474,7 +530,7 @@ struct SaveManagementView: View {
             defer { setWorking(false) }
             await refreshRecovery()
             if let recovery {
-                showPreview(ImportPreview(archive: recovery, filename: GameStrings.text("saveTransfer.recoveryTitle"), byteCount: nil, isRecovery: true))
+                showPreview(ImportPreview(archive: recovery, filename: GameStrings.text("saveTransfer.recoveryTitle"), byteCount: nil, isRecovery: true, isNativeSave: false))
             } else if recoveryUnavailable { report(SaveTransferError.readFailed) }
         }
     }
@@ -535,7 +591,14 @@ struct SaveManagementView: View {
             onRetryLoad?()
         } else if chooseAfterDismiss {
             chooseAfterDismiss = false; statusKey = nil
-            if retryExport { prepareExport() } else { isImportingFile = true }
+            if retryExport { prepareExport() }
+            else {
+                #if os(macOS) && APP_STORE
+                if importingNativeSave { chooseNativeSave() } else { isImportingFile = true }
+                #else
+                isImportingFile = true
+                #endif
+            }
         }
     }
 

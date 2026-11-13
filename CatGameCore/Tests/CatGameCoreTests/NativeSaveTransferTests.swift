@@ -34,6 +34,47 @@ struct NativeSaveTransferTests {
         #expect(archive.exportedAt == now)
     }
 
+    @Test func nativeSaveRecoveryPreservesSourceAndDestinationRecoveryPoint() async throws {
+        let sourceDirectory = try directory()
+        let destinationDirectory = try directory()
+        defer {
+            try? FileManager.default.removeItem(at: sourceDirectory)
+            try? FileManager.default.removeItem(at: destinationDirectory)
+        }
+        let source = FileSaveRepository(directory: sourceDirectory)
+        var oldProgress = GameSnapshot.fresh(now: now)
+        oldProgress.player.gold = 987
+        try await source.save(oldProgress, now: now)
+        let original = try Data(contentsOf: source.saveURL)
+        let archive = try NativeSaveTransfer.decodeNativeSave(original, now: now)
+        #expect(archive.snapshot == oldProgress)
+        try NativeSaveTransfer.validateImportTime(archive, now: now)
+
+        let destination = FileSaveRepository(directory: destinationDirectory)
+        let previous = try await destination.loadOrCreate(now: now)
+        try await destination.importSnapshot(archive.snapshot)
+        #expect(try await destination.loadOrCreate(now: now) == oldProgress)
+        #expect(try await destination.loadImportRecovery() == previous)
+        #expect(try Data(contentsOf: source.saveURL) == original)
+    }
+
+    @Test func nativeSaveRecoveryRejectsInvalidOversizedAndNewerData() throws {
+        #expect(throws: NativeSaveTransferError.invalidArchive) {
+            try NativeSaveTransfer.decodeNativeSave(Data("not JSON".utf8), now: now)
+        }
+        #expect(throws: NativeSaveTransferError.fileTooLarge) {
+            try NativeSaveTransfer.decodeNativeSave(Data(repeating: 32, count: NativeSaveTransfer.maximumFileSize + 1), now: now)
+        }
+        #expect(throws: SaveRepositoryError.unsupportedSchemaVersion(99)) {
+            try NativeSaveTransfer.decodeNativeSave(Data("{\"schemaVersion\":99}".utf8), now: now)
+        }
+        let future = try NativeSaveCodec.encoder().encode(GameSnapshot.fresh(now: now.addingTimeInterval(86_401)))
+        let archive = try NativeSaveTransfer.decodeNativeSave(future, now: now)
+        #expect(throws: NativeSaveTransferError.futureProgress) {
+            try NativeSaveTransfer.validateImportTime(archive, now: now)
+        }
+    }
+
     @Test func importTimeRejectsMoreThanOneDayAheadButDoesNotBlockExport() throws {
         let ahead = now.addingTimeInterval(86_401)
         let state = GameSnapshot.fresh(now: ahead)

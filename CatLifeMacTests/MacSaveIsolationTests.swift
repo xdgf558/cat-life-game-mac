@@ -55,6 +55,36 @@ final class MacSaveIsolationTests: XCTestCase {
         withExtendedLifetime(reopened) { XCTAssertEqual(reopened.directory, directory.standardizedFileURL.resolvingSymlinksInPath()) }
     }
 
+    func testLegacyImportRejectsCurrentSaveDirectoryAndSymlinkWithoutChangingRecovery() throws {
+        let root = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let current = root.appendingPathComponent("CatLifeMac", isDirectory: true)
+        try FileManager.default.createDirectory(at: current, withIntermediateDirectories: true)
+        let save = current.appendingPathComponent("cat-life-native-v1.json")
+        let recovery = current.appendingPathComponent("cat-life-before-import.json")
+        let saveData = Data("current-save-sentinel".utf8)
+        let recoveryData = Data("recovery-sentinel".utf8)
+        try saveData.write(to: save)
+        try recoveryData.write(to: recovery)
+        let alias = root.appendingPathComponent("alias", isDirectory: true)
+        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: current)
+
+        for selected in [save, recovery, alias.appendingPathComponent(save.lastPathComponent)] {
+            XCTAssertThrowsError(try SaveArchiveFiles.readSelection(selected, nativeSave: true, currentSaveDirectory: current)) {
+                XCTAssertEqual($0 as? SaveTransferError, .currentSandboxSave)
+            }
+        }
+        let nested = current.appendingPathComponent("nested/other.json")
+        let sibling = root.appendingPathComponent("CatLifeMac-other/cat-life-native-v1.json")
+        XCTAssertTrue(SaveArchiveFiles.isInside(nested, directory: current))
+        XCTAssertFalse(SaveArchiveFiles.isInside(sibling, directory: current))
+        XCTAssertThrowsError(try SaveArchiveFiles.readSelection(save, nativeSave: true)) {
+            XCTAssertEqual($0 as? SaveTransferError, .readFailed)
+        }
+        XCTAssertEqual(try Data(contentsOf: save), saveData)
+        XCTAssertEqual(try Data(contentsOf: recovery), recoveryData)
+    }
+
     #if DEBUG
     func testUITestResetPreservesTheHeldLockInode() throws {
         let directory = temporaryDirectory()

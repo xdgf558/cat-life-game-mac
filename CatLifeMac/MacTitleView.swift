@@ -271,7 +271,7 @@ struct MacTitleView: View {
     }
     private var footer: some View {
         HStack(spacing: 16) {
-            Label(GameStrings.text(store.hasSaveFailure ? "mac.save.failed" : "mac.save.steamOffline"),
+            Label(GameStrings.text(store.hasSaveFailure ? "mac.save.failed" : "mac.save.location"),
                   systemImage: store.hasSaveFailure ? "exclamationmark.triangle.fill" : "externaldrive.fill")
             Text(AppVersion.current.localizedDisplay)
             Label(GameStrings.text("mac.title.v2.language"), systemImage: "character.bubble.fill")

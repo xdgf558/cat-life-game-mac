@@ -15,6 +15,8 @@ python3 -B scripts/check_runtime_assets.py
 open CatLifeMac.xcodeproj
 ```
 
-选择 `CatLifeMac` scheme 和 `My Mac` 即可构建。新增源码后用 `ruby scripts/generate_project.rb` 更新工程（需要 `xcodeproj` Ruby gem）。
+选择 `CatLifeMac` scheme 和 `My Mac` 即可构建；该方案用于现有非沙盒构建。`CatLifeMac-AppStore` scheme 用于沙盒运行与 App Store 归档。新增源码后用 `ruby scripts/generate_project.rb` 更新工程（需要 `xcodeproj` Ruby gem）。
+
+App Store 版使用独立的沙盒存档。迁移已有进度时，先从旧版导出备份，再在 App Store 版的「载入备份」中导入；原有存档不会自动移动或删除。
 
 后续 Mac 功能、修复和发布统一在本仓库提交。

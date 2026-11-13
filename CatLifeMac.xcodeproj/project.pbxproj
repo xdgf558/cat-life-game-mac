@@ -271,6 +271,7 @@
 		0C4BAC92723639F51E3E81909528026F /* GameStrings+MacContent69.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+MacContent69.swift"; path = "Localization/GameStrings+MacContent69.swift"; sourceTree = "<group>"; };
 		0DAF5641048850BEE3E721FE9995A4DA /* CatArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatArtwork.swift; path = Scene/CatArtwork.swift; sourceTree = "<group>"; };
 		0FD52ACDDB37956987DCBBC56A965F28 /* RoomFurnitureContact68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomFurnitureContact68.swift; path = Scene/RoomFurnitureContact68.swift; sourceTree = "<group>"; };
+		1095B80549300419F8D6EDC59EDCC1AC /* CatLifeMac-AppStore.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = "CatLifeMac-AppStore.entitlements"; sourceTree = "<group>"; };
 		12DC8400AB4093F23AFE76B6710F9CB3 /* GameStrings+Handoff61.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Handoff61.swift"; path = "Localization/GameStrings+Handoff61.swift"; sourceTree = "<group>"; };
 		12DCAB73F2CDE8504689CC98763DBCBF /* GameStore+SharedHomeNotices.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStore+SharedHomeNotices.swift"; path = "Store/GameStore+SharedHomeNotices.swift"; sourceTree = "<group>"; };
 		16B74F93622CBC7E4E3A8064EB73644F /* CatActor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatActor.swift; path = Scene/CatActor.swift; sourceTree = "<group>"; };
@@ -807,6 +808,7 @@
 				A076C6274FA3A75927A2C5318E89C23F /* MacTownView.swift */,
 				FD395C46C5FB77E538DA406A5BD8DE0A /* MacWindowController.swift */,
 				8EAB06E50A2DB10B1394F617A2317CF7 /* MacWorkView.swift */,
+				1095B80549300419F8D6EDC59EDCC1AC /* CatLifeMac-AppStore.entitlements */,
 				60EA52547D2F968D93E5F3B460E47D76 /* Assets.xcassets */,
 			);
 			name = CatLifeMac;
@@ -1242,6 +1244,101 @@
 			};
 			name = Release;
 		};
+		23AB73ACCC4DF60E585BBC7D3E5725E6 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = AppStore;
+		};
+		30FA5942F3FE372E11E2E8AA06DD46A9 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = MacAppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "CatLifeMac/CatLifeMac-AppStore.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CatLifeMac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stationcat.catlife.mac;
+				PRODUCT_NAME = CatLifeMac;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = AppStore;
+		};
+		4C2B676AEA173AEBD1F3639F091ED511 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stationcat.catlife.mac.tests;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CatLifeMac.app/Contents/MacOS/CatLifeMac";
+			};
+			name = AppStore;
+		};
 		4FA9E233462C5D61E6A6F1C9DFC4DDF1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1374,6 +1471,20 @@
 			};
 			name = Debug;
 		};
+		D99565D8F4FAAADCF9945534465BCD85 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stationcat.catlife.mac.uitests;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CatLifeMac;
+			};
+			name = AppStore;
+		};
 		E2C741E733AEB4509C058200AA44EE05 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1458,6 +1569,7 @@
 			buildConfigurations = (
 				11D5C2392817D6704E3030414EBB49B9 /* Release */,
 				A4BB6E08FEE69A80C18340DF175812FC /* Debug */,
+				4C2B676AEA173AEBD1F3639F091ED511 /* AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1467,6 +1579,7 @@
 			buildConfigurations = (
 				F221EFCD463881C29EA2CE148DDA0026 /* Debug */,
 				4FA9E233462C5D61E6A6F1C9DFC4DDF1 /* Release */,
+				23AB73ACCC4DF60E585BBC7D3E5725E6 /* AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1476,6 +1589,7 @@
 			buildConfigurations = (
 				96207B5D725E24F37B8EEB346231651A /* Release */,
 				B98F1E0424154A494ABC851FC7D324C3 /* Debug */,
+				30FA5942F3FE372E11E2E8AA06DD46A9 /* AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1485,6 +1599,7 @@
 			buildConfigurations = (
 				A214968A40FE1B36621EACE771470B22 /* Release */,
 				E2C741E733AEB4509C058200AA44EE05 /* Debug */,
+				D99565D8F4FAAADCF9945534465BCD85 /* AppStore */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

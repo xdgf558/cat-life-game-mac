@@ -1,0 +1,5031 @@
+{
+  "assetCount" : 105,
+  "assets" : [
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080219268798828,
+        "height" : 1.5,
+        "width" : 1.453125
+      },
+      "alphaBounds" : {
+        "height" : 343,
+        "width" : 294,
+        "x" : 365,
+        "y" : 542
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cabinet-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 341,
+        "width" : 296,
+        "x" : 364,
+        "y" : 543
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cabinet-left-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080220460891724,
+        "height" : 1.5,
+        "width" : 1.4531251192092896
+      },
+      "alphaBounds" : {
+        "height" : 343,
+        "width" : 294,
+        "x" : 365,
+        "y" : 542
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-left-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cabinet-left-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 341,
+        "width" : 296,
+        "x" : 364,
+        "y" : 543
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cabinet-left-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080219268798828,
+        "height" : 1.5,
+        "width" : 1.453125
+      },
+      "alphaBounds" : {
+        "height" : 333,
+        "width" : 292,
+        "x" : 366,
+        "y" : 547
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cabinet-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 341,
+        "width" : 280,
+        "x" : 372,
+        "y" : 543
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cabinet-front-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080220460891724,
+        "height" : 1.5,
+        "width" : 1.4531251192092896
+      },
+      "alphaBounds" : {
+        "height" : 333,
+        "width" : 292,
+        "x" : 366,
+        "y" : 547
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-front-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cabinet-front-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 341,
+        "width" : 280,
+        "x" : 372,
+        "y" : 543
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cabinet-front-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080219268798828,
+        "height" : 1.5,
+        "width" : 1.453125
+      },
+      "alphaBounds" : {
+        "height" : 313,
+        "width" : 264,
+        "x" : 380,
+        "y" : 558
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cabinet-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 330,
+        "width" : 244,
+        "x" : 386,
+        "y" : 550
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cabinet-right-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4080220460891724,
+        "height" : 1.5,
+        "width" : 1.4531251192092896
+      },
+      "alphaBounds" : {
+        "height" : 313,
+        "width" : 264,
+        "x" : 380,
+        "y" : 558
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-right-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cabinet-right-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.21875,
+        "width" : 1.453125
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.4531250596046448,
+        "height" : 1.5,
+        "width" : 1.4080219864845276
+      },
+      "alphaBounds" : {
+        "height" : 330,
+        "width" : 244,
+        "x" : 394,
+        "y" : 550
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cabinet-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cabinet-right-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.453125,
+        "width" : 1.21875
+      },
+      "kind" : "cabinet",
+      "modelScale" : {
+        "x" : 0.7265625,
+        "y" : 1,
+        "z" : 1.21875
+      },
+      "sourceAssetName" : "furniture-cabinet",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140625238418579
+      },
+      "alphaBounds" : {
+        "height" : 468,
+        "width" : 300,
+        "x" : 363,
+        "y" : 416
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-bookcase-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 466,
+        "width" : 303,
+        "x" : 359,
+        "y" : 417
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-bookcase-left-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875001192092896,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140626430511475
+      },
+      "alphaBounds" : {
+        "height" : 470,
+        "width" : 300,
+        "x" : 361,
+        "y" : 414
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-left-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-bookcase-left-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 468,
+        "width" : 303,
+        "x" : 362,
+        "y" : 415
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-bookcase-left-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140625238418579
+      },
+      "alphaBounds" : {
+        "height" : 458,
+        "width" : 302,
+        "x" : 362,
+        "y" : 421
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-bookcase-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 468,
+        "width" : 283,
+        "x" : 369,
+        "y" : 416
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-bookcase-front-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875001192092896,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140626430511475
+      },
+      "alphaBounds" : {
+        "height" : 459,
+        "width" : 302,
+        "x" : 360,
+        "y" : 420
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-front-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-bookcase-front-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 469,
+        "width" : 283,
+        "x" : 372,
+        "y" : 415
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-bookcase-front-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140625238418579
+      },
+      "alphaBounds" : {
+        "height" : 434,
+        "width" : 275,
+        "x" : 375,
+        "y" : 434
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-bookcase-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 458,
+        "width" : 235,
+        "x" : 393,
+        "y" : 422
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-bookcase-right-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1875001192092896,
+        "height" : 2.3999998569488525,
+        "width" : 1.5140626430511475
+      },
+      "alphaBounds" : {
+        "height" : 436,
+        "width" : 275,
+        "x" : 374,
+        "y" : 432
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-right-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-bookcase-right-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.1875,
+        "width" : 1.484375
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5140625238418579,
+        "height" : 2.3999998569488525,
+        "width" : 1.1875000596046448
+      },
+      "alphaBounds" : {
+        "height" : 458,
+        "width" : 235,
+        "x" : 396,
+        "y" : 422
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-bookcase-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-bookcase-right-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.484375,
+        "width" : 1.1875
+      },
+      "kind" : "bookcase",
+      "modelScale" : {
+        "x" : 0.7421875,
+        "y" : 1,
+        "z" : 1.1875
+      },
+      "sourceAssetName" : "furniture-bookcase",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.233203113079071,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406249403953552
+      },
+      "alphaBounds" : {
+        "height" : 609,
+        "width" : 198,
+        "x" : 413,
+        "y" : 258
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-tree-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 595,
+        "width" : 201,
+        "x" : 420,
+        "y" : 272
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cat-tree-left-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.2332032322883606,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406250596046448
+      },
+      "alphaBounds" : {
+        "height" : 570,
+        "width" : 198,
+        "x" : 413,
+        "y" : 297
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-left-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cat-tree-left-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 585,
+        "width" : 201,
+        "x" : 403,
+        "y" : 282
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cat-tree-left-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.233203113079071,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406249403953552
+      },
+      "alphaBounds" : {
+        "height" : 610,
+        "width" : 192,
+        "x" : 416,
+        "y" : 257
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-tree-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 587,
+        "width" : 204,
+        "x" : 419,
+        "y" : 279
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cat-tree-front-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.2332032322883606,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406250596046448
+      },
+      "alphaBounds" : {
+        "height" : 569,
+        "width" : 192,
+        "x" : 416,
+        "y" : 298
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-front-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cat-tree-front-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 590,
+        "width" : 204,
+        "x" : 401,
+        "y" : 276
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cat-tree-front-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.233203113079071,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406249403953552
+      },
+      "alphaBounds" : {
+        "height" : 609,
+        "width" : 183,
+        "x" : 420,
+        "y" : 258
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-tree-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 581,
+        "width" : 202,
+        "x" : 419,
+        "y" : 285
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-cat-tree-right-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.2332032322883606,
+        "height" : 3.7580001354217529,
+        "width" : 1.1406250596046448
+      },
+      "alphaBounds" : {
+        "height" : 571,
+        "width" : 183,
+        "x" : 421,
+        "y" : 296
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-right-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-cat-tree-right-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.28125,
+        "width" : 1.25
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1406249403953552,
+        "height" : 3.7580001354217529,
+        "width" : 1.233203113079071
+      },
+      "alphaBounds" : {
+        "height" : 596,
+        "width" : 202,
+        "x" : 403,
+        "y" : 270
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-tree-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-cat-tree-right-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.28125
+      },
+      "kind" : "catTree",
+      "modelScale" : {
+        "x" : 0.625,
+        "y" : 1,
+        "z" : 0.640625
+      },
+      "sourceAssetName" : "furniture-cat-tree",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 2.1150000095367432,
+        "height" : 0.625,
+        "width" : 2.1443750858306885
+      },
+      "alphaBounds" : {
+        "height" : 245,
+        "width" : 340,
+        "x" : 342,
+        "y" : 661
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-bed-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-bed-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 2.25,
+        "width" : 2.28125
+      },
+      "kind" : "catBed",
+      "modelScale" : {
+        "x" : 1.140625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-cat-bed",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 413.01311151430912,
+          "y" : 705.3200379300124
+        },
+        "frontEntrySurface" : {
+          "x" : 610.98688848569088,
+          "y" : 798.01336044398681
+        },
+        "leftEntrySurface" : {
+          "x" : 421.63391084547698,
+          "y" : 803.85478814321516
+        },
+        "rightEntrySurface" : {
+          "x" : 602.36608915452302,
+          "y" : 699.47861023078406
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 759.86669561039821
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : 0.83249998092651367
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : -0.83249998092651367
+        },
+        "leftEntrySurface" : {
+          "x" : -0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.43999999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 2.1150000095367432,
+        "height" : 0.625,
+        "width" : 2.1443750858306885
+      },
+      "alphaBounds" : {
+        "height" : 245,
+        "width" : 342,
+        "x" : 341,
+        "y" : 661
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-bed-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-bed-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 2.25,
+        "width" : 2.28125
+      },
+      "kind" : "catBed",
+      "modelScale" : {
+        "x" : 1.140625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-cat-bed",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 445.40000152587891,
+          "y" : 691.68231699358216
+        },
+        "frontEntrySurface" : {
+          "x" : 578.59999847412109,
+          "y" : 811.65108138041705
+        },
+        "leftEntrySurface" : {
+          "x" : 395.04326822782411,
+          "y" : 786.77969948454597
+        },
+        "rightEntrySurface" : {
+          "x" : 628.95673177217589,
+          "y" : 716.55369888945324
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 759.86669561039821
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : 0.83249998092651367
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : -0.83249998092651367
+        },
+        "leftEntrySurface" : {
+          "x" : -0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.43999999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 2.1150000095367432,
+        "height" : 0.625,
+        "width" : 2.1443750858306885
+      },
+      "alphaBounds" : {
+        "height" : 238,
+        "width" : 344,
+        "x" : 340,
+        "y" : 668
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-cat-bed-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-cat-bed-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 2.25,
+        "width" : 2.28125
+      },
+      "kind" : "catBed",
+      "modelScale" : {
+        "x" : 1.140625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-cat-bed",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 484.30616341757059,
+          "y" : 683.91628532200946
+        },
+        "frontEntrySurface" : {
+          "x" : 539.69383658242941,
+          "y" : 819.41711305198976
+        },
+        "leftEntrySurface" : {
+          "x" : 379.90116540149847,
+          "y" : 766.26750571009427
+        },
+        "rightEntrySurface" : {
+          "x" : 644.09883459850153,
+          "y" : 737.06589266390483
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 759.86669561039821
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : 0.83249998092651367
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.5,
+          "z" : -0.83249998092651367
+        },
+        "leftEntrySurface" : {
+          "x" : -0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.84406250715255737,
+          "y" : 0.5,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.43999999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1625000238418579,
+        "height" : 0.28750002384185791,
+        "width" : 1.1189062595367432
+      },
+      "alphaBounds" : {
+        "height" : 103,
+        "width" : 184,
+        "x" : 420,
+        "y" : 749
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-floor-cushion-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-floor-cushion-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.203125
+      },
+      "kind" : "floorCushion",
+      "modelScale" : {
+        "x" : 0.6015625,
+        "y" : 1,
+        "z" : 0.625
+      },
+      "sourceAssetName" : "furniture-floor-cushion",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 454.03470573891764,
+          "y" : 763.34434944288012
+        },
+        "frontEntrySurface" : {
+          "x" : 569.96529426108236,
+          "y" : 817.6242222397367
+        },
+        "leftEntrySurface" : {
+          "x" : 461.76502176963328,
+          "y" : 819.49591550381342
+        },
+        "rightEntrySurface" : {
+          "x" : 562.23497823036678,
+          "y" : 761.47265617880339
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 781.80168380284931
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : 0.48749998211860657
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : -0.48749998211860657
+        },
+        "leftEntrySurface" : {
+          "x" : -0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.27950000762939453,
+          "z" : 0
+        }
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1625000238418579,
+        "height" : 0.28750002384185791,
+        "width" : 1.1189062595367432
+      },
+      "alphaBounds" : {
+        "height" : 104,
+        "width" : 182,
+        "x" : 421,
+        "y" : 749
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-floor-cushion-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-floor-cushion-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.203125
+      },
+      "kind" : "floorCushion",
+      "modelScale" : {
+        "x" : 0.6015625,
+        "y" : 1,
+        "z" : 0.625
+      },
+      "sourceAssetName" : "furniture-floor-cushion",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 473.00000143051147,
+          "y" : 755.35829675222521
+        },
+        "frontEntrySurface" : {
+          "x" : 550.99999856948853,
+          "y" : 825.6102749303916
+        },
+        "leftEntrySurface" : {
+          "x" : 446.98314545378304,
+          "y" : 810.00378504785135
+        },
+        "rightEntrySurface" : {
+          "x" : 577.0168545462169,
+          "y" : 770.96478663476546
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 781.80168380284931
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : 0.48749998211860657
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : -0.48749998211860657
+        },
+        "leftEntrySurface" : {
+          "x" : -0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.27950000762939453,
+          "z" : 0
+        }
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1625000238418579,
+        "height" : 0.28750002384185791,
+        "width" : 1.1189062595367432
+      },
+      "alphaBounds" : {
+        "height" : 104,
+        "width" : 180,
+        "x" : 422,
+        "y" : 749
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-floor-cushion-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-floor-cushion-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.25,
+        "width" : 1.203125
+      },
+      "kind" : "floorCushion",
+      "modelScale" : {
+        "x" : 0.6015625,
+        "y" : 1,
+        "z" : 0.625
+      },
+      "sourceAssetName" : "furniture-floor-cushion",
+      "state" : "default",
+      "surfacePixels" : {
+        "backEntrySurface" : {
+          "x" : 495.78288871105491,
+          "y" : 750.8106206107667
+        },
+        "frontEntrySurface" : {
+          "x" : 528.21711128894515,
+          "y" : 830.15795107185022
+        },
+        "leftEntrySurface" : {
+          "x" : 438.56557185997912,
+          "y" : 798.60095000920489
+        },
+        "rightEntrySurface" : {
+          "x" : 585.43442814002083,
+          "y" : 782.36762167341192
+        },
+        "seatCenter" : {
+          "x" : 512,
+          "y" : 781.80168380284931
+        }
+      },
+      "surfaceWorldPoints" : {
+        "backEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : 0.48749998211860657
+        },
+        "frontEntrySurface" : {
+          "x" : 0,
+          "y" : 0.21596874296665192,
+          "z" : -0.48749998211860657
+        },
+        "leftEntrySurface" : {
+          "x" : -0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "rightEntrySurface" : {
+          "x" : 0.46921873092651367,
+          "y" : 0.21596874296665192,
+          "z" : 0
+        },
+        "seatCenter" : {
+          "x" : 0,
+          "y" : 0.27950000762939453,
+          "z" : 0
+        }
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0268648862838745,
+        "height" : 0.94800001382827759,
+        "width" : 0.93836691975593567
+      },
+      "alphaBounds" : {
+        "height" : 192,
+        "width" : 158,
+        "x" : 435,
+        "y" : 663
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-flower-stool-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-flower-stool-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.0625,
+        "width" : 0.984375
+      },
+      "kind" : "flowerStool",
+      "modelScale" : {
+        "x" : 0.984375,
+        "y" : 1,
+        "z" : 1.0625
+      },
+      "sourceAssetName" : "furniture-flower-stool",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0268648862838745,
+        "height" : 0.94800001382827759,
+        "width" : 0.93836691975593567
+      },
+      "alphaBounds" : {
+        "height" : 193,
+        "width" : 156,
+        "x" : 433,
+        "y" : 662
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-flower-stool-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-flower-stool-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.0625,
+        "width" : 0.984375
+      },
+      "kind" : "flowerStool",
+      "modelScale" : {
+        "x" : 0.984375,
+        "y" : 1,
+        "z" : 1.0625
+      },
+      "sourceAssetName" : "furniture-flower-stool",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0268648862838745,
+        "height" : 0.94800001382827759,
+        "width" : 0.93836691975593567
+      },
+      "alphaBounds" : {
+        "height" : 188,
+        "width" : 154,
+        "x" : 435,
+        "y" : 663
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-flower-stool-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-flower-stool-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.0625,
+        "width" : 0.984375
+      },
+      "kind" : "flowerStool",
+      "modelScale" : {
+        "x" : 0.984375,
+        "y" : 1,
+        "z" : 1.0625
+      },
+      "sourceAssetName" : "furniture-flower-stool",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.66830074787139893,
+        "height" : 2.0740716457366943,
+        "width" : 0.53030842542648315
+      },
+      "alphaBounds" : {
+        "height" : 297,
+        "width" : 80,
+        "x" : 472,
+        "y" : 536
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-plant-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-plant-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 0.65625,
+        "width" : 0.546875
+      },
+      "kind" : "plant",
+      "modelScale" : {
+        "x" : 0.546875,
+        "y" : 1,
+        "z" : 0.65625
+      },
+      "sourceAssetName" : "furniture-plant",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.66830074787139893,
+        "height" : 2.0740716457366943,
+        "width" : 0.53030842542648315
+      },
+      "alphaBounds" : {
+        "height" : 298,
+        "width" : 74,
+        "x" : 475,
+        "y" : 535
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-plant-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-plant-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 0.65625,
+        "width" : 0.546875
+      },
+      "kind" : "plant",
+      "modelScale" : {
+        "x" : 0.546875,
+        "y" : 1,
+        "z" : 0.65625
+      },
+      "sourceAssetName" : "furniture-plant",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.66830074787139893,
+        "height" : 2.0740716457366943,
+        "width" : 0.53030842542648315
+      },
+      "alphaBounds" : {
+        "height" : 299,
+        "width" : 73,
+        "x" : 476,
+        "y" : 535
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-plant-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-plant-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 0.65625,
+        "width" : 0.546875
+      },
+      "kind" : "plant",
+      "modelScale" : {
+        "x" : 0.546875,
+        "y" : 1,
+        "z" : 0.65625
+      },
+      "sourceAssetName" : "furniture-plant",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587499141693115,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281248331069946
+      },
+      "alphaBounds" : {
+        "height" : 344,
+        "width" : 196,
+        "x" : 411,
+        "y" : 525
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-rattan-chair-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 346,
+        "width" : 195,
+        "x" : 418,
+        "y" : 523
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-rattan-chair-left-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587500333786011,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281260251998901
+      },
+      "alphaBounds" : {
+        "height" : 300,
+        "width" : 196,
+        "x" : 417,
+        "y" : 569
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-left-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-rattan-chair-left-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 297,
+        "width" : 195,
+        "x" : 411,
+        "y" : 572
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-rattan-chair-left-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587499141693115,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281248331069946
+      },
+      "alphaBounds" : {
+        "height" : 348,
+        "width" : 193,
+        "x" : 413,
+        "y" : 521
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-rattan-chair-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 338,
+        "width" : 190,
+        "x" : 419,
+        "y" : 529
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-rattan-chair-front-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587500333786011,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281260251998901
+      },
+      "alphaBounds" : {
+        "height" : 292,
+        "width" : 193,
+        "x" : 418,
+        "y" : 577
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-front-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-rattan-chair-front-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 305,
+        "width" : 190,
+        "x" : 415,
+        "y" : 562
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-rattan-chair-front-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587499141693115,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281248331069946
+      },
+      "alphaBounds" : {
+        "height" : 346,
+        "width" : 175,
+        "x" : 424,
+        "y" : 518
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-rattan-chair-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 323,
+        "width" : 170,
+        "x" : 427,
+        "y" : 538
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-rattan-chair-right-left.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0587500333786011,
+        "height" : 1.9626091718673706,
+        "width" : 0.96281260251998901
+      },
+      "alphaBounds" : {
+        "height" : 282,
+        "width" : 175,
+        "x" : 425,
+        "y" : 582
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-right-back",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "back",
+      "fileName" : "furniture-rattan-chair-right-back.png",
+      "footprintDimensions" : {
+        "depth" : 1.375,
+        "width" : 1.234375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.96281254291534424,
+        "height" : 1.9626091718673706,
+        "width" : 1.0587500333786011
+      },
+      "alphaBounds" : {
+        "height" : 310,
+        "width" : 170,
+        "x" : 427,
+        "y" : 551
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-rattan-chair-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-rattan-chair-right-right.png",
+      "footprintDimensions" : {
+        "depth" : 1.234375,
+        "width" : 1.375
+      },
+      "kind" : "rattanChair",
+      "modelScale" : {
+        "x" : 0.6171875,
+        "y" : 1,
+        "z" : 0.6875
+      },
+      "sourceAssetName" : "furniture-rattan-chair",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0912500619888306,
+        "height" : 1.1750000715255737,
+        "width" : 1.0306249856948853
+      },
+      "alphaBounds" : {
+        "height" : 232,
+        "width" : 172,
+        "x" : 426,
+        "y" : 615
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-side-table-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-side-table-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.125,
+        "width" : 1.0625
+      },
+      "kind" : "sideTable",
+      "modelScale" : {
+        "x" : 1.0625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-side-table",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0912500619888306,
+        "height" : 1.1750000715255737,
+        "width" : 1.0306249856948853
+      },
+      "alphaBounds" : {
+        "height" : 232,
+        "width" : 168,
+        "x" : 428,
+        "y" : 615
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-side-table-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-side-table-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.125,
+        "width" : 1.0625
+      },
+      "kind" : "sideTable",
+      "modelScale" : {
+        "x" : 1.0625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-side-table",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.0912500619888306,
+        "height" : 1.1750000715255737,
+        "width" : 1.0306249856948853
+      },
+      "alphaBounds" : {
+        "height" : 233,
+        "width" : 166,
+        "x" : 429,
+        "y" : 614
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-side-table-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-side-table-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1.125,
+        "width" : 1.0625
+      },
+      "kind" : "sideTable",
+      "modelScale" : {
+        "x" : 1.0625,
+        "y" : 1,
+        "z" : 1.125
+      },
+      "sourceAssetName" : "furniture-side-table",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-empty-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-empty-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-empty",
+      "state" : "empty",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 803.60000817144828
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.11999999731779099,
+          "z" : 0
+        }
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-empty-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-empty-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-empty",
+      "state" : "empty",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 803.60000817144828
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.11999999731779099,
+          "z" : 0
+        }
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-empty-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-empty-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-empty",
+      "state" : "empty",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 803.60000817144828
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.11999999731779099,
+          "z" : 0
+        }
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-full-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-full-left-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-full",
+      "state" : "full",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 802.5750086185235
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.12749999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "left",
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-full-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-full-front-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-full",
+      "state" : "full",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 802.5750086185235
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.12749999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "front",
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.68000000715255737,
+        "height" : 0.21000000834465027,
+        "width" : 0.68000000715255737
+      },
+      "alphaBounds" : {
+        "height" : 81,
+        "width" : 110,
+        "x" : 457,
+        "y" : 767
+      },
+      "anchorKind" : "footprintGroundCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "bowl-full-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "bowl-full-right-front.png",
+      "footprintDimensions" : {
+        "depth" : 1,
+        "width" : 1
+      },
+      "kind" : "bowl",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "sourceAssetName" : "bowl-full",
+      "state" : "full",
+      "surfacePixels" : {
+        "foodSurfaceCenter" : {
+          "x" : 512,
+          "y" : 802.5750086185235
+        }
+      },
+      "surfaceWorldPoints" : {
+        "foodSurfaceCenter" : {
+          "x" : 0,
+          "y" : 0.12749999761581421,
+          "z" : 0
+        }
+      },
+      "view" : "right",
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 205,
+        "width" : 176,
+        "x" : 426,
+        "y" : 721
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-cat-left-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 248,
+        "width" : 108,
+        "x" : 464,
+        "y" : 698
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-cat-left-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 216,
+        "width" : 170,
+        "x" : 424,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-cat-left-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 179,
+        "width" : 176,
+        "x" : 424,
+        "y" : 734
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-cat-front-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 236,
+        "width" : 146,
+        "x" : 444,
+        "y" : 705
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-cat-front-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 235,
+        "width" : 146,
+        "x" : 434,
+        "y" : 705
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-cat-front-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 205,
+        "width" : 176,
+        "x" : 422,
+        "y" : 721
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-cat-right-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 216,
+        "width" : 170,
+        "x" : 430,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-cat-right-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 248,
+        "width" : 108,
+        "x" : 452,
+        "y" : 698
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-cat-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-cat-right-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallCat",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-cat",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 205,
+        "width" : 176,
+        "x" : 426,
+        "y" : 721
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-flower-left-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 248,
+        "width" : 108,
+        "x" : 464,
+        "y" : 698
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-flower-left-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 216,
+        "width" : 170,
+        "x" : 424,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-flower-left-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 179,
+        "width" : 176,
+        "x" : 424,
+        "y" : 734
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-flower-front-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 236,
+        "width" : 146,
+        "x" : 444,
+        "y" : 705
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-flower-front-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 235,
+        "width" : 146,
+        "x" : 434,
+        "y" : 705
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-flower-front-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.74052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.0626279711723328
+      },
+      "alphaBounds" : {
+        "height" : 205,
+        "width" : 176,
+        "x" : 422,
+        "y" : 721
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-flower-right-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.49720464646816254,
+        "height" : 1.2000000476837158,
+        "width" : 1.1194585561752319
+      },
+      "alphaBounds" : {
+        "height" : 216,
+        "width" : 170,
+        "x" : 430,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-flower-right-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.1194585561752319,
+        "height" : 1.2000000476837158,
+        "width" : 0.49720466136932373
+      },
+      "alphaBounds" : {
+        "height" : 248,
+        "width" : 108,
+        "x" : 452,
+        "y" : 698
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-flower-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-flower-right-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallFlower",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-flower",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.9405255913734436,
+        "height" : 1.1000000238418579,
+        "width" : 1.4090380072593689
+      },
+      "alphaBounds" : {
+        "height" : 201,
+        "width" : 237,
+        "x" : 396,
+        "y" : 723
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-sunrise-left-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.6007322371006012,
+        "height" : 1.1000000238418579,
+        "width" : 1.5058289766311646
+      },
+      "alphaBounds" : {
+        "height" : 264,
+        "width" : 137,
+        "x" : 450,
+        "y" : 690
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-sunrise-left-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5058289766311646,
+        "height" : 1.1000000238418579,
+        "width" : 0.60073226690292358
+      },
+      "alphaBounds" : {
+        "height" : 217,
+        "width" : 227,
+        "x" : 395,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-sunrise-left-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.9405255913734436,
+        "height" : 1.1000000238418579,
+        "width" : 1.4090380072593689
+      },
+      "alphaBounds" : {
+        "height" : 165,
+        "width" : 240,
+        "x" : 392,
+        "y" : 741
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-sunrise-front-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.6007322371006012,
+        "height" : 1.1000000238418579,
+        "width" : 1.5058289766311646
+      },
+      "alphaBounds" : {
+        "height" : 245,
+        "width" : 190,
+        "x" : 422,
+        "y" : 700
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-sunrise-front-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5058289766311646,
+        "height" : 1.1000000238418579,
+        "width" : 0.60073226690292358
+      },
+      "alphaBounds" : {
+        "height" : 245,
+        "width" : 190,
+        "x" : 412,
+        "y" : 700
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-sunrise-front-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.9405255913734436,
+        "height" : 1.1000000238418579,
+        "width" : 1.4090380072593689
+      },
+      "alphaBounds" : {
+        "height" : 201,
+        "width" : 237,
+        "x" : 391,
+        "y" : 723
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-wall-sunrise-right-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.6007322371006012,
+        "height" : 1.1000000238418579,
+        "width" : 1.5058289766311646
+      },
+      "alphaBounds" : {
+        "height" : 218,
+        "width" : 227,
+        "x" : 402,
+        "y" : 714
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-wall-sunrise-right-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.5058289766311646,
+        "height" : 1.1000000238418579,
+        "width" : 0.60073226690292358
+      },
+      "alphaBounds" : {
+        "height" : 264,
+        "width" : 137,
+        "x" : 437,
+        "y" : 690
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-wall-sunrise-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-wall-sunrise-right-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallSunrise",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-wall-sunrise",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.99052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.4956406354904175
+      },
+      "alphaBounds" : {
+        "height" : 217,
+        "width" : 252,
+        "x" : 388,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-left-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-town-memory-frame-left-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.62661415338516235,
+        "height" : 1.2000000476837158,
+        "width" : 1.6024215221405029
+      },
+      "alphaBounds" : {
+        "height" : 285,
+        "width" : 145,
+        "x" : 446,
+        "y" : 679
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-left-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-town-memory-frame-left-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.6024215221405029,
+        "height" : 1.2000000476837158,
+        "width" : 0.62661418318748474
+      },
+      "alphaBounds" : {
+        "height" : 235,
+        "width" : 241,
+        "x" : 388,
+        "y" : 706
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-left-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-town-memory-frame-left-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "left",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 48
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.99052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.4956406354904175
+      },
+      "alphaBounds" : {
+        "height" : 179,
+        "width" : 256,
+        "x" : 384,
+        "y" : 734
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-front-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-town-memory-frame-front-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.62661415338516235,
+        "height" : 1.2000000476837158,
+        "width" : 1.6024215221405029
+      },
+      "alphaBounds" : {
+        "height" : 265,
+        "width" : 202,
+        "x" : 416,
+        "y" : 690
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-front-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-town-memory-frame-front-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.6024215221405029,
+        "height" : 1.2000000476837158,
+        "width" : 0.62661418318748474
+      },
+      "alphaBounds" : {
+        "height" : 265,
+        "width" : 202,
+        "x" : 406,
+        "y" : 690
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-front-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-town-memory-frame-front-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "front",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 30
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.99052557349205017,
+        "height" : 1.2000000476837158,
+        "width" : 1.4956406354904175
+      },
+      "alphaBounds" : {
+        "height" : 217,
+        "width" : 252,
+        "x" : 384,
+        "y" : 715
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-right-front",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "front",
+      "fileName" : "furniture-town-memory-frame-right-front.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -29.999999999999996,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 0,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 0.62661415338516235,
+        "height" : 1.2000000476837158,
+        "width" : 1.6024215221405029
+      },
+      "alphaBounds" : {
+        "height" : 235,
+        "width" : 241,
+        "x" : 395,
+        "y" : 706
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-right-left",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "left",
+      "fileName" : "furniture-town-memory-frame-right-left.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : 14.999999999999998,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : 45,
+      "yawDegrees" : 12
+    },
+    {
+      "actualModelDimensions" : {
+        "depth" : 1.6024215221405029,
+        "height" : 1.2000000476837158,
+        "width" : 0.62661418318748474
+      },
+      "alphaBounds" : {
+        "height" : 285,
+        "width" : 145,
+        "x" : 433,
+        "y" : 679
+      },
+      "anchorKind" : "wallMountCenter",
+      "anchorPixel" : {
+        "x" : 512,
+        "y" : 820
+      },
+      "assetName" : "furniture-town-memory-frame-right-right",
+      "canvasSize" : {
+        "height" : 1024,
+        "width" : 1024
+      },
+      "facing" : "right",
+      "fileName" : "furniture-town-memory-frame-right-right.png",
+      "footprintDimensions" : null,
+      "kind" : "wallTownMemory",
+      "modelScale" : {
+        "x" : 1,
+        "y" : 1,
+        "z" : 1
+      },
+      "modelYawDegrees" : -75.000000000000014,
+      "sourceAssetName" : "furniture-town-memory-frame",
+      "state" : "default",
+      "surfacePixels" : {
+
+      },
+      "surfaceWorldPoints" : {
+
+      },
+      "view" : "right",
+      "wallSurfaceYawDegrees" : -45,
+      "yawDegrees" : 12
+    }
+  ],
+  "coordinateSystem" : {
+    "back" : "+z",
+    "front" : "-z",
+    "left" : "-x",
+    "pixels" : "top-left origin; x right, y down",
+    "right" : "+x",
+    "wallFacingMeaning" : "Wall facing is a surface, not floor rotation: front=neutral 0 degrees, left=left wall interior +45 degrees, right=right wall interior -45 degrees, relative to front-camera normal. Positive wall surface yaw points the normal toward screen right. Actual SceneKit modelYawDegrees=wallSurfaceYawDegrees-30.",
+    "world" : "x right, y up, z toward back wall"
+  },
+  "formatVersion" : 1,
+  "generator" : "CatLifeOriginalMeshRenderer-build68",
+  "projection" : {
+    "anchorPixel" : {
+      "x" : 512,
+      "y" : 820
+    },
+    "canvasSize" : {
+      "height" : 1024,
+      "width" : 1024
+    },
+    "elevationDegrees" : 31.332251497594271,
+    "elevationSin" : 0.52000000000000002,
+    "pixelsPerUnit" : 160,
+    "shadowReceiver" : false,
+    "type" : "orthographic",
+    "wallReferenceCameraYawDegrees" : 30,
+    "yawByView" : {
+      "front" : 30,
+      "left" : 48,
+      "right" : 12
+    }
+  },
+  "surfaceSemantics" : {
+    "entrySurface" : "top supporting surface at the named model-local cardinal rim; points receive the same mesh scale and facing as the image",
+    "foodSurfaceCenter" : "full: top centre of the continuous food layer; empty: visible bowl interior centre",
+    "seatCenter" : "top centre of the supporting cushion"
+  }
+}

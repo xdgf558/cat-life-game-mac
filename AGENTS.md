@@ -1,0 +1,12 @@
+# Mac 开发约定
+
+- 本仓库仅维护 Mac 版，工程 `CatLifeMac.xcodeproj`，scheme `CatLifeMac`，最低 macOS 14。不要加入 iOS 目标或发布配置。
+- 开发、修复和审查使用 `~/.codex/skills/ponytail/SKILL.md`，默认 full。改动保持最小，处理相关调用方。
+- `CatGameCore` 管玩法和存档，`CatLife` 管状态、场景与基础界面，`CatLifeMac` 管桌面交互。源码和资源均由本仓库独立维护。
+- 兼容旧存档，保存成功后才发布状态；未经授权不重置玩家进度。保持既有 Mac Bundle ID 和存档目录。
+- 文案同步简体中文、繁体中文和英语，保留键盘、VoiceOver 和减少动态效果支持。测试夹具限 DEBUG。
+- 图片、音频用 Git LFS。构建前运行资源检查，不提交原始 QA、私人路径、存档、设计包和构建产物；来源说明保留在 NOTICE.md。
+- 所有 DerivedData、Swift scratch、模块缓存和一次性编译目录放在 `/Volumes/AI作品素材/开发缓存/本机编译缓存/cat-life-game-mac/` 下。先确认外盘已挂载；未挂载就暂停，不回退到本机或项目内缓存，不移除已有缓存符号链接。
+- 用户已要求停止自动化测试：可以编译，不运行测试或自动操作游戏，手动验收由用户完成。准确区分编译与运行验证。
+- README 保持简短，不公开详细玩法数值、内部设计和 QA 过程。
+- 更新先提交 PR，未经明确授权不合并、不发布。每次加入新功能后都同步提升版本号并递增构建号（新功能递增 minor，修复递增 patch），同时更新 `CatLifeMac/Info.plist`、`AppRelease.swift` 历史、三语 `releases.<构建号>` 更新说明和版本测试；当前为 0.25.0（70）。

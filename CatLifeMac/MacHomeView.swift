@@ -96,10 +96,11 @@ struct MacHomeView: View {
                     .font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundStyle(.white)
                     .padding(.horizontal, 14).padding(.vertical, 9).background(RoomTheme.mint, in: Capsule())
             }
-            Label(GameStrings.format("mac.home.v2.catsHome", (store.visibleRoomCatIDs?.count).flatMap { $0 > 0 ? $0 : nil } ?? (store.snapshot?.cats.count ?? 0)),
-                  systemImage: "pawprint.fill")
-                .font(.system(size: 13, weight: .heavy, design: .rounded)).padding(.horizontal, 13).padding(.vertical, 9)
-                .background(RoomTheme.paper, in: Capsule()).overlay(Capsule().stroke(.white, lineWidth: 2))
+            // On narrow windows the cats-at-home capsule yields first; the upgrade entry always stays.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) { catsHome.fixedSize(); upgradeButton.fixedSize() }
+                upgradeButton.fixedSize()
+            }
             Spacer(minLength: 8)
             Button { store.beginDecorating() } label: {
                 HStack(spacing: 8) {
@@ -109,6 +110,44 @@ struct MacHomeView: View {
             }.buttonStyle(MacCompactButtonStyle()).disabled(store.isBusy)
                 .accessibilityIdentifier("macDecorate")
         }
+    }
+
+    private var catsHome: some View {
+        Label(GameStrings.format("mac.home.v2.catsHome", (store.visibleRoomCatIDs?.count).flatMap { $0 > 0 ? $0 : nil } ?? (store.snapshot?.cats.count ?? 0)),
+              systemImage: "pawprint.fill")
+            .font(.system(size: 13, weight: .heavy, design: .rounded)).padding(.horizontal, 13).padding(.vertical, 9)
+            .background(RoomTheme.paper, in: Capsule()).overlay(Capsule().stroke(.white, lineWidth: 2))
+    }
+
+    /// Visible home-upgrade entry: level chip that opens the upgrade sheet, with a dot when affordable.
+    @ViewBuilder private var upgradeButton: some View {
+        let level = store.snapshot?.home.roomLevel ?? 1
+        let next = HomeCatalog.nextLevel(after: level)
+        let ready = next.map { next in
+            (store.snapshot?.player.level ?? 0) >= next.requiredPlayerLevel && (store.snapshot?.player.gold ?? 0) >= next.upgradeCost
+        } ?? false
+        Button { store.openHomeUpgrade() } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "house.lodge.fill")
+                Text(GameStrings.format("mac.home.v2.levelChip", level))
+                if next != nil {
+                    Text("·").foregroundStyle(RoomTheme.secondary)
+                    Text(GameStrings.text("mac.home.v2.upgrade")).foregroundStyle(RoomTheme.darkMint)
+                } else {
+                    Text("· " + GameStrings.text("mac.home.v2.maxLevel")).foregroundStyle(RoomTheme.secondary)
+                }
+            }
+            .font(.system(size: 13, weight: .heavy, design: .rounded)).padding(.horizontal, 13).padding(.vertical, 9)
+            .background(RoomTheme.paper, in: Capsule()).overlay(Capsule().stroke(ready ? RoomTheme.gold : .white, lineWidth: 2))
+            .overlay(alignment: .topTrailing) {
+                if ready { Circle().fill(RoomTheme.gold).frame(width: 9, height: 9).overlay(Circle().stroke(.white, lineWidth: 1.5)).offset(x: 2, y: -2) }
+            }
+        }
+        .buttonStyle(.plain).disabled(store.isBusy)
+        .help(GameStrings.text(next == nil ? "mac.home.v2.maxLevel" : ready ? "mac.home.v2.upgradeReady" : "homeUpgrade.title"))
+        .accessibilityLabel(GameStrings.format("mac.home.v2.levelChip", level) + " · " + GameStrings.text(next == nil ? "mac.home.v2.maxLevel" : "mac.home.v2.upgrade"))
+        .accessibilityValue(ready ? GameStrings.text("mac.home.v2.upgradeReady") : "")
+        .accessibilityIdentifier("macHomeUpgrade")
     }
 
     private var stageFooter: some View {

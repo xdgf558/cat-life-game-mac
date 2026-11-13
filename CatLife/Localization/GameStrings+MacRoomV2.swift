@@ -88,6 +88,10 @@ extension GameStrings {
         "mac.settings.tour": "新手指引",
         "mac.settings.tourHint": "回到小家，从第一步重新看一遍桌面版指引。",
         "mac.settings.tourReplay": "重新查看",
+        "mac.home.v2.levelChip": "小家 Lv%d",
+        "mac.home.v2.upgrade": "升级",
+        "mac.home.v2.maxLevel": "已是最高等级",
+        "mac.home.v2.upgradeReady": "金币和等级都够了，可以升级小家",
     ]
     static let macRoomV2Traditional: [String: String] = [
         "mac.room.door": "去貓町的門",
@@ -176,6 +180,10 @@ extension GameStrings {
         "mac.settings.tour": "新手指引",
         "mac.settings.tourHint": "回到小家，從第一步重新看一遍桌面版指引。",
         "mac.settings.tourReplay": "重新查看",
+        "mac.home.v2.levelChip": "小家 Lv%d",
+        "mac.home.v2.upgrade": "升級",
+        "mac.home.v2.maxLevel": "已是最高等級",
+        "mac.home.v2.upgradeReady": "金幣和等級都夠了，可以升級小家",
     ]
     static let macRoomV2English: [String: String] = [
         "mac.room.door": "Door to Cat Town",
@@ -264,5 +272,9 @@ extension GameStrings {
         "mac.settings.tour": "Starter tour",
         "mac.settings.tourHint": "Go home and replay the desktop tour from the first step.",
         "mac.settings.tourReplay": "Replay",
+        "mac.home.v2.levelChip": "Home Lv%d",
+        "mac.home.v2.upgrade": "Upgrade",
+        "mac.home.v2.maxLevel": "Max level",
+        "mac.home.v2.upgradeReady": "You have enough coins and level to upgrade your home",
     ]
 }

@@ -65,6 +65,7 @@
 		393790D5E84CF5035B47A298BCE7E326 /* GameProgressFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = C86E3FECA23959E7F1C70C34349D96E3 /* GameProgressFeedback.swift */; };
 		3985D7919050DDA8549E71010E918353 /* GameStrings+TownMusic58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DBE9B1205B474C5CD5424A1EA7DF384 /* GameStrings+TownMusic58.swift */; };
 		3B10B321F03E84948D2F69E87307198F /* GameStrings+Design55.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA47AB829097D545791AC18ECE7F444 /* GameStrings+Design55.swift */; };
+		3B3BECBA703DD9D00B0B0B135A57CB3D /* MacOnboardingTour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */; };
 		3C4FACC61EB9F40E1835D5763624BEB9 /* GameStrings+HabitDesign68.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0FE1E82A97812EF19E1CADF7073122 /* GameStrings+HabitDesign68.swift */; };
 		3D6C4272FF095B53550BEE507677701E /* SharedHomePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE5189ED3DCEA6F26F7AB23387EFDA3 /* SharedHomePresentation.swift */; };
 		3EC0252400EB5468BCB3DBCB28E897DC /* GameStrings+Handoff61.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12DC8400AB4093F23AFE76B6710F9CB3 /* GameStrings+Handoff61.swift */; };
@@ -258,6 +259,7 @@
 /* Begin PBXFileReference section */
 		002071F88AA73C9A56D6E11F3E27A246 /* HospitalPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HospitalPresentation.swift; path = Views/HospitalPresentation.swift; sourceTree = "<group>"; };
 		01AD92B234B5BAD8AEF878EA8136D162 /* MacRoomLayoutRepair.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRoomLayoutRepair.swift; path = Scene/MacRoomLayoutRepair.swift; sourceTree = "<group>"; };
+		028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacOnboardingTour.swift; sourceTree = "<group>"; };
 		046A7AA089F1B6E3A4DCA5B8BA72D373 /* SettingsSoundPage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsSoundPage.swift; path = Views/SettingsSoundPage.swift; sourceTree = "<group>"; };
 		04B45E6993475312D44CB9DB8872CC23 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		0504B4C43FDF1FA0F262B987ECBA543C /* RoomHabitBehavior.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomHabitBehavior.swift; path = Scene/RoomHabitBehavior.swift; sourceTree = "<group>"; };
@@ -794,6 +796,7 @@
 				35844050B7877DDAE553E96AD2E4B129 /* MacCommonViews.swift */,
 				F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */,
 				374ABBC067961B4274066AFEE5BB1434 /* MacHomeView.swift */,
+				028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */,
 				384F769B5FC9E6CF276628A07749E2D9 /* MacPreferences.swift */,
 				70E89E53CCA1D23C96C77DD41EFA88C0 /* MacRoomCanvas.swift */,
 				D276A556A2B90748E53110C50DF71A59 /* MacSaveDirectoryLock.swift */,
@@ -1184,6 +1187,7 @@
 				66C24C043623276180C1260399B357FF /* MacCommonViews.swift in Sources */,
 				9E417F696CC6F2A5456AF81B5421C754 /* MacDesktopRoot.swift in Sources */,
 				9433836444AF4738092AD8ED3C1860A6 /* MacHomeView.swift in Sources */,
+				3B3BECBA703DD9D00B0B0B135A57CB3D /* MacOnboardingTour.swift in Sources */,
 				D39AE76091A03F292DC22CF1DE258503 /* MacPreferences.swift in Sources */,
 				87E5366BA3F35824DD1FF60864CD00D4 /* MacRoomCanvas.swift in Sources */,
 				72900905230B7637C4251B9B6310FB79 /* MacSaveDirectoryLock.swift in Sources */,

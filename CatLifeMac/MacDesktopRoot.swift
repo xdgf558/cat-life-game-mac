@@ -29,6 +29,12 @@ struct MacDesktopRoot: View {
 
     private var appForeground: Bool { appIsActive && phase == .active && !quitting }
     private var active: Bool { appForeground && auxiliary == nil && !showsHelp && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil }
+    // The tour's scrim blocks clicks and `handle` blocks game keys, so the room keeps rendering behind it.
+    /// The first-run tour only runs over the plain home layout, never over sheets, arranging or the title.
+    private var tourPresented: Bool {
+        !titleVisible && page == .home && !store.isDecorating && auxiliary == nil && !showsHelp
+            && store.snapshot != nil && store.onboarding.isActive && store.onboarding.isPresented
+    }
     var body: some View { observedContent }
     private var baseContent: some View {
         ZStack {
@@ -43,8 +49,15 @@ struct MacDesktopRoot: View {
                 HStack(spacing: 0) {
                     MacNavigationRail(page: page, preferences: preferences, isWorking: store.snapshot?.player.activeWork != nil, select: select, help: { showsHelp = true })
                     VStack(spacing: 0) {
-                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { store.activeSheet = .player })
+                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { store.activeSheet = .player },
+                                  onResumeTour: resumeTour)
                         pageContent.padding(16)
+                    }
+                }
+                .overlayPreferenceValue(MacTourAnchorKey.self) { anchors in
+                    if tourPresented {
+                        MacOnboardingTour(store: store, anchors: anchors, preferences: preferences, onExplore: exploreTour)
+                            .transition(.opacity)
                     }
                 }
             }
@@ -184,7 +197,8 @@ struct MacDesktopRoot: View {
             case .cats: MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
             case .town: MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
             case .settings:
-                if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true }) }
+                if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
+                                                                  onReplayTour: replayTour) }
             }
         }
     }
@@ -221,7 +235,32 @@ struct MacDesktopRoot: View {
     }
     private var canCreateRoomScene: Bool { store.snapshot != nil && !store.isLoading && !store.loadFailed }
     private func makeScene() -> RoomScene { RoomScene(size: CGSize(width: 900, height: 720)) }
-    private func enterHome() { guard store.snapshot != nil, !store.isLoading else { return }; scene?.prepareDesktopEntry(); store.enterHome(); hadSave = true; store.onboarding.isPresented = false; titleVisible = false; page = .home }
+    private func enterHome() { guard store.snapshot != nil, !store.isLoading else { return }; scene?.prepareDesktopEntry(); store.enterHome(); hadSave = true
+        // A new home (or an unfinished tour) opens the spotlight tour on the home layout.
+        if store.onboarding.isActive { store.onboarding.show() } else { store.onboarding.isPresented = false }
+        titleVisible = false; page = .home }
+    private func replayTour() {
+        guard let snapshot = store.snapshot, store.hasEnteredHome, !store.isBusy, !store.isDecorating else { return }
+        store.onboarding.restart(snapshot: snapshot)
+        select(.home)
+    }
+    private func resumeTour() {
+        guard store.onboarding.isActive else { return }
+        if page != .home || store.isDecorating { select(.home) }
+        guard page == .home, !store.isDecorating else { return }
+        store.onboarding.show()
+    }
+    private func exploreTour(_ step: GameOnboardingStep) {
+        store.playNavigationSound()
+        store.onboarding.isPresented = false
+        switch step {
+        case .care: break
+        case .work: select(.work)
+        case .supplies: store.shopCategory = .supplies; select(.shop)
+        case .tasks: store.activeSheet = .tasks
+        case .town: select(.town)
+        }
+    }
     private func newGame() {
         guard !store.isBusy, !store.isLoading, !creatingHome else { return }
         if !hadSave { enterHome(); return }
@@ -235,7 +274,7 @@ struct MacDesktopRoot: View {
                 guard !quitting else { return }
                 let data = try NativeSaveTransfer.encode(snapshot: fresh, exportedAt: now)
                 let archive = try NativeSaveTransfer.decode(data)
-                try await store.importSaveArchive(archive); hadSave = true; enterHome()
+                try await store.importSaveArchive(archive); hadSave = true; if let snapshot = store.snapshot { store.onboarding.restart(snapshot: snapshot) }; enterHome()
             } catch { store.showNotice(GameStrings.text("saveTransfer.writeFailed")) }
         }
     }
@@ -333,6 +372,11 @@ struct MacDesktopRoot: View {
     }
     private func handle(_ command: MacCommand) -> Bool {
         guard !creatingHome else { return true }
+        if tourPresented {
+            // The tour card owns ← → ↩ and Esc; game shortcuts wait until it is closed.
+            if command == .escape { store.onboarding.isPresented = false; return true }
+            return false
+        }
         if command == .settings { select(.settings); return true }
         if command == .fullscreen { windowController?.toggleFullscreen(); return true }
         if command == .help { showsHelp.toggle(); return true }

@@ -27,8 +27,8 @@ struct MacHomeView: View {
                 stage.frame(maxWidth: .infinity, maxHeight: .infinity)
                 ScrollView {
                     VStack(spacing: 14) {
-                        catCard
-                        tasks
+                        catCard.macTourAnchor(.careCard)
+                        tasks.macTourAnchor(.tasks)
                         if let cat = store.cat, let memory = cat.habits.pinnedMemory { PinnedHabitPrompt(store: store, cat: cat, memory: memory) }
                         homeLog
                     }

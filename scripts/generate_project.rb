@@ -31,6 +31,7 @@ project = Xcodeproj::Project.new(project_path)
 project.root_object.compatibility_version = 'Xcode 14.0'
 project.root_object.development_region = 'zh_CN'
 project.root_object.known_regions = ['zh_CN', 'en', 'Base']
+project.add_build_configuration('AppStore', :release)
 project.build_configurations.each do |config|
   config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '14.0'
   config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
@@ -53,6 +54,7 @@ Dir.glob(File.join(root, 'CatLifeMac', '**', '*.swift')).sort.each do |file|
 end
 mac.resources_build_phase.add_file_reference(mac_shared.new_file('Assets.xcassets'))
 mac.resources_build_phase.add_file_reference(mac_shared.new_file('PrivacyInfo.xcprivacy'))
+mac_group.new_file('CatLifeMac-AppStore.entitlements')
 mac_audio = mac_shared.new_file('Audio'); mac_audio.last_known_file_type = 'folder'
 mac.resources_build_phase.add_file_reference(mac_audio)
 if File.directory?(File.join(root, 'CatLifeMac', 'Assets.xcassets'))
@@ -71,16 +73,18 @@ mac.package_product_dependencies << mac_dependency
 mac_framework = project.new(Xcodeproj::Project::Object::PBXBuildFile)
 mac_framework.product_ref = mac_dependency; mac.frameworks_build_phase.files << mac_framework
 mac.build_configurations.each do |config|
+  app_store = config.name == 'AppStore'
   config.build_settings.merge!({
     'PRODUCT_BUNDLE_IDENTIFIER' => 'com.stationcat.catlife.mac', 'PRODUCT_NAME' => 'CatLifeMac',
     'INFOPLIST_FILE' => 'CatLifeMac/Info.plist', 'GENERATE_INFOPLIST_FILE' => 'NO',
     'MACOSX_DEPLOYMENT_TARGET' => '14.0', 'SUPPORTED_PLATFORMS' => 'macosx',
     'SWIFT_VERSION' => '6.0', 'SWIFT_STRICT_CONCURRENCY' => 'complete',
     'CODE_SIGN_STYLE' => 'Automatic', 'ENABLE_USER_SCRIPT_SANDBOXING' => 'YES',
-    'ENABLE_HARDENED_RUNTIME' => 'YES', 'ENABLE_APP_SANDBOX' => 'NO',
+    'ENABLE_HARDENED_RUNTIME' => 'YES', 'ENABLE_APP_SANDBOX' => app_store ? 'YES' : 'NO',
     'ASSETCATALOG_COMPILER_APPICON_NAME' => 'MacAppIcon',
     'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME' => 'AccentColor', 'SWIFT_EMIT_LOC_STRINGS' => 'NO'
   })
+  config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CatLifeMac/CatLifeMac-AppStore.entitlements' if app_store
 end
 mac_tests = project.new_target(:unit_test_bundle, 'CatLifeMacTests', :osx, '14.0')
 mac_tests.add_dependency(mac)
@@ -127,4 +131,12 @@ mac_scheme.build_action.entries.each do |entry|
   entry.build_for_archiving = false; entry.build_for_analyzing = false
 end
 mac_scheme.save_as(project_path, 'CatLifeMac', true)
+store_scheme = Xcodeproj::XCScheme.new
+store_scheme.add_build_target(mac); store_scheme.set_launch_target(mac)
+store_scheme.test_action.build_configuration = 'AppStore'
+store_scheme.launch_action.build_configuration = 'AppStore'
+store_scheme.profile_action.build_configuration = 'AppStore'
+store_scheme.analyze_action.build_configuration = 'AppStore'
+store_scheme.archive_action.build_configuration = 'AppStore'
+store_scheme.save_as(project_path, 'CatLifeMac-AppStore', true)
 puts "Generated #{project_path}"

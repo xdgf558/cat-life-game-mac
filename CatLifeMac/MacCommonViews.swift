@@ -95,6 +95,7 @@ struct MacNavigationRail: View {
     let page: MacPage
     let preferences: MacPreferences
     var isWorking = false
+    var isNapping = false
     let select: (MacPage) -> Void
     let help: () -> Void
     var body: some View {
@@ -112,6 +113,7 @@ struct MacNavigationRail: View {
                     .macTourAnchor(item.tourTarget)
                     .overlay(alignment: .topTrailing) {
                         if item == .work, isWorking { Circle().fill(RoomTheme.gold).frame(width: 8, height: 8).padding(8).accessibilityHidden(true) }
+                        if item == .town, isNapping { Image(systemName: "moon.fill").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.lilac).padding(6).accessibilityHidden(true) }
                     }
             }
             Spacer(minLength: 8)
@@ -123,12 +125,16 @@ struct MacNavigationRail: View {
             .overlay(alignment: .trailing) { Rectangle().fill(RoomTheme.track).frame(width: 1) }
     }
 }
+extension Notification.Name { static let macToggleRecovery = Notification.Name("MacToggleRecovery") }
+
 struct MacTopBar: View {
     let store: GameStore
     let page: MacPage
     let onSaves: () -> Void
     let onPlayer: () -> Void
     var onResumeTour: () -> Void = {}
+    var exits = MacRecoveryExits()
+    @State private var showsRecovery = false
     private var subtitle: String? {
         guard let snapshot = store.snapshot else { return nil }
         switch page {
@@ -177,9 +183,21 @@ struct MacTopBar: View {
             }.buttonStyle(.plain)
             HStack(spacing: 14) {
                 Label("\(store.snapshot?.player.gold ?? 0)", systemImage: "dollarsign.circle.fill").foregroundStyle(RoomTheme.gold)
-                Label("\(store.snapshot?.player.stamina ?? 0)/100", systemImage: "bolt.fill").foregroundStyle(RoomTheme.darkMint)
-                Label("\(store.snapshot?.player.mood ?? 0)", systemImage: "face.smiling.fill").foregroundStyle(RoomTheme.secondary)
+                Button { showsRecovery.toggle() } label: {
+                    HStack(spacing: 14) {
+                        let stamina = store.snapshot?.player.stamina ?? 0
+                        Label("\(stamina)/100", systemImage: "bolt.fill").foregroundStyle(stamina < 20 ? RoomTheme.coralDeep : RoomTheme.darkMint)
+                        Label("\(store.snapshot?.player.mood ?? 0)", systemImage: "face.smiling.fill").foregroundStyle(RoomTheme.secondary)
+                    }.contentShape(Rectangle())
+                }.buttonStyle(.plain).help(GameStrings.text("recover.popover.title")).accessibilityIdentifier("macRecoveryButton")
+                    .popover(isPresented: $showsRecovery, arrowEdge: .bottom) {
+                        MacRecoveryPopover(store: store, exits: MacRecoveryExits(
+                            cafe: { showsRecovery = false; exits.cafe() },
+                            rest: { showsRecovery = false; exits.rest() },
+                            shop: { showsRecovery = false; exits.shop() }))
+                    }
             }.font(.system(size: 17, weight: .heavy, design: .rounded)).padding(.horizontal, 16).padding(.vertical, 12).background(RoomTheme.paper, in: Capsule())
+                .onReceive(NotificationCenter.default.publisher(for: .macToggleRecovery)) { _ in showsRecovery.toggle() }
         }.foregroundStyle(RoomTheme.ink).padding(.horizontal, 20).frame(height: 68)
     }
 }

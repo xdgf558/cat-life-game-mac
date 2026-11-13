@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 16
+    public static let currentSchemaVersion = 17
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -158,6 +158,11 @@ public struct PlayerState: Codable, Equatable, Sendable {
     /// Seconds toward the next sleep recovery point, retained between sessions.
     public var sleepStaminaRemainder: TimeInterval
     public var sleepMoodRemainder: TimeInterval
+    /// Carried player supplies by PlayerSupplyKind raw value (each 0...maxCarried).
+    public var supplies: [String: Int] = [:]
+    public var recoveryDay = PlayerRecoveryDay()
+    public var activeNap: PlayerNap?
+    public var lastNapResult: PlayerNapResult?
 
     public init(gold: Int = 200, stamina: Int = 80, mood: Int = 80,
                 activeWork: ActiveWork? = nil, staminaUpdatedAt: Date,
@@ -184,6 +189,7 @@ public struct PlayerState: Codable, Equatable, Sendable {
         case gold, stamina, mood, activeWork, staminaUpdatedAt, completedWorkCount
         case activeSleep, sleepStaminaRemainder, sleepMoodRemainder
         case level, exp, lastWorkResult, profile
+        case supplies, recoveryDay, activeNap, lastNapResult
     }
 
     public init(from decoder: Decoder) throws {
@@ -204,6 +210,11 @@ public struct PlayerState: Codable, Equatable, Sendable {
         activeSleep = try values.decodeIfPresent(PlayerSleep.self, forKey: .activeSleep)
         sleepStaminaRemainder = try values.decodeIfPresent(TimeInterval.self, forKey: .sleepStaminaRemainder) ?? 0
         sleepMoodRemainder = try values.decodeIfPresent(TimeInterval.self, forKey: .sleepMoodRemainder) ?? 0
+        // Added in schema 17: older saves start with no supplies, no usage and no nap.
+        supplies = try values.decodeIfPresent([String: Int].self, forKey: .supplies) ?? [:]
+        recoveryDay = try values.decodeIfPresent(PlayerRecoveryDay.self, forKey: .recoveryDay) ?? PlayerRecoveryDay()
+        activeNap = try values.decodeIfPresent(PlayerNap.self, forKey: .activeNap)
+        lastNapResult = try values.decodeIfPresent(PlayerNapResult.self, forKey: .lastNapResult)
     }
 }
 

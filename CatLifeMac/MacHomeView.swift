@@ -14,6 +14,7 @@ struct MacHomeView: View {
     let onRest: (String) -> Void
     let onContext: (MacRoomContextAction) -> Void
     let onFixedStructure: (MacRoomStructure) -> Void
+    var onBag: () -> Void = {}
     @State private var need = CatNeedPresentation()
     @State private var cameraRevision = 0
     @State private var recent: [MacHomeLogEntry] = []
@@ -259,6 +260,17 @@ struct MacHomeView: View {
                     care("care.clean", asset: "icon-clean", key: .clean, wanted: need == .clean, name: GameStrings.catName(cat)) { store.clean() }.accessibilityIdentifier("macClean")
                     care("care.play", asset: "icon-play", key: .play, wanted: need == .play, name: GameStrings.catName(cat)) { store.presentPlayChoices() }.accessibilityIdentifier("macPlay")
                 }.disabled(store.isBusy).frame(minHeight: 88).padding(.top, 6)
+                Button(action: onBag) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bag.fill").foregroundStyle(RoomTheme.gold)
+                        Text(GameStrings.text("recover.bag.title")).font(.system(size: 13, weight: .heavy))
+                        Spacer(minLength: 4)
+                        Text(GameStrings.format("recover.bag.carrying", PlayerSupplyKind.allCases.reduce(0) { $0 + (store.snapshot?.player.carried($1) ?? 0) }))
+                            .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                    }.padding(.horizontal, 12).padding(.vertical, 9).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+                        .contentShape(RoundedRectangle(cornerRadius: 14))
+                }.buttonStyle(.plain).accessibilityIdentifier("macOpenBag")
             }
         }
     }

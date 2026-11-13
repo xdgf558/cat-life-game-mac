@@ -73,7 +73,9 @@ enum GameActionNotice {
                 return GameStrings.text(success.rawValue)
             case .habitPlayOpened, .habitPlayUpdated, .habitPlayEnded, .habitCornerSelected:
                 return GameStrings.text(success.rawValue)
-            case .workCancelled: return GameStrings.text(success.rawValue)
+            case .workCancelled, .playerSupplyPurchased, .playerSupplyUsed, .cafeOrdered,
+                 .cafeNapStarted: return GameStrings.text(success.rawValue)
+            case .cafeNapEnded: return GameStrings.format(success.rawValue, outcome.amount)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
@@ -89,10 +91,12 @@ enum GameActionNotice {
              .careSupplyInvalid, .carePremiumFoodRequired, .carePremiumLitterRequired,
              .townEventMissing, .townEventDayChanged, .townEventCompleted, .townEventStaminaRequired,
               .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy,
-              .habitCatUnavailable, .habitPlayBusy, .habitPlaySessionEnded, .habitInputInvalid, .habitCornerUnavailable:
+              .habitCatUnavailable, .habitPlayBusy, .habitPlaySessionEnded, .habitInputInvalid, .habitCornerUnavailable,
+              .sleepNapping, .workNapping, .supplyNone, .recoveryDailyLimit, .recoveryFull, .cafeClosed,
+              .cafeNapActive, .cafeNapWorking, .cafeNapSleeping, .cafeNapUsed:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
-             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:
+             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:
             let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil

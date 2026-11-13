@@ -62,7 +62,7 @@ enum MacCommand: String, CaseIterable, Codable, Sendable {
     case home, work, shop, town, cats, settings, help, escape, fullscreen
     case feed, clean, play, nextCat, viewLeft, viewRight, focusCat, catProfile, decorate
     case rotateLeft, rotateRight, nudgeLeft, nudgeRight, nudgeUp, nudgeDown, grid, putAway, confirm, undo, redo, save
-    case listUp, listDown, previousPage, nextPage, search, returnHome
+    case listUp, listDown, previousPage, nextPage, search, returnHome, recovery
     var titleKey: String { "mac.command." + rawValue }
     var scope: MacShortcutScope {
         switch self {
@@ -75,6 +75,7 @@ enum MacCommand: String, CaseIterable, Codable, Sendable {
         case .listUp, .listDown: [.list, .shop]
         case .confirm: [.list, .shop, .arrangement, .town]
         case .returnHome: .town
+        case .recovery: [.home, .list, .shop, .town]
         }
     }
     var acceptsKeyRepeat: Bool {
@@ -121,6 +122,7 @@ enum MacCommand: String, CaseIterable, Codable, Sendable {
         case .nextPage: .init(key: "]")
         case .search: .init(key: "f", modifiers: .command)
         case .returnHome: .init(key: "h")
+        case .recovery: .init(key: "r")
         }
     }
 }

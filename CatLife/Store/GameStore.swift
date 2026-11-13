@@ -1018,6 +1018,36 @@ final class GameStore {
     }
 
     func buySupply(_ kind: SupplyKind) { perform { GameEngine.buySupply(&$0, kind: kind, now: $1) } }
+
+    // MARK: Player supplies and café (1.1.0)
+    func buyPlayerSupply(_ kind: PlayerSupplyKind, quantity: Int = 1) {
+        perform { GameEngine.buyPlayerSupply(&$0, kind: kind, quantity: quantity, now: $1) }
+    }
+    func usePlayerSupply(_ kind: PlayerSupplyKind) {
+        let supply = PlayerSupplyCatalog.definition(kind)
+        let before = snapshot?.player
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: supply.nameKey, drink: supply.isDrink, before: before) ?? false }) {
+            GameEngine.usePlayerSupply(&$0, kind: kind, now: $1)
+        }
+    }
+    func orderCafeItem(_ kind: CafeItemKind) {
+        let item = CafeCatalog.item(kind)
+        let before = snapshot?.player
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: item.nameKey, drink: item.isDrink, before: before) ?? false }) {
+            GameEngine.orderCafeItem(&$0, kind: kind, now: $1)
+        }
+    }
+    func startCafeNap() { perform { GameEngine.startCafeNap(&$0, now: $1) } }
+    func wakeFromCafeNap() { perform { GameEngine.wakeFromCafeNap(&$0, now: $1) } }
+    /// "Ate a rice ball · Stamina +25", from the committed difference rather than the catalog value.
+    private func showRecoveryNotice(name: String, drink: Bool, before: PlayerState?) -> Bool {
+        guard let before, let after = snapshot?.player else { return false }
+        var parts = [GameStrings.format(drink ? "recover.notice.drank" : "recover.notice.ate", GameStrings.text(name))]
+        if after.stamina > before.stamina { parts.append(GameStrings.format("recover.notice.stamina", after.stamina - before.stamina)) }
+        if after.mood > before.mood { parts.append(GameStrings.format("recover.notice.mood", after.mood - before.mood)) }
+        showNotice(parts.joined(separator: " · "))
+        return true
+    }
     func buyFood() { perform { GameEngine.buyFood(&$0, quantity: 1, now: $1) } }
     func buyLitter() { perform { GameEngine.buyLitter(&$0, quantity: 1, now: $1) } }
     func buyToy() { perform { GameEngine.buyToy(&$0, quantity: 1, now: $1) } }

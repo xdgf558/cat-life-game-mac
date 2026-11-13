@@ -2,6 +2,7 @@ import SwiftUI
 import CatGameCore
 #if os(macOS) && APP_STORE
 import AppKit
+import Darwin
 import UniformTypeIdentifiers
 #endif
 
@@ -487,11 +488,16 @@ struct SaveManagementView: View {
         importingNativeSave = true; retryExport = false; statusKey = nil
         let panel = NSOpenPanel()
         panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
         panel.allowedContentTypes = [.json]
         panel.message = GameStrings.text("mac.migration.pickerHint")
         panel.prompt = GameStrings.text("mac.migration.choose")
-        if let home = FileManager.default.homeDirectory(forUser: NSUserName()) {
-            panel.directoryURL = home.appendingPathComponent("Library/Application Support/CatLifeMac", isDirectory: true)
+        if let record = getpwuid(getuid()), let path = record.pointee.pw_dir {
+            let home = String(cString: path)
+            if home.hasPrefix("/") {
+                panel.directoryURL = URL(fileURLWithPath: home, isDirectory: true)
+                    .appendingPathComponent("Library/Application Support/CatLifeMac", isDirectory: true)
+            }
         }
         guard panel.runModal() == .OK, let url = panel.url else { return }
         readImport(url, nativeSave: true)
@@ -501,11 +507,14 @@ struct SaveManagementView: View {
     private func readImport(_ url: URL, nativeSave: Bool = false) {
         retryExport = false
         importingNativeSave = nativeSave
+        let currentSaveDirectory = nativeSave ? store.saveDirectory : nil
         setWorking(true); statusKey = nil
         Task {
             defer { setWorking(false) }
             do {
-                let selection = try await Task.detached { try SaveArchiveFiles.readSelection(url, nativeSave: nativeSave) }.value
+                let selection = try await Task.detached {
+                    try SaveArchiveFiles.readSelection(url, nativeSave: nativeSave, currentSaveDirectory: currentSaveDirectory)
+                }.value
                 if !recoveryOnly { await refreshRecovery() }
                 showPreview(ImportPreview(archive: selection.archive, filename: selection.filename,
                                           byteCount: selection.byteCount, isRecovery: false, isNativeSave: nativeSave))

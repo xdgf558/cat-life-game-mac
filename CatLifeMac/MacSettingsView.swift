@@ -286,6 +286,12 @@ struct MacSettingsView: View {
                 }
             }
             Text(GameStrings.text("mac.settings.aboutHint")).foregroundStyle(RoomTheme.secondary)
+            #if APP_STORE
+            Link(destination: URL(string: "https://github.com/xdgf558/cat-life-game-mac/blob/main/PRIVACY.md")!) {
+                Label(GameStrings.text("mac.settings.privacyPolicy"), systemImage: "hand.raised")
+            }
+            .accessibilityIdentifier("macPrivacyPolicy")
+            #endif
             ForEach(AppRelease.recent) { release in
                 VStack(alignment: .leading, spacing: 7) {
                     Text(release.version + " · " + release.localizedDate).font(.headline)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SaveTransferUpdateButton: View {
+    #if !APP_STORE
     @Environment(\.openURL) private var openURL
     @State private var cannotOpen = false
 
@@ -8,7 +9,12 @@ struct SaveTransferUpdateButton: View {
     private let updateTitleKey = "mac.update.project"
     private let unavailableTitleKey = "mac.update.unavailable"
     private let helpTitleKey = "mac.update.retry"
+    #endif
     var body: some View {
+        #if APP_STORE
+        Text(GameStrings.text("mac.update.storeHint"))
+            .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
+        #else
         Button {
             openURL(updateURL) { accepted in cannotOpen = !accepted }
         } label: {
@@ -28,5 +34,6 @@ struct SaveTransferUpdateButton: View {
         } message: {
             Text(GameStrings.text("mac.update.manual"))
         }
+        #endif
     }
 }

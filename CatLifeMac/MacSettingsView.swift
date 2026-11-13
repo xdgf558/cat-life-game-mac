@@ -246,9 +246,11 @@ struct MacSettingsView: View {
             Button(GameStrings.text("saveTransfer.title")) { showsSaves = true }
                 .buttonStyle(MintButtonStyle()).fixedSize().disabled(store.isBusy || store.isDecorating || store.saveTransferInProgress)
                 .accessibilityIdentifier("macOpenSaveManagement")
+            #if !APP_STORE
             Divider()
             Label(GameStrings.text("mac.settings.steamDisconnected"), systemImage: "icloud.slash").font(.headline)
             Text(GameStrings.text("mac.settings.steamHint")).foregroundStyle(RoomTheme.secondary)
+            #endif
         }
     }
     private var languageContent: some View {

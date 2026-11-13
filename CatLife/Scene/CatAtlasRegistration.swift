@@ -140,15 +140,16 @@ enum CatAtlasRegistration {
                          CGPoint(x: 104.3, y: 341), CGPoint(x: 96.0, y: 379)]
                 baselines = [428, 429, 420, 419, 381, 337, 341, 395]
             case .blue:
-                front = [CGPoint(x: 262.462, y: 427), CGPoint(x: 390.5, y: 364),
-                         CGPoint(x: 316.673, y: 385), CGPoint(x: 319.234, y: 377),
-                         CGPoint(x: 273.362, y: 381), CGPoint(x: 322.602, y: 396),
-                         CGPoint(x: 284.104, y: 395), CGPoint(x: 275.966, y: 391)]
-                rear = [CGPoint(x: 88.275, y: 418), CGPoint(x: 109.103, y: 420),
-                         CGPoint(x: 107.455, y: 419), CGPoint(x: 120.5, y: 417),
-                         CGPoint(x: 100.689, y: 374), CGPoint(x: 95.085, y: 333),
-                         CGPoint(x: 106.048, y: 336), CGPoint(x: 97.75, y: 377)]
-                baselines = [427, 427, 419, 417, 381, 333, 336, 391]
+                // Redrawn British Shorthair (0.27.0): re-measured with scripts/measure_cat_art.py.
+                front = [CGPoint(x: 258.9, y: 425), CGPoint(x: 380.0, y: 356),
+                         CGPoint(x: 298.8, y: 381), CGPoint(x: 305.6, y: 376),
+                         CGPoint(x: 275.8, y: 372), CGPoint(x: 311.2, y: 400),
+                         CGPoint(x: 274.3, y: 403), CGPoint(x: 272.5, y: 404)]
+                rear = [CGPoint(x: 92.9, y: 418), CGPoint(x: 98.0, y: 418),
+                         CGPoint(x: 89.5, y: 419), CGPoint(x: 117.2, y: 418),
+                         CGPoint(x: 99.0, y: 371), CGPoint(x: 102.5, y: 352),
+                         CGPoint(x: 86.8, y: 353), CGPoint(x: 90.1, y: 396)]
+                baselines = [425, 422, 419, 418, 372, 352, 353, 404]
             case .siamese:
                 front = [CGPoint(x: 260.025, y: 429), CGPoint(x: 388.823, y: 364),
                          CGPoint(x: 318.574, y: 387), CGPoint(x: 321.198, y: 377),

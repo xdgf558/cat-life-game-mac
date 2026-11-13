@@ -121,6 +121,20 @@ public enum NativeSaveTransfer {
             throw NativeSaveTransferError.invalidArchive
         }
     }
+
+    /// Decode a user-selected native save without opening or changing its repository.
+    public static func decodeNativeSave(_ data: Data, now: Date = Date()) throws -> NativeSaveArchive {
+        guard data.count <= maximumFileSize else { throw NativeSaveTransferError.fileTooLarge }
+        guard now.timeIntervalSince1970.isFinite else { throw NativeSaveTransferError.invalidArchive }
+        do {
+            let snapshot = try NativeSaveCodec.decodeSnapshot(data, now: now)
+            return NativeSaveArchive(snapshot: snapshot, exportedAt: snapshot.meta.lastSyncAt)
+        } catch let error as SaveRepositoryError {
+            throw error
+        } catch {
+            throw NativeSaveTransferError.invalidArchive
+        }
+    }
 }
 
 /// Disk saves and shared archives use one date codec and migration boundary.

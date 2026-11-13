@@ -27,7 +27,12 @@ struct MacSettingsView: View {
     private enum Section: String, CaseIterable, Identifiable {
         case display, audio, controls, game, saves, language, about
         var id: String { rawValue }
-        @MainActor var title: String { GameStrings.text("mac.settings." + rawValue) }
+        @MainActor var title: String {
+            #if !APP_STORE
+            if self == .saves { return GameStrings.text("mac.settings.savesSteam") }
+            #endif
+            return GameStrings.text("mac.settings." + rawValue)
+        }
         var symbol: String {
             switch self {
             case .display: "display"

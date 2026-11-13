@@ -42,7 +42,7 @@ enum SaveArchiveFiles {
     }
 
     /// Read outside the main actor, with the same cap as the archive decoder.
-    static func readSelection(_ url: URL) throws -> SaveArchiveSelection {
+    static func readSelection(_ url: URL, nativeSave: Bool = false) throws -> SaveArchiveSelection {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         // File providers may need to materialize or coordinate the selected item.
@@ -53,7 +53,8 @@ enum SaveArchiveFiles {
         coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &coordinationError) { coordinatedURL in
             result = Result {
                 let data = try readCoordinatedFile(coordinatedURL)
-                return SaveArchiveSelection(archive: try NativeSaveTransfer.decode(data),
+                let archive = try (nativeSave ? NativeSaveTransfer.decodeNativeSave(data) : NativeSaveTransfer.decode(data))
+                return SaveArchiveSelection(archive: archive,
                                             filename: url.lastPathComponent, byteCount: data.count)
             }
         }

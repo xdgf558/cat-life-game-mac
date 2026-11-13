@@ -84,7 +84,11 @@ mac.build_configurations.each do |config|
     'ASSETCATALOG_COMPILER_APPICON_NAME' => 'MacAppIcon',
     'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME' => 'AccentColor', 'SWIFT_EMIT_LOC_STRINGS' => 'NO'
   })
-  config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CatLifeMac/CatLifeMac-AppStore.entitlements' if app_store
+  if app_store
+    config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CatLifeMac/CatLifeMac-AppStore.entitlements'
+    config.build_settings['DEVELOPMENT_TEAM'] = '2AM5S7BM2N'
+    config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = '$(inherited) APP_STORE'
+  end
 end
 mac_tests = project.new_target(:unit_test_bundle, 'CatLifeMacTests', :osx, '14.0')
 mac_tests.add_dependency(mac)

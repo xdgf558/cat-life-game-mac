@@ -143,7 +143,8 @@ final class MacKeyboardRouter {
     }
     func stop() { if let monitor { NSEvent.removeMonitor(monitor) }; monitor = nil }
     private func route(_ event: NSEvent) -> NSEvent? {
-        guard let window = event.window, window.isKeyWindow, window.attachedSheet == nil, window.sheetParent == nil else { return event }
+        guard NSApp.modalWindow == nil, let window = event.window, window.isKeyWindow,
+              window.attachedSheet == nil, window.sheetParent == nil else { return event }
         if let capture = window.firstResponder as? MacShortcutCaptureButton, capture.recording {
             capture.keyDown(with: event)
             return nil

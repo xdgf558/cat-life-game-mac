@@ -2,7 +2,7 @@ import Foundation
 import CatGameCore
 
 enum SaveTransferError: Error, Equatable, Sendable {
-    case busy, invalidFile, fileTooLarge, unsupportedVersion, readFailed, writeFailed, currentSaveReadable, futureProgress
+    case busy, invalidFile, fileTooLarge, unsupportedVersion, readFailed, writeFailed, currentSaveReadable, currentSandboxSave, futureProgress
 
     static func reason(for error: Error) -> SaveTransferError {
         let reason: SaveTransferError
@@ -33,6 +33,7 @@ enum SaveTransferError: Error, Equatable, Sendable {
         case .readFailed: return "saveTransfer.readFailed"
         case .writeFailed: return "saveTransfer.writeFailed"
         case .currentSaveReadable: return "saveTransfer.currentSaveReadable"
+        case .currentSandboxSave: return "mac.migration.currentSaveDetail"
         case .futureProgress: return "saveTransfer.futureProgress"
         }
     }

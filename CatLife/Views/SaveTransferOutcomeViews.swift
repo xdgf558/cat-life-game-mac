@@ -86,6 +86,7 @@ struct SaveTransferErrorView: View {
         case .readFailed: "saveTransfer.error.readTitle"
         case .writeFailed: "saveTransfer.error.writeTitle"
         case .currentSaveReadable: "saveTransfer.error.readableTitle"
+        case .currentSandboxSave: "mac.migration.currentSaveTitle"
         case .futureProgress: "saveTransfer.error.futureTitle"
         }
     }

@@ -16,6 +16,9 @@ struct MacDesktopRoot: View {
     @State private var windowController: MacWindowController?
     @State private var keyboard: MacKeyboardRouter?
     @State private var hadSave = false
+    #if APP_STORE
+    @State private var openNativeSaveOnAppear = false
+    #endif
     @State private var quitting = false
     @State private var creatingHome = false
     @State private var appIsActive = NSApp.isActive
@@ -228,11 +231,18 @@ struct MacDesktopRoot: View {
         delegate.requestQuit = requestQuit
         let router = MacKeyboardRouter(preferences: preferences, handler: handle)
         keyboard = router; router.start()
-        hadSave = store.hasSavedProgress
+        let hadExistingSave = store.hasSavedProgress
+        hadSave = hadExistingSave
         await store.load()
         if canCreateRoomScene { scene = makeScene() }
         appIsActive = NSApp.isActive
         workNotifications.reset(workNotificationState); catUrgencies.reset(catUrgencyState); store.setForeground(appForeground)
+        #if APP_STORE
+        if !hadExistingSave && !store.loadFailed && store.macPreviousSaveAt == nil && confirmNativeSaveImport() {
+            openNativeSaveOnAppear = true
+            auxiliary = .saves
+        }
+        #endif
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--skip-welcome") { enterHome() }
         #endif
@@ -499,6 +509,16 @@ struct MacDesktopRoot: View {
         alert.addButton(withTitle: GameStrings.text("common.done")); alert.addButton(withTitle: GameStrings.text("common.cancel"))
         return alert.runModal() == .alertFirstButtonReturn
     }
+    #if APP_STORE
+    private func confirmNativeSaveImport() -> Bool {
+        let alert = NSAlert()
+        alert.messageText = GameStrings.text("mac.migration.title")
+        alert.informativeText = GameStrings.text("mac.migration.firstRunHint")
+        alert.addButton(withTitle: GameStrings.text("mac.migration.choose"))
+        alert.addButton(withTitle: GameStrings.text("mac.migration.later"))
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+    #endif
     @ViewBuilder private func auxiliaryView(_ item: MacAuxiliary) -> some View {
         VStack(spacing: 0) {
             HStack { Text(GameStrings.text(item.key)).font(.title3.bold()); Spacer(); Button(GameStrings.text("common.done")) { auxiliary = nil }.keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress) }.padding(16)
@@ -513,7 +533,12 @@ struct MacDesktopRoot: View {
                 case .neighbors: CommunityView(store: store, onClose: { auxiliary = nil })
                 case .market: NavigationStack { ExchangeMarketView(store: store, onClose: { auxiliary = nil }) }
                 case .board: TownNoticeBoardView(store: store, onClose: { auxiliary = nil })
-                case .saves: SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } })
+                case .saves:
+                    #if APP_STORE
+                    SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } }, openNativeSaveOnAppear: openNativeSaveOnAppear)
+                    #else
+                    SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } })
+                    #endif
                 case .player: PlayerProfileView(store: store)
                 case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
                 }
@@ -523,6 +548,9 @@ struct MacDesktopRoot: View {
                 && !store.isPresentingCommunityGift && !store.isPresentingExchange && !store.isInspectingHealth)
     }
     private func clearAuxiliary() {
+        #if APP_STORE
+        openNativeSaveOnAppear = false
+        #endif
         neighborID = nil; store.activeSheet = page == .town ? .town : page == .shop ? .shop : page == .work ? .work : nil; store.inspectedCatID = nil
         store.isShowingNeighbors = false; store.isShowingMarket = false; store.isShowingTownBoard = false
     }

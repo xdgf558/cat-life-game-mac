@@ -42,9 +42,13 @@ enum SaveArchiveFiles {
     }
 
     /// Read outside the main actor, with the same cap as the archive decoder.
-    static func readSelection(_ url: URL) throws -> SaveArchiveSelection {
+    static func readSelection(_ url: URL, nativeSave: Bool = false, currentSaveDirectory: URL? = nil) throws -> SaveArchiveSelection {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        if nativeSave {
+            guard let currentSaveDirectory else { throw SaveTransferError.readFailed }
+            guard !isInside(url, directory: currentSaveDirectory) else { throw SaveTransferError.currentSandboxSave }
+        }
         // File providers may need to materialize or coordinate the selected item.
         // Keep both the security scope and the bounded read inside that access.
         let coordinator = NSFileCoordinator(filePresenter: nil)
@@ -52,14 +56,27 @@ enum SaveArchiveFiles {
         var result: Result<SaveArchiveSelection, Error>?
         coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &coordinationError) { coordinatedURL in
             result = Result {
+                if nativeSave, let currentSaveDirectory, isInside(coordinatedURL, directory: currentSaveDirectory) {
+                    throw SaveTransferError.currentSandboxSave
+                }
                 let data = try readCoordinatedFile(coordinatedURL)
-                return SaveArchiveSelection(archive: try NativeSaveTransfer.decode(data),
+                let archive = try (nativeSave ? NativeSaveTransfer.decodeNativeSave(data) : NativeSaveTransfer.decode(data))
+                return SaveArchiveSelection(archive: archive,
                                             filename: url.lastPathComponent, byteCount: data.count)
             }
         }
         if let coordinationError { throw coordinationError }
         guard let result else { throw SaveTransferError.readFailed }
         return try result.get()
+    }
+
+    static func isInside(_ file: URL, directory: URL) -> Bool {
+        func components(_ url: URL) -> [String] {
+            url.standardizedFileURL.resolvingSymlinksInPath().pathComponents.map {
+                $0.precomposedStringWithCanonicalMapping.lowercased()
+            }
+        }
+        return components(file).starts(with: components(directory))
     }
 
     private static func readCoordinatedFile(_ url: URL) throws -> Data {

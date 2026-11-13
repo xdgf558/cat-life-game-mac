@@ -54,6 +54,10 @@ struct MacDesktopRoot: View {
                         pageContent.padding(16)
                     }
                 }
+                // While the tour is open the game underneath is inert for VoiceOver and keyboard focus too,
+                // not just for the mouse; only the tour card is reachable.
+                .disabled(tourPresented)
+                .accessibilityHidden(tourPresented)
                 .overlayPreferenceValue(MacTourAnchorKey.self) { anchors in
                     if tourPresented {
                         MacOnboardingTour(store: store, anchors: anchors, preferences: preferences, onExplore: exploreTour)

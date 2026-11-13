@@ -4,6 +4,10 @@ import SwiftUI
 /// Real desktop regions the first-run tour spotlights. Views tag themselves with `macTourAnchor`.
 enum MacTourTarget: Hashable {
     case careCard, tasks, navWork, navShop, navTown
+    /// The visible frame of the home page's scrolling right panel, used to clip panel targets.
+    case homePanel
+
+    var isInHomePanel: Bool { self == .careCard || self == .tasks }
 }
 
 struct MacTourAnchorKey: PreferenceKey {
@@ -53,13 +57,14 @@ struct MacOnboardingTour: View {
     let onExplore: (GameOnboardingStep) -> Void
     @Environment(\.gameReduceMotionOverride) private var reduceMotion
     @State private var pulse = false
+    @AccessibilityFocusState private var titleFocused: Bool
     private let cardWidth: CGFloat = 380
     private var locked: Bool { store.isBusy || store.saveTransferInProgress }
 
     var body: some View {
         GeometryReader { proxy in
             if let step = store.onboarding.step {
-                let target = anchors[step.macTarget].map { proxy[$0].insetBy(dx: -8, dy: -8) }
+                let target = spotlight(step.macTarget, in: proxy)
                 ZStack(alignment: .topLeading) {
                     scrim(size: proxy.size, hole: target)
                     if let target {
@@ -76,11 +81,24 @@ struct MacOnboardingTour: View {
             }
         }
         .accessibilityElement(children: .contain).accessibilityIdentifier("macOnboardingTour")
+        .onAppear { titleFocused = true }
+        .onChange(of: store.onboarding.step) { _, _ in titleFocused = true }
         .task(id: reduceMotion) {
             pulse = false
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) { pulse = true }
         }
+    }
+
+    /// Only the part of a target that is actually on screen is outlined. Panel targets are clipped
+    /// to the scrolling panel's visible frame (the home page scrolls them into view first).
+    private func spotlight(_ target: MacTourTarget, in proxy: GeometryProxy) -> CGRect? {
+        guard var rect = anchors[target].map({ proxy[$0] }) else { return nil }
+        if target.isInHomePanel, let panel = anchors[.homePanel].map({ proxy[$0] }) {
+            rect = rect.intersection(panel)
+            guard !rect.isNull, rect.height >= 24 else { return nil }
+        }
+        return rect.insetBy(dx: -8, dy: -8)
     }
 
     private func scrim(size: CGSize, hole: CGRect?) -> some View {
@@ -130,7 +148,7 @@ struct MacOnboardingTour: View {
                     .accessibilityHidden(true)
                 Text(GameStrings.text("mac.tour.\(step.rawValue).title"))
                     .font(.system(size: 20, weight: .heavy, design: .rounded)).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityAddTraits(.isHeader).accessibilityFocused($titleFocused)
             }
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(1...3, id: \.self) { number in

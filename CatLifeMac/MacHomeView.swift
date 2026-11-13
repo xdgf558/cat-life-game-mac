@@ -21,16 +21,28 @@ struct MacHomeView: View {
         guard let snapshot = store.snapshot else { return [] }
         return Array(GameTaskCatalog.all.filter { $0.category == .daily && GameTaskCatalog.isUnlocked($0, in: snapshot) && !GameTaskCatalog.isClaimed($0, in: snapshot) }.prefix(3))
     }
+    private var tourPanelTarget: MacTourTarget? {
+        guard store.onboarding.isPresented, let target = store.onboarding.step?.macTarget, target.isInHomePanel else { return nil }
+        return target
+    }
     var body: some View {
         GeometryReader { geometry in
             HStack(alignment: .top, spacing: 16) {
                 stage.frame(maxWidth: .infinity, maxHeight: .infinity)
-                ScrollView {
-                    VStack(spacing: 14) {
-                        catCard
-                        tasks
-                        if let cat = store.cat, let memory = cat.habits.pinnedMemory { PinnedHabitPrompt(store: store, cat: cat, memory: memory) }
-                        homeLog
+                ScrollViewReader { reader in
+                    ScrollView {
+                        VStack(spacing: 14) {
+                            catCard.macTourAnchor(.careCard).id(MacTourTarget.careCard)
+                            tasks.macTourAnchor(.tasks).id(MacTourTarget.tasks)
+                            if let cat = store.cat, let memory = cat.habits.pinnedMemory { PinnedHabitPrompt(store: store, cat: cat, memory: memory) }
+                            homeLog
+                        }
+                    }
+                    .macTourAnchor(.homePanel)
+                    .onChange(of: tourPanelTarget, initial: true) { _, target in
+                        // A resumed tour may find the panel scrolled; bring its target back into view first.
+                        guard let target else { return }
+                        withAnimation(preferences.reduceMotion ? nil : .easeInOut(duration: 0.25)) { reader.scrollTo(target, anchor: .top) }
                     }
                 }.frame(width: geometry.size.width < 1270 ? 320 : 372)
                     .scrollIndicators(.hidden)

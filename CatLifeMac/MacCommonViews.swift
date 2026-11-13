@@ -6,6 +6,9 @@ enum MacPage: String, CaseIterable, Identifiable {
     case home, work, shop, town, cats, settings
     var id: String { rawValue }
     var key: String { "mac.page." + rawValue }
+    var tourTarget: MacTourTarget? {
+        switch self { case .work: .navWork; case .shop: .navShop; case .town: .navTown; default: nil }
+    }
     var icon: String { switch self { case .home: "icon-home"; case .work: "icon-work"; case .shop: "icon-shop"; case .town: "icon-town"; case .cats: "cat-avatar"; case .settings: "" } }
     var symbol: String { switch self { case .home: "house.fill"; case .work: "briefcase.fill"; case .shop: "storefront.fill"; case .town: "map.fill"; case .cats: "pawprint.fill"; case .settings: "gearshape.fill" } }
 }
@@ -106,6 +109,7 @@ struct MacNavigationRail: View {
                         MacKeyCap(value: preferences.binding(for: [.home, .work, .shop, .town, .cats][index]).label)
                     }.frame(width: 74, height: 86).background(page == item ? RoomTheme.paleMint : .clear, in: RoundedRectangle(cornerRadius: 19))
                 }.buttonStyle(.plain).help(GameStrings.text(item.key)).accessibilityIdentifier("macNav_" + item.rawValue)
+                    .macTourAnchor(item.tourTarget)
                     .overlay(alignment: .topTrailing) {
                         if item == .work, isWorking { Circle().fill(RoomTheme.gold).frame(width: 8, height: 8).padding(8).accessibilityHidden(true) }
                     }
@@ -124,6 +128,7 @@ struct MacTopBar: View {
     let page: MacPage
     let onSaves: () -> Void
     let onPlayer: () -> Void
+    var onResumeTour: () -> Void = {}
     private var subtitle: String? {
         guard let snapshot = store.snapshot else { return nil }
         switch page {
@@ -153,6 +158,7 @@ struct MacTopBar: View {
                     .lineLimit(1).minimumScaleFactor(0.8)
             }
             Spacer(minLength: 8)
+            MacTourResumePill(store: store, resume: onResumeTour)
             Button(action: onSaves) {
                 Label(GameStrings.text(store.hasSaveFailure ? "mac.save.failed" : store.isBusy ? "mac.save.saving" : "mac.save.local"), systemImage: store.hasSaveFailure ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
                     .font(.system(size: 11, weight: .semibold)).foregroundStyle(store.hasSaveFailure ? RoomTheme.coral : RoomTheme.darkMint)

@@ -9,6 +9,7 @@ struct MacSettingsView: View {
     @Bindable var preferences: MacPreferences
     let windowController: MacWindowController
     var onTitle: () -> Void
+    var onReplayTour: () -> Void = {}
     @State private var selected = Section.display
     @State private var audioDraft = AudioSettings()
     @State private var audioSaveTask: Task<Void, Never>?
@@ -219,6 +220,10 @@ struct MacSettingsView: View {
                 }
             }
             if homeNameSaved { Label(GameStrings.text("homeName.saved"), systemImage: "checkmark.circle.fill").foregroundStyle(RoomTheme.darkMint) }
+            row("mac.settings.tour", detail: "mac.settings.tourHint") {
+                Button(GameStrings.text("mac.settings.tourReplay"), action: onReplayTour)
+                    .disabled(store.isBusy || store.isDecorating || !store.hasEnteredHome).accessibilityIdentifier("macReplayTour")
+            }
             row("mac.settings.notifications", detail: "mac.settings.notificationsHint") {
                 Toggle("", isOn: Binding(get: { preferences.notificationsEnabled }, set: { enabled in
                     guard !requestingNotifications else { return }

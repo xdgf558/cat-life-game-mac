@@ -22,6 +22,14 @@ enum CatAtlasRegistration {
         }
     }
 
+    /// Measured transparent gaps between the 2×4 rest sheet's rows. Re-measure with
+    /// `scripts/measure_cat_art.py <appearance>` whenever a breed's rest sheet is redrawn.
+    static func restRowCuts(for appearance: CatAppearance) -> [CGFloat] {
+        switch appearance {
+        case .orange, .cow, .blue, .siamese, .silver: [0, 0.285, 0.515, 0.725, 1]
+        }
+    }
+
     static func extract(cgImage: CGImage, appearance: CatAppearance, clip: CatClip? = nil,
                         columns: Int, rows: Int, rowCuts: [CGFloat]? = nil) -> [Frame]? {
         let width = cgImage.width, height = cgImage.height

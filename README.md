@@ -2,7 +2,7 @@
 
 原生 Mac 养猫游戏，采用 SwiftUI 与 SpriteKit，在本机保存进度。
 
-**当前状态：**0.28.0（74）开发中，等待审查和手动验收。Steam 接入后续进行。
+**当前状态：**1.0.0（75）准备中，等待审查和手动验收。Steam 接入后续进行。
 
 ## 运行
 
@@ -22,3 +22,7 @@ App Store 版使用独立的沙盒存档。首次启动可选择旧版存档找�
 将 `CATLIFE_BUILD_CACHE` 设为项目约定的 Mac 编译缓存子目录后，可运行 `scripts/check_appstore_build.sh` 检查 App Store 构建；脚本不会启动游戏或运行测试。
 
 后续 Mac 功能、修复和发布统一在本仓库提交。
+
+## 支持
+
+Mac 版问题反馈与隐私咨询：[brodstem@protonmail.com](mailto:brodstem@protonmail.com)。[App Store 版隐私政策](PRIVACY.md)。

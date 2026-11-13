@@ -231,8 +231,9 @@ final class CatActor: SKNode {
         case (.orange, 3): offset = CGPoint(x: 0.3084 * visualWidth, y: 0.1472 * visualWidth)
         case (.cow, 2): offset = CGPoint(x: 0.356148 * visualWidth, y: 0.140313 * visualWidth)
         case (.cow, 3): offset = CGPoint(x: 0.322526 * visualWidth, y: 0.106760 * visualWidth)
-        case (.blue, 2): offset = CGPoint(x: 0.359527 * visualWidth, y: 0.144857 * visualWidth)
-        case (.blue, 3): offset = CGPoint(x: 0.269013 * visualWidth, y: 0.122571 * visualWidth)
+        // Redrawn British Shorthair: frame 2 mouth confirmed by eye (head not yet fully down).
+        case (.blue, 2): offset = CGPoint(x: 0.365810 * visualWidth, y: 0.255231 * visualWidth)
+        case (.blue, 3): offset = CGPoint(x: 0.295632 * visualWidth, y: 0.148615 * visualWidth)
         case (.siamese, 2): offset = CGPoint(x: 0.345657 * visualWidth, y: 0.122156 * visualWidth)
         case (.siamese, 3): offset = CGPoint(x: 0.308259 * visualWidth, y: 0.118454 * visualWidth)
         case (.silver, 2): offset = CGPoint(x: 0.311914 * visualWidth, y: 0.111429 * visualWidth)

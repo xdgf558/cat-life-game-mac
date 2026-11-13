@@ -74,7 +74,7 @@ final class CatSpriteLibrary {
                     let registration = await Task.detached(priority: .userInitiated) {
                         CatAtlasRegistration.extract(cgImage: image, appearance: appearance, clip: clip,
                             columns: clip == .rest ? 2 : 4, rows: clip == .rest ? 4 : 2,
-                            rowCuts: clip == .rest ? [0, 0.285, 0.515, 0.725, 1] : nil)
+                            rowCuts: clip == .rest ? CatAtlasRegistration.restRowCuts(for: appearance) : nil)
                     }.value
 #if DEBUG
                     backgroundRegistrations += 1
@@ -97,7 +97,7 @@ final class CatSpriteLibrary {
         if let image = UIImage(named: assetName)?.cgImage,
            let registration = CatAtlasRegistration.extract(cgImage: image, appearance: appearance, clip: clip,
                 columns: clip == .rest ? 2 : 4, rows: clip == .rest ? 4 : 2,
-                rowCuts: clip == .rest ? [0, 0.285, 0.515, 0.725, 1] : nil) {
+                rowCuts: clip == .rest ? CatAtlasRegistration.restRowCuts(for: appearance) : nil) {
 #if DEBUG
             Self.synchronousRegistrations += 1
 #endif

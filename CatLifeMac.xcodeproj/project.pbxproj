@@ -233,6 +233,7 @@
 		E5F31F72B134CEDF0AA5EC2F80E3549E /* SaveStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B56AF7C2E22AD542B2CDC44CDF4E0AB9 /* SaveStatusBanner.swift */; };
 		E679A005EF31A49C8315A4334B45E45D /* GameStrings+Profile160.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4BCBB2D3B71EE40F322170B494DF10 /* GameStrings+Profile160.swift */; };
 		E8CBBE7D1F81981DBD85685F3C03E8A4 /* SaveTransferUpdateButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22B29EC7811674812A911F49F358D0A /* SaveTransferUpdateButton.swift */; };
+		E8E34CC70F078784A002A25C512B8C6C /* MacHomeUpgradeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */; };
 		E93FFD814AF0C1D7F13476B6A7F2DE04 /* RoomBowlPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA782156A9196302A5B92B468AAD43E3 /* RoomBowlPlanner.swift */; };
 		E9573F46A0CF06D707428BB6CBDD49DA /* OnboardingSpotlight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593D0C8E1EBB784B9FB75E0D8AFDFCB9 /* OnboardingSpotlight.swift */; };
 		EAA79A0C64AB08C5BD29A79F888F9DF8 /* CatGameCore in Frameworks */ = {isa = PBXBuildFile; productRef = 85D10F6F3CBCEF487476729897001F98 /* CatGameCore */; };
@@ -498,6 +499,7 @@
 		F0685B9DA78F49238ED042A994BA0A8F /* SaveTransferComparison.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SaveTransferComparison.swift; path = Views/SaveTransferComparison.swift; sourceTree = "<group>"; };
 		F129D32644DBCF1C6CC88AAD5B641B79 /* MacRecoveryViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacRecoveryViews.swift; sourceTree = "<group>"; };
 		F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacDesktopRoot.swift; sourceTree = "<group>"; };
+		F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacHomeUpgradeView.swift; sourceTree = "<group>"; };
 		F195720139C12E41D720FEC96BBB4466 /* MacWorkPersistenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacWorkPersistenceTests.swift; sourceTree = "<group>"; };
 		F1D80FDE449999293FABFBC05F7D38BB /* GameStore+Mac69.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStore+Mac69.swift"; path = "Store/GameStore+Mac69.swift"; sourceTree = "<group>"; };
 		F22B29EC7811674812A911F49F358D0A /* SaveTransferUpdateButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SaveTransferUpdateButton.swift; path = Views/SaveTransferUpdateButton.swift; sourceTree = "<group>"; };
@@ -828,6 +830,7 @@
 				E6B73E5FE65C272E195961F55E9C9E08 /* MacCatsView.swift */,
 				35844050B7877DDAE553E96AD2E4B129 /* MacCommonViews.swift */,
 				F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */,
+				F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */,
 				374ABBC067961B4274066AFEE5BB1434 /* MacHomeView.swift */,
 				028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */,
 				6DA641B2BB74D96B0195E00A0A32CD11 /* MacPlaceScene.swift */,
@@ -1232,6 +1235,7 @@
 				82690A04E3EFBBA04990BB70F185BF23 /* MacCatsView.swift in Sources */,
 				66C24C043623276180C1260399B357FF /* MacCommonViews.swift in Sources */,
 				9E417F696CC6F2A5456AF81B5421C754 /* MacDesktopRoot.swift in Sources */,
+				E8E34CC70F078784A002A25C512B8C6C /* MacHomeUpgradeView.swift in Sources */,
 				9433836444AF4738092AD8ED3C1860A6 /* MacHomeView.swift in Sources */,
 				3B3BECBA703DD9D00B0B0B135A57CB3D /* MacOnboardingTour.swift in Sources */,
 				5897C51BF8187AF6B367602C9E81BF97 /* MacPlaceScene.swift in Sources */,

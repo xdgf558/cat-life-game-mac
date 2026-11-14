@@ -2,6 +2,9 @@ import Foundation
 
 // 1.6.0: the desktop profile page (character · what you wear · your numbers).
 let profile160Chinese: [String: String] = [
+    "mac.upgrade.now": "现在的小家", "mac.upgrade.after": "改造之后", "mac.upgrade.area": "面积", "mac.upgrade.size": "宽和进深", "mac.upgrade.capacity": "家具", "mac.upgrade.pieces": "%d 件",
+    "mac.upgrade.cost": "费用", "mac.upgrade.need": "需要", "mac.upgrade.workLevel": "打工 Lv%d", "mac.upgrade.yourLevel": "你现在 Lv%d", "mac.upgrade.wallet": "钱包里 %d 金币",
+    "mac.upgrade.shortGold": "还差 %d 金币，先去打工攒一攒吧。", "mac.upgrade.finishLayout": "先完成或取消房间布置，再来改造。", "mac.upgrade.ready": "条件都满足了，可以开始改造。",
     "mac.bag.noEquipment": "还没有装备，可以去商店看看。", "mac.bag.pickItem": "选一件看看详情。", "mac.bag.carried": "背包里 %d 份",
     "mac.top.profile": "形象 · 穿戴 · 加成，一页看完",
     "mac.profile.save": "保存", "mac.profile.cancel": "取消",
@@ -43,6 +46,9 @@ let profile160Chinese: [String: String] = [
 ]
 
 let profile160Traditional: [String: String] = [
+    "mac.upgrade.now": "現在的小家", "mac.upgrade.after": "改造之後", "mac.upgrade.area": "面積", "mac.upgrade.size": "寬和進深", "mac.upgrade.capacity": "家具", "mac.upgrade.pieces": "%d 件",
+    "mac.upgrade.cost": "費用", "mac.upgrade.need": "需要", "mac.upgrade.workLevel": "打工 Lv%d", "mac.upgrade.yourLevel": "你現在 Lv%d", "mac.upgrade.wallet": "錢包裡 %d 金幣",
+    "mac.upgrade.shortGold": "還差 %d 金幣，先去打工存一存吧。", "mac.upgrade.finishLayout": "先完成或取消房間布置，再來改造。", "mac.upgrade.ready": "條件都滿足了，可以開始改造。",
     "mac.bag.noEquipment": "還沒有裝備，可以去商店看看。", "mac.bag.pickItem": "選一件看看詳情。", "mac.bag.carried": "背包裡 %d 份",
     "mac.top.profile": "形象 · 穿戴 · 加成，一頁看完",
     "mac.profile.save": "儲存", "mac.profile.cancel": "取消",
@@ -84,6 +90,9 @@ let profile160Traditional: [String: String] = [
 ]
 
 let profile160English: [String: String] = [
+    "mac.upgrade.now": "Your home now", "mac.upgrade.after": "After the upgrade", "mac.upgrade.area": "Area", "mac.upgrade.size": "Width & depth", "mac.upgrade.capacity": "Furniture", "mac.upgrade.pieces": "%d",
+    "mac.upgrade.cost": "Cost", "mac.upgrade.need": "Requires", "mac.upgrade.workLevel": "Work Lv%d", "mac.upgrade.yourLevel": "You are Lv%d", "mac.upgrade.wallet": "%d gold in your wallet",
+    "mac.upgrade.shortGold": "%d more gold needed. Work a little more first.", "mac.upgrade.finishLayout": "Finish or cancel decorating before upgrading.", "mac.upgrade.ready": "All set. You can upgrade now.",
     "mac.bag.noEquipment": "No gear yet. Have a look in the shop.", "mac.bag.pickItem": "Pick an item to see details.", "mac.bag.carried": "%d in your bag",
     "mac.top.profile": "Look, outfit and bonuses on one page",
     "mac.profile.save": "Save", "mac.profile.cancel": "Cancel",

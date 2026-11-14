@@ -122,8 +122,10 @@ struct MacDesktopRoot: View {
         statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in
             // The bag has three columns (categories, items, the use card) and needs a wider sheet;
             // narrower, its content overflowed and was clipped on both sides.
-            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : 600, idealWidth: item == .bag ? 980 : 780,
-                                      minHeight: 600, idealHeight: 760)
+            // The upgrade sheet is one compact comparison; it does not need the tall default.
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : 600,
+                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : 780,
+                                      minHeight: item == .upgrade ? 470 : 600, idealHeight: item == .upgrade ? 500 : 760)
         }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
@@ -156,8 +158,21 @@ struct MacDesktopRoot: View {
         }
         .saveRecoveryAlert(store: store, isActive: auxiliary == nil && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil && !store.isPresentingHabitGuide && !store.isPresentingHabitMemory)
     }
+    /// The upgrade happens inside its sheet; close it so the celebration plays over the room.
+    private var celebratedContent: some View {
+        presentedContent
+            .overlay {
+                if let celebration = store.homeUpgradeCelebration, auxiliary == nil, !titleVisible {
+                    MacHomeUpgradeCelebration(store: store, celebration: celebration) { store.homeUpgradeCelebration = nil }
+                        .transition(.opacity)
+                }
+            }
+            .onChange(of: store.homeUpgradeCelebration?.id) { _, id in
+                if id != nil, auxiliary == .upgrade { auxiliary = nil }
+            }
+    }
     private var observedContent: some View {
-        presentedContent.task { await start() }
+        celebratedContent.task { await start() }
         .onChange(of: preferences.backgroundAudio && !quitting, initial: true) { _, keep in store.audioContinuesInBackground = keep }
         .onChange(of: phase, initial: true) { _, value in syncForeground(phaseActive: value == .active) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -462,7 +477,8 @@ struct MacDesktopRoot: View {
             NotificationCenter.default.post(name: .macToggleRecovery, object: nil); return true
         }
         if command == .escape {
-            if store.showsPlayChoices { pendingPlayChoice = nil; store.showsPlayChoices = false }
+            if store.homeUpgradeCelebration != nil, auxiliary == nil { store.homeUpgradeCelebration = nil }
+            else if store.showsPlayChoices { pendingPlayChoice = nil; store.showsPlayChoices = false }
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
@@ -599,7 +615,7 @@ struct MacDesktopRoot: View {
                 switch item {
                 case .tasks: TaskDestinationView(store: store)
                 case .inventory: InventoryView(store: store)
-                case .upgrade: HomeUpgradeView(store: store)
+                case .upgrade: MacHomeUpgradeView(store: store)
                 case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)
                 case .neighborDetail: NavigationStack { if let neighborID { NeighborDetailView(store: store, neighborID: neighborID) } }
                 case .neighbors: CommunityView(store: store, onClose: { auxiliary = nil })

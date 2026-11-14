@@ -276,7 +276,11 @@ public enum GameEngine {
         let comfortBonus = state.home.comfortScore / 20
         state.cats[index].mood = cap(state.cats[index].mood + 18 + comfortBonus)
         // The web rule awards +8 intimacy and a further +4 toy bonus.
-        let bondBonus = Int((12 * Double(OutingBonuses.value(.bond, in: state)) / 100).rounded())
+        // Placed garden decor adds a percentage of the 12; the fraction carries to the next play.
+        let bondShare = 12 * Double(OutingBonuses.value(.bond, in: state)) / 100
+        let bondEarned = bondShare > 0 ? bondShare + state.outing.bondCarry : 0
+        let bondBonus = Int(bondEarned)
+        if bondShare > 0 { state.outing.bondCarry = bondEarned - Double(bondBonus) }
         state.cats[index].intimacy = cap(state.cats[index].intimacy + 12 + bondBonus)
         state.cats[index].energy = cap(state.cats[index].energy - 10)
         state.player.mood = cap(state.player.mood + 4)
@@ -411,20 +415,15 @@ public enum GameEngine {
         let energyBonus = OutingBonuses.value(.catEnergy, in: state)
         for index in state.cats.indices {
             var cat = state.cats[index]
-            var completedRestReward = 0
             if let rest = cat.activeRest, timestamp >= rest.endsAt {
                 CatHabitEngine.completeRest(&cat, rest: rest, home: state.home, inventory: state.inventory)
-                completedRestReward = rest.energyReward
             }
             if cat.growthState == nil {
                 cat.growthState = .legacy(appearance: cat.appearance, now: timestamp, isPregnant: cat.isPregnant)
             }
-            CatHealthEngine.synchronize(&cat, now: timestamp)
-            settleCatNeeds(&cat, now: timestamp)
-            // Placed garden decor: a finished rest gives a little more energy.
-            if completedRestReward > 0, energyBonus > 0 {
-                cat.energy = min(100, cat.energy + Int((Double(completedRestReward) * Double(energyBonus) / 100).rounded()))
-            }
+            // Placed garden decor: a finished rest gives a little more energy, at the rest's end.
+            CatHealthEngine.synchronize(&cat, now: timestamp, restBonus: energyBonus)
+            settleCatNeeds(&cat, now: timestamp, restBonus: energyBonus)
             if let legacy = cat.habits.legacyRestSessionID, cat.activeRest?.id != legacy {
                 cat.habits.legacyRestSessionID = nil
             }
@@ -567,14 +566,16 @@ public enum GameEngine {
         tracker = timestamp
     }
 
-    static func settleCatNeeds(_ cat: inout CatState, now: Date) {
-        settleCatEnergy(&cat, now: now)
+    static func settleCatNeeds(_ cat: inout CatState, now: Date, restBonus: Int = 0) {
+        settleCatEnergy(&cat, now: now, restBonus: restBonus)
         decay(&cat.satiety, tracker: &cat.decayTracker.satiety, interval: 12 * 60, now: now)
         decay(&cat.cleanliness, tracker: &cat.decayTracker.cleanliness, interval: 8 * 60, now: now)
         decay(&cat.mood, tracker: &cat.decayTracker.mood, interval: 6 * 60, now: now)
     }
 
-    private static func settleCatEnergy(_ cat: inout CatState, now: Date) {
+    /// `restBonus` (%) is the placed outing decor's extra energy, granted the moment a rest finishes
+    /// so the decay after the rest applies to it like any other energy.
+    private static func settleCatEnergy(_ cat: inout CatState, now: Date, restBonus: Int = 0) {
         if var rest = cat.activeRest {
             let through = min(rest.endsAt, max(rest.startedAt, now))
             let duration = rest.endsAt.timeIntervalSince(rest.startedAt)
@@ -599,6 +600,9 @@ public enum GameEngine {
             let paused = max(0, through.timeIntervalSince(rest.energyPausedUntil))
             cat.decayTracker.energy = cat.decayTracker.energy.addingTimeInterval(paused)
             rest.energyPausedUntil = max(rest.energyPausedUntil, through)
+            if now >= rest.endsAt, restBonus > 0 {
+                cat.energy = min(100, cat.energy + Int((Double(rest.energyReward) * Double(restBonus) / 100).rounded()))
+            }
             cat.activeRest = now >= rest.endsAt ? nil : rest
         }
         if cat.activeRest == nil {
@@ -609,7 +613,7 @@ public enum GameEngine {
     static func finishCatRest(_ state: inout GameSnapshot, index: Int, now: Date) {
         guard state.cats[index].activeRest != nil else { return }
         var cat = state.cats[index]
-        settleCatEnergy(&cat, now: now)
+        settleCatEnergy(&cat, now: now, restBonus: OutingBonuses.value(.catEnergy, in: state))
         cat.activeRest = nil
         cat.habits.legacyRestSessionID = nil
         decay(&cat.energy, tracker: &cat.decayTracker.energy, interval: 300, now: now)

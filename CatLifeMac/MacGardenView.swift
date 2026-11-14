@@ -36,6 +36,9 @@ struct MacGardenView: View {
     @State private var hoveredSpot: OutingSpot?
     @State private var working = false
     @State private var deferredCompare = false
+    /// The cat walking to a spot; cards wait until it arrives.
+    @State private var catWalk: MacOutingCatWalk?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var state: GameSnapshot? { store.snapshot }
     private var trip: OutingTrip? { state?.outing.trip }
@@ -138,8 +141,16 @@ struct MacGardenView: View {
     private func explore(_ spot: OutingSpot) {
         guard !working, let trip, trip.pendingEventID == nil, trip.footprintsLeft > 0, cardEntryID == nil else { return }
         working = true
+        let from = MacGardenScene.catGround(trip.log.last?.spot)
+        let duration = reduceMotion || trip.log.last?.spot == spot ? 0 : MacOutingCatWalk.duration(from: from, to: spot)
+        if duration > 0 { catWalk = MacOutingCatWalk(from: from, to: spot, start: .now, duration: duration) }
         Task {
-            if await store.exploreOuting(spot: spot), let last = store.outingTrip?.log.last, last.kind != .event {
+            let started = Date.now
+            let succeeded = await store.exploreOuting(spot: spot)
+            let remaining = duration - Date.now.timeIntervalSince(started)
+            if succeeded, remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
+            catWalk = nil
+            if succeeded, let last = store.outingTrip?.log.last, last.kind != .event {
                 cardEntryID = last.id
             }
             working = false
@@ -402,6 +413,11 @@ struct MacGardenView: View {
             GeometryReader { proxy in
                 ZStack {
                     MacGardenScene(highlight: hoveredSpot)
+                    TimelineView(.animation(minimumInterval: 1.0 / 30, paused: catWalk == nil)) { clock in
+                        MacOutingCat(appearance: cat.appearance, walk: catWalk, standingAt: trip.log.last?.spot,
+                                     size: proxy.size, now: clock.date)
+                    }
+                    .allowsHitTesting(false)
                     ForEach(Array(OutingSpot.allCases.enumerated()), id: \.element) { index, spot in
                         spotLabel(spot, index: index, trip: trip)
                             .position(MacGardenScene.labelPoint(spot, in: proxy.size))
@@ -414,7 +430,7 @@ struct MacGardenView: View {
                     }
                     VStack { mapTopBar(trip); Spacer() }.padding(12)
                     VStack { Spacer(); HStack { catBubble(trip, cat); Spacer() } }.padding(14)
-                    if let eventID = trip.pendingEventID, let event = OutingCatalog.event(id: eventID) {
+                    if catWalk == nil, let eventID = trip.pendingEventID, let event = OutingCatalog.event(id: eventID) {
                         MacModalScrim(opacity: 0.18) { eventCard(event, cat) }
                     } else if let id = cardEntryID, let entry = trip.log.first(where: { $0.id == id }) {
                         MacModalScrim(opacity: 0.18) { resultCard(entry, trip: trip, cat: cat) }
@@ -976,7 +992,8 @@ enum MacOutingText {
             return loot.duplicate ? GameStrings.format("outing.loot.keepsakeAgain", loot.gold) : GameStrings.text("outing.loot.keepsakeNew")
         case .decor:
             let roll = loot.roll.map { GameStrings.text($0.quality.titleKey) + " · " + attribute($0) } ?? ""
-            return loot.duplicate ? roll + " · " + GameStrings.text("outing.loot.decorAgain") : roll
+            guard loot.duplicate else { return roll }
+            return roll + " · " + (loot.gold > 0 ? GameStrings.format("outing.loot.decorSwapped", loot.gold) : GameStrings.text("outing.loot.decorAgain"))
         case .gold: return GameStrings.text("outing.loot.gold")
         }
     }
@@ -987,7 +1004,8 @@ enum MacOutingText {
             return GameStrings.format(reactionKey ?? "outing.reaction.plain", catName)
         case .decor:
             let base = GameStrings.format(reactionKey ?? "outing.reaction.plain", catName)
-            return loot.duplicate ? base + "\n" + GameStrings.text("outing.loot.decorAgainLong") : base
+            guard loot.duplicate else { return base }
+            return base + "\n" + (loot.gold > 0 ? GameStrings.format("outing.loot.decorSwappedLong", loot.gold) : GameStrings.text("outing.loot.decorAgainLong"))
         case .gold: return GameStrings.format("outing.loot.goldStory", catName)
         }
     }
@@ -1066,6 +1084,24 @@ struct MacGardenScene: View {
         case .path: CGPoint(x: 0.8, y: 0.45)
         }
     }
+    /// Where the cat stands (its paws), in image fractions: at the gate before the first step,
+    /// then on the ground beside the last spot it visited.
+    nonisolated static func catGround(_ spot: OutingSpot?) -> CGPoint {
+        switch spot {
+        case nil: CGPoint(x: 0.78, y: 0.86)
+        case .flowerBed: CGPoint(x: 0.37, y: 0.71)
+        case .treeShade: CGPoint(x: 0.45, y: 0.5)
+        case .path: CGPoint(x: 0.71, y: 0.66)
+        }
+    }
+    /// A map fraction to view coordinates: through the art's crop, or straight for the placeholder.
+    static func mapPoint(_ fraction: CGPoint, in size: CGSize) -> CGPoint {
+        hasArt ? artPoint(fraction, in: size) : CGPoint(x: fraction.x * size.width, y: fraction.y * size.height)
+    }
+    /// The drawn height of the map, which the cat's size follows.
+    static func mapHeight(in size: CGSize) -> CGFloat {
+        hasArt ? artSize.height * max(size.width / artSize.width, size.height / artSize.height) : size.height
+    }
     /// An image fraction to view coordinates, following the aspect-fill crop of the art.
     static func artPoint(_ fraction: CGPoint, in size: CGSize) -> CGPoint {
         let scale = max(size.width / artSize.width, size.height / artSize.height)
@@ -1100,7 +1136,9 @@ struct MacGardenScene: View {
     var body: some View {
         if Self.hasArt {
             TimelineView(.periodic(from: .now, by: 300)) { clock in
-                Image("outing-garden-map").resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                // Color.clear takes exactly the offered size and centres the overfilled art; a flexible
+                // frame around scaledToFill would grow to the art's size and pin it to the left edge.
+                Color.clear.overlay { Image("outing-garden-map").resizable().scaledToFill() }.clipped()
                     .overlay {
                         if Self.isEvening(clock.date) { Color(red: 0.98, green: 0.62, blue: 0.40).opacity(0.14).allowsHitTesting(false) }
                     }
@@ -1190,6 +1228,79 @@ struct MacGardenScene: View {
                 }
             }
         }
+    }
+}
+#endif
+
+#if os(macOS)
+import SpriteKit
+
+struct MacOutingCatWalk: Equatable {
+    let from: CGPoint
+    let to: OutingSpot
+    let start: Date
+    let duration: TimeInterval
+
+    static func duration(from: CGPoint, to spot: OutingSpot) -> TimeInterval {
+        let target = MacGardenScene.catGround(spot)
+        return min(1.8, max(0.8, hypot(target.x - from.x, target.y - from.y) * 2.6))
+    }
+}
+
+/// The outing cat on the garden map, drawn from the same walk and standing frames as the room.
+@MainActor
+struct MacOutingCat: View {
+    let appearance: CatAppearance
+    let walk: MacOutingCatWalk?
+    let standingAt: OutingSpot?
+    let size: CGSize
+    let now: Date
+
+    var body: some View {
+        let height = min(116, max(60, MacGardenScene.mapHeight(in: size) * 0.12))
+        let (ground, facing, clip, index) = pose()
+        let point = MacGardenScene.mapPoint(ground, in: size)
+        let library = CatSpriteLibrary(appearance: appearance)
+        let sequence = library.sequence(clip)
+        let frame = sequence.frames[index % max(1, sequence.frames.count)]
+        let unit = height * sequence.heightRatio / max(1, sequence.referenceHeight)
+        let drawn = CGSize(width: frame.bounds.width * unit, height: frame.bounds.height * unit)
+        return ZStack {
+            Ellipse().fill(RoomTheme.ink.opacity(0.16)).frame(width: height * 0.72, height: height * 0.14)
+                .position(x: point.x, y: point.y)
+            if let image = Self.image(frame.texture, key: "\(CatArtwork.asset(clip.rawValue, appearance: appearance)):\(index)") {
+                Image(decorative: image, scale: 1).resizable().interpolation(.high)
+                    .frame(width: drawn.width, height: drawn.height)
+                    .scaleEffect(x: facing, y: 1)
+                    .position(x: point.x + (frame.bounds.midX - frame.groundCenter) * unit * facing,
+                              y: point.y - drawn.height / 2 + (frame.bounds.maxY - frame.groundY) * unit)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func pose() -> (CGPoint, CGFloat, CatClip, Int) {
+        guard let walk else {
+            // Standing beside a spot, the cat looks back toward the middle of the garden.
+            let ground = MacGardenScene.catGround(standingAt)
+            return (ground, ground.x > 0.55 ? -1 : 1, .expressions, 0)
+        }
+        let elapsed = max(0, now.timeIntervalSince(walk.start))
+        let t = min(1, elapsed / max(0.01, walk.duration))
+        let eased = t * t * (3 - 2 * t)
+        let target = MacGardenScene.catGround(walk.to)
+        let ground = CGPoint(x: walk.from.x + (target.x - walk.from.x) * eased,
+                             y: walk.from.y + (target.y - walk.from.y) * eased)
+        guard t < 1 else { return (target, target.x > 0.55 ? -1 : 1, .expressions, 0) }
+        return (ground, target.x >= walk.from.x ? 1 : -1, .walk, Int(elapsed * 10))
+    }
+
+    private static var images: [String: CGImage] = [:]
+    private static func image(_ texture: SKTexture, key: String) -> CGImage? {
+        if let cached = images[key] { return cached }
+        let image = texture.cgImage()
+        images[key] = image
+        return image
     }
 }
 #endif

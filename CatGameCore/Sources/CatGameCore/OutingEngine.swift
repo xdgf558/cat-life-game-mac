@@ -285,9 +285,15 @@ extension GameEngine {
             let decorRoll = OutingDecorRoll(quality: quality, attribute: attribute,
                                             value: random.int(attribute.range(for: quality)), foundAt: timestamp, catID: catID)
             if var record = state.outing.decor[definition.id] {
-                // An older copy still waiting for the compare is kept as gold, never lost.
-                let gold = record.pendingDuplicate == nil ? 0 : addGold(&state, OutingCatalog.duplicateDecorGold)
-                record.pendingDuplicate = decorRoll
+                // One copy waits for the compare at a time. When another arrives, the better of the
+                // two keeps waiting and the other becomes gold, so a treasured copy is never lost.
+                var gold = 0
+                if let waiting = record.pendingDuplicate {
+                    gold = addGold(&state, OutingCatalog.duplicateDecorGold)
+                    if decorRoll.isBetter(than: waiting) { record.pendingDuplicate = decorRoll }
+                } else {
+                    record.pendingDuplicate = decorRoll
+                }
                 state.outing.decor[definition.id] = record
                 return .init(id: lootID, kind: .decor, itemID: definition.id, roll: decorRoll, gold: gold, duplicate: true)
             }

@@ -456,13 +456,14 @@ struct MacDesktopRoot: View {
         gardenCatID = catID; showsCafe = false; showsGarden = true
         store.playNavigationSound()
     }
-    /// Home, arrange mode, and the outing piece selected (placed or still in the bag).
+    /// Home, arrange mode, and the outing piece selected (placed or still in the bag). The shared
+    /// arrange path moves to the floor the piece is on first, so a piece upstairs is found too.
     private func arrangeOutingItem(_ itemID: String) {
         select(.home)
-        guard store.snapshot?.inventory.furniture.contains(where: { $0.id == itemID }) == true else { store.beginDecorating(); return }
-        store.beginDecorating()
-        if store.storedFurniture.contains(where: { $0.id == itemID }) { store.selectStoredFurniture(id: itemID) }
-        else { store.selectFurniture(id: itemID) }
+        Task { @MainActor in
+            if await store.arrangeInventoryFurniture(id: itemID) { return }
+            if !store.isDecorating { store.beginDecorating() }
+        }
     }
     /// Where the recovery popover, bag and work page send the player.
     private var recoveryExits: MacRecoveryExits {

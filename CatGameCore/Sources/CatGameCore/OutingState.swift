@@ -8,6 +8,16 @@ public struct OutingDecorRoll: Codable, Equatable, Sendable {
     public let foundAt: Date
     public let catID: String
 
+    /// Higher quality first, then where the value sits within its quality's range. Ties keep the older copy.
+    public func isBetter(than other: OutingDecorRoll) -> Bool {
+        if quality != other.quality { return quality > other.quality }
+        return share > other.share
+    }
+    private var share: Double {
+        let range = attribute.range(for: quality)
+        return range.count > 1 ? Double(value - range.lowerBound) / Double(range.count - 1) : 1
+    }
+
     var isValid: Bool {
         attribute.range(for: quality).contains(value) && (attribute != .footprint || quality == .treasured)
             && foundAt.timeIntervalSince1970.isFinite && OutingState.validID(catID)
@@ -144,17 +154,21 @@ public struct OutingState: Codable, Equatable, Sendable {
     public var lastSettlement: OutingSettlement?
     public var shelfGranted: Bool
     /// Home bonuses only accrue across back-to-back syncs while the game is open (no offline accrual).
+    /// Session-only: never saved, so a reloaded or imported game starts a fresh anchor and the time it
+    /// was closed never counts, however short.
     public var bonusTickAt: Date?
     public var bonusCarry: TimeInterval
     public var totalDepartures: Int
+    /// The fraction of a play's bond bonus not yet paid (0..<1).
+    public var bondCarry: Double
 
     public init() {
         trip = nil; dayKey = nil; departuresToday = 0; keepsakes = [:]; decor = [:]
-        lastSettlement = nil; shelfGranted = false; bonusTickAt = nil; bonusCarry = 0; totalDepartures = 0
+        lastSettlement = nil; shelfGranted = false; bonusTickAt = nil; bonusCarry = 0; totalDepartures = 0; bondCarry = 0
     }
 
     private enum CodingKeys: String, CodingKey {
-        case trip, dayKey, departuresToday, keepsakes, decor, lastSettlement, shelfGranted, bonusTickAt, bonusCarry, totalDepartures
+        case trip, dayKey, departuresToday, keepsakes, decor, lastSettlement, shelfGranted, bonusCarry, totalDepartures, bondCarry
     }
 
     public init(from decoder: Decoder) throws {
@@ -166,9 +180,10 @@ public struct OutingState: Codable, Equatable, Sendable {
         decor = try values.decodeIfPresent([String: OutingDecorRecord].self, forKey: .decor) ?? [:]
         lastSettlement = try values.decodeIfPresent(OutingSettlement.self, forKey: .lastSettlement)
         shelfGranted = try values.decodeIfPresent(Bool.self, forKey: .shelfGranted) ?? false
-        bonusTickAt = try values.decodeIfPresent(Date.self, forKey: .bonusTickAt)
+        bonusTickAt = nil
         bonusCarry = try values.decodeIfPresent(TimeInterval.self, forKey: .bonusCarry) ?? 0
         totalDepartures = try values.decodeIfPresent(Int.self, forKey: .totalDepartures) ?? 0
+        bondCarry = try values.decodeIfPresent(Double.self, forKey: .bondCarry) ?? 0
     }
 
     public func departuresLeft(today key: String?) -> Int {
@@ -196,5 +211,6 @@ public struct OutingState: Codable, Equatable, Sendable {
             && (bonusTickAt?.timeIntervalSince1970.isFinite ?? true)
             && bonusCarry.isFinite && (0..<3600).contains(bonusCarry)
             && (0...GameSnapshot.maximumGold).contains(totalDepartures)
+            && bondCarry.isFinite && (0..<1).contains(bondCarry)
     }
 }

@@ -125,10 +125,11 @@ struct MacDesktopRoot: View {
             // The bag has three columns (categories, items, the use card) and needs a wider sheet;
             // narrower, its content overflowed and was clipped on both sides.
             // The upgrade sheet is one compact comparison; it does not need the tall default.
-            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : item == .catProfile ? 900 : 600,
-                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : item == .catProfile ? 960 : 780,
+            // The hospital is a compact two-column page sized to fit without scrolling.
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : item == .catProfile ? 900 : item == .hospital ? 660 : 600,
+                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : item == .catProfile ? 960 : item == .hospital ? 700 : 780,
                                       minHeight: item == .upgrade ? 490 : item == .catProfile ? 580 : 600,
-                                      idealHeight: item == .upgrade ? 520 : item == .catProfile ? 640 : 760)
+                                      idealHeight: item == .upgrade ? 520 : item == .catProfile ? 640 : item == .hospital ? 620 : 760)
         }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
@@ -618,10 +619,26 @@ struct MacDesktopRoot: View {
     #endif
     @ViewBuilder private func auxiliaryView(_ item: MacAuxiliary) -> some View {
         VStack(spacing: 0) {
-            HStack { Text(GameStrings.text(item.key)).font(.title3.bold()); Spacer(); Button(GameStrings.text("common.done")) { auxiliary = nil }.keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress) }.padding(16)
-            Divider()
-            if let place = item.place {
-                MacPlaceBanner(store: store, place: place, height: 120).padding(.horizontal, 16).padding(.top, 12)
+            if item.bannerOnly, let place = item.place {
+                // The scene banner names the place, so no title row repeats it; Done sits on the banner.
+                MacPlaceBanner(store: store, place: place, height: 96)
+                    .overlay(alignment: .topTrailing) {
+                        Button { auxiliary = nil } label: {
+                            Text(GameStrings.text("common.done")).font(.system(size: 12.5, weight: .heavy))
+                                .padding(.horizontal, 14).padding(.vertical, 7)
+                                .background(RoomTheme.paper.opacity(0.95), in: Capsule())
+                        }
+                        .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint).padding(12)
+                        .keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress)
+                        .accessibilityIdentifier("macAuxiliaryDone")
+                    }
+                    .padding(.horizontal, 16).padding(.top, 14)
+            } else {
+                HStack { Text(GameStrings.text(item.key)).font(.title3.bold()); Spacer(); Button(GameStrings.text("common.done")) { auxiliary = nil }.keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress) }.padding(16)
+                Divider()
+                if let place = item.place {
+                    MacPlaceBanner(store: store, place: place, height: 120).padding(.horizontal, 16).padding(.top, 12)
+                }
             }
             Group {
                 switch item {
@@ -681,6 +698,8 @@ private enum MacAuxiliary: String, Identifiable {
     case tasks, inventory, upgrade, hospital, neighbors, neighborDetail, market, board, saves, player, catProfile, bag, rest
     var id: String { rawValue }
     var usesActiveSheet: Bool { [.tasks, .inventory, .upgrade, .hospital, .player].contains(self) }
+    /// Sheets whose scene banner is the whole header (no separate title row).
+    var bannerOnly: Bool { self == .hospital }
     /// Town places opened as sheets show that place's scene banner.
     var place: TownPlace? {
         switch self {

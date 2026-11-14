@@ -89,7 +89,8 @@ struct ExchangeResultView: View {
                 Text(GameStrings.text(neighbor.nameKey) + " · " + GameStrings.text(CommunityCatalog.stage(friendship: friendship).nameKey))
                     .font(.subheadline.weight(.heavy))
                 Text(receipt.friendshipGained > 0 ? GameStrings.format("market.friendshipResult", receipt.friendshipGained, friendship)
-                     : GameStrings.text("community.closestStage"))
+                     // Since 1.3.0 trades never add friendship, so 0 says where friendship comes from, not "closest friends".
+                     : GameStrings.text("market.noFriendship130"))
                     .font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.friendshipDeep)
                     .accessibilityIdentifier("marketResultFriendship").accessibilityValue("\(receipt.friendshipGained):\(friendship)")
                 ExchangeFriendshipBar(friendship: friendship)

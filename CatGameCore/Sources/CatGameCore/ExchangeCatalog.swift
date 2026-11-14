@@ -52,7 +52,7 @@ public struct ExchangeOffer: Identifiable, Equatable, Sendable {
 
 public enum ExchangeCatalog {
     public static let dailyLimit = 2
-    public static let friendship = 2
+    // 1.3.0: the market is for restocking only. Friendship comes from visits, gifts and the notice board.
     public static let offers: [ExchangeOffer] = [
         .init(id: "mira_food", neighborID: "neighbor_mira", requiredStage: 1,
               inputs: [.init(item: .supply(.food), quantity: 2)],
@@ -121,11 +121,8 @@ extension GameEngine {
         count.today += 1
         count.total = min(GameSnapshot.maximumGold, count.total + 1)
         candidate.community.exchangeCounts[offer.neighborID] = count
-        var relationship = candidate.community.relationship(for: offer.neighborID)
-        let gained = applyFriendship(ExchangeCatalog.friendship, to: &relationship, in: &candidate)
-        candidate.community.relationships[offer.neighborID] = relationship
         guard candidate.isValid else { return .init(failure: .gameInvalidState) }
         state = candidate
-        return .init(success: .exchanged, amount: gained)
+        return .init(success: .exchanged)
     }
 }

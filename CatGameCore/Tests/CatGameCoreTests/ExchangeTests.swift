@@ -57,7 +57,7 @@ struct ExchangeTests {
             }
             #expect(state.player.gold == before.player.gold)
             #expect(state.community.exchangeCount(for: offer.neighborID) == .init(today: 1, total: 1))
-            #expect(state.community.relationship(for: offer.neighborID).friendship == 42)
+            #expect(state.community.relationship(for: offer.neighborID).friendship == 40, "Trades never add friendship.")
             #expect(try reload(state) == state)
         }
     }
@@ -124,17 +124,12 @@ struct ExchangeTests {
         #expect(state.community.exchangeCounts == counts)
     }
 
-    @Test func exchangeCanUnlockStageRewardOnlyOnceWithoutTruncatingTradedOutput() {
+    @Test func exchangeNeverChangesFriendshipOrGrantsStageRewards() {
         var state = ready(friendship: 18)
-        #expect(GameEngine.exchange(&state, offerID: "mira_food", now: now).amount == 2)
-        #expect(state.community.relationship(for: mira).rewardedStageLevels == [2])
-        #expect(state.inventory.food == 19 && state.inventory.premiumFood == 1 && state.player.gold == 220)
-        #expect(GameEngine.exchange(&state, offerID: "mira_food", now: now).succeeded)
-        #expect(state.inventory.food == 17 && state.inventory.premiumFood == 2 && state.player.gold == 220)
-        state = ready(friendship: 100)
         #expect(GameEngine.exchange(&state, offerID: "mira_food", now: now).amount == 0)
-        #expect(state.community.relationship(for: mira).friendship == 100)
-        #expect(state.inventory.premiumFood == 1 && state.community.totalExchangeCount == 1)
+        #expect(state.community.relationship(for: mira).friendship == 18)
+        #expect(state.community.relationship(for: mira).rewardedStageLevels.isEmpty)
+        #expect(state.inventory.food == 18 && state.inventory.premiumFood == 1 && state.player.gold == 200)
     }
 
     @Test func exchangeGoalsUseSavedCountsHideClaimsAndRefreshOnlyDailyRewards() throws {

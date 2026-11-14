@@ -14,8 +14,8 @@ final class MacTownViewportTests: XCTestCase {
     }
 
     @MainActor func testAllPlacesHaveDistinctVisiblePositionsAndThreeLanguageLabels() {
-        let positions = TownPlace.allCases.map(MacTownViewport69.position)
-        XCTAssertEqual(Set(positions.map { "\($0.x),\($0.y)" }).count, TownPlace.allCases.count)
+        let positions = TownPlace.mapPlaces.map(MacTownViewport69.position)
+        XCTAssertEqual(Set(positions.map { "\($0.x),\($0.y)" }).count, TownPlace.mapPlaces.count)
         XCTAssertTrue(positions.allSatisfy { (0.05...0.95).contains($0.x) && (0.05...0.95).contains($0.y) })
         XCTAssertEqual(Set(GameStrings.macContent69Chinese.keys), Set(GameStrings.macContent69English.keys))
         XCTAssertEqual(Set(GameStrings.macContent69Chinese.keys), Set(GameStrings.macContent69TraditionalChinese.keys))

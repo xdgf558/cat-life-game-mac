@@ -39,6 +39,8 @@ public struct TownEventDefinition: Identifiable, Equatable, Sendable {
     public let id: String
     public let neighborID: String
     public let choices: [TownEventChoice]
+    /// Choices that were offered in earlier versions. Their letters stay readable; they cannot be chosen.
+    public var retiredChoiceIDs: [String] = []
     public var titleKey: String { "townEvents.event.\(id).title" }
     public var bodyKey: String { "townEvents.event.\(id).body" }
     public var assetName: String { CommunityCatalog.neighbor(id: neighborID)?.portraitAssetName ?? "town-board-cartoon" }
@@ -56,14 +58,19 @@ public struct TownEventMilestone: Identifiable, Equatable, Sendable {
 /// Stable content IDs are retained in letters. Retired content remains readable, but cannot be replayed.
 public enum TownEventCatalog {
     public static let all: [TownEventDefinition] = [
-        event("mira_tidy", "neighbor_mira", stamina: 8, help: .init(litter: 1), supply: .litter, output: .init(food: 1)),
-        event("ken_repair", "neighbor_ken", stamina: 10, help: .init(toys: 2), supply: .toy, count: 2, output: .init(food: 1)),
+        // 1.3.0: the notice board no longer takes supplies (that is the market's job). These three now take
+        // a gift under a new choice ID, so letters from the old supply choice still read correctly.
+        event("mira_tidy", "neighbor_mira", stamina: 8, help: .init(litter: 1), gift: "cat_snack",
+              giftChoiceID: "gift", output: .init(premiumFood: 1), retired: ["supply"]),
+        event("ken_repair", "neighbor_ken", stamina: 10, help: .init(toys: 2), gift: "cat_snack",
+              giftChoiceID: "gift", output: .init(toys: 3), retired: ["supply"]),
         event("luna_reading", "neighbor_luna", stamina: 6, help: .init(toys: 1), gift: "drink", output: .init(premiumLitter: 1)),
         event("grace_picnic", "neighbor_grace", stamina: 8, help: .init(food: 1), gift: "dessert", output: .init(premiumFood: 1)),
         event("mira_garden", "neighbor_mira", stamina: 8, help: .init(litter: 1), gift: "flower", output: .init(toys: 3)),
         event("ken_colors", "neighbor_ken", stamina: 10, help: .init(toys: 2), gift: "drink", output: .init(premiumFood: 1)),
         event("luna_stargaze", "neighbor_luna", stamina: 6, help: .init(food: 1), gift: "flower", output: .init(premiumLitter: 1)),
-        event("grace_welcome", "neighbor_grace", stamina: 8, help: .init(food: 1), supply: .food, output: .init(litter: 1))
+        event("grace_welcome", "neighbor_grace", stamina: 8, help: .init(food: 1), gift: "flower",
+              giftChoiceID: "gift", output: .init(premiumLitter: 1), retired: ["supply"])
     ]
     public static let milestones: [TownEventMilestone] = [
         .init(id: "town_memory_7", target: 7, furnitureKind: .wallTownMemory, itemID: "town-event-memory")
@@ -107,14 +114,15 @@ public enum TownEventCatalog {
         return all[((day % all.count) + all.count) % all.count].id
     }
 
+    /// Every event offers lending a hand (stamina) or bringing a gift-shop present.
     private static func event(_ id: String, _ neighbor: String, stamina: Int, help: TownEventRewards,
-                              supply: SupplyKind? = nil, count: Int = 1, gift: String? = nil,
-                              output: TownEventRewards) -> TownEventDefinition {
+                              gift: String, giftChoiceID: String = "supply",
+                              output: TownEventRewards, retired: [String] = []) -> TownEventDefinition {
         .init(id: id, neighborID: neighbor, choices: [
             .init(id: "help", eventID: id, staminaCost: stamina, supplyCost: nil, supplyCount: 0,
                   giftID: nil, friendshipReward: 4, rewards: help),
-            .init(id: "supply", eventID: id, staminaCost: 0, supplyCost: supply,
-                  supplyCount: supply == nil ? 0 : count, giftID: gift, friendshipReward: 6, rewards: output)
-        ])
+            .init(id: giftChoiceID, eventID: id, staminaCost: 0, supplyCost: nil,
+                  supplyCount: 0, giftID: gift, friendshipReward: 6, rewards: output)
+        ], retiredChoiceIDs: retired)
     }
 }

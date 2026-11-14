@@ -129,6 +129,10 @@ struct MacDesktopRoot: View {
                 .interactiveDismissDisabled(store.isBusy)
                 .saveRecoveryAlert(store: store)
         }
+        // Fallback when macOS skips onDismiss for a sheet closed from code; completePlayChoice runs once.
+        .onChange(of: store.showsPlayChoices) { _, shown in
+            if !shown, pendingPlayChoice != nil { Task { @MainActor in await Task.yield(); completePlayChoice() } }
+        }
         .sheet(isPresented: $store.isShowingPlayTogether) {
             if let session = store.presentedPlaySession { CatPlayTogetherView(store: store, session: session).id(session.id).frame(width: 1000, height: 720) }
         }
@@ -336,8 +340,9 @@ struct MacDesktopRoot: View {
         if pending.choice == .quick { store.play() }
         else {
             Task { @MainActor in
-                // Resume the underlying native scene before checking its room-idle gate.
-                await Task.yield()
+                // macOS drops a sheet presented while another is still sliding out, so wait for the
+                // choices sheet to finish closing before opening the play scene.
+                try? await Task.sleep(for: .milliseconds(400))
                 guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id else { return }
                 _ = await store.openPlayTogether()
             }
@@ -592,7 +597,7 @@ struct MacDesktopRoot: View {
                     SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } })
                     #endif
                 case .player: PlayerProfileView(store: store)
-                case .bag: MacBagView(store: store, exits: recoveryExits, onOtherItems: { auxiliary = .inventory })
+                case .bag: MacBagView(store: store, exits: recoveryExits)
                 case .rest: WorkRestView(store: store)
                 case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
                 }

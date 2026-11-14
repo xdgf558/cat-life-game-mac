@@ -278,21 +278,35 @@ struct MacRecoveryPopover: View {
     }
 }
 
-/// Bag › player supplies (G1–G5). Other categories open the existing inventory.
+/// Bag › player supplies (G1–G5). Other items show the existing inventory in the same window,
+/// instead of swapping the sheet (which closed the bag without opening anything on macOS).
 struct MacBagView: View {
     let store: GameStore
     let exits: MacRecoveryExits
-    let onOtherItems: () -> Void
     @State private var selected = PlayerSupplyKind.riceBall
+    @State private var showsOthers = false
     var body: some View {
         let snapshot = store.snapshot
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                category("recover.bag.supplies", symbol: "fork.knife", selected: true, isNew: true) {}
-                category("recover.bag.others", symbol: "shippingbox.fill", selected: false, isNew: false, action: onOtherItems)
+                category("recover.bag.supplies", symbol: "fork.knife", selected: !showsOthers, isNew: true) { showsOthers = false }
+                category("recover.bag.others", symbol: "shippingbox.fill", selected: showsOthers, isNew: false) { showsOthers = true }
                 Spacer()
                 Text(GameStrings.text("recover.bag.note")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
             }.frame(width: 170)
+            if showsOthers {
+                NavigationStack { InventoryView(store: store) }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("macBagOthers")
+            } else {
+                supplies(snapshot)
+            }
+        }
+        .padding(18).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+        .accessibilityIdentifier("macBag")
+    }
+    @ViewBuilder private func supplies(_ snapshot: GameSnapshot?) -> some View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack { Text(GameStrings.text("recover.bag.suppliesTitle")).font(.system(size: 18, weight: .heavy, design: .rounded)); Spacer()
                     MacRecoveryDots(used: snapshot?.suppliesUsedToday ?? 0) }
@@ -301,10 +315,6 @@ struct MacBagView: View {
                 Spacer(minLength: 0)
             }.frame(maxWidth: .infinity)
             ScrollView { MacSupplyUseCard(store: store, kind: selected, exits: exits) }.frame(width: 300)
-        }
-        .padding(18).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
-        .accessibilityIdentifier("macBag")
     }
     private func category(_ key: String, symbol: String, selected: Bool, isNew: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {

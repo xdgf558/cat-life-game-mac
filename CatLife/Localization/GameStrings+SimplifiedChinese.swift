@@ -1077,4 +1077,5 @@ extension GameStrings {
         .merging(recovery110Chinese) { _, new in new }
         .merging(places120Chinese) { _, new in new }
         .merging(neighbors130Chinese) { _, new in new }
+        .merging(town140Chinese) { _, new in new }
 }

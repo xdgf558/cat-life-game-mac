@@ -23,9 +23,9 @@ struct MacShopView: View {
     /// Columns × rows that fit the grid area, so one page is exactly one screen (no scrolling inside a page).
     @State private var gridFit = (columns: 4, rows: 2)
     @FocusState private var searchFocused: Bool
-    private static let cardHeight: CGFloat = 236
-    private static let cardMinWidth: CGFloat = 172
-    private static let gridSpacing: CGFloat = 12
+    private static let cardHeight: CGFloat = 178
+    private static let cardMinWidth: CGFloat = 150
+    private static let gridSpacing: CGFloat = 10
     private var pageSize: Int { max(1, gridFit.columns * gridFit.rows) }
 
     private var products: [MacShopProduct] {
@@ -45,9 +45,9 @@ struct MacShopView: View {
     var body: some View {
         VStack(spacing: 14) {
             MacPlaceBanner(store: store, place: .shop, height: 132, onTown: onTown) { categoryTabs }
-            HStack(alignment: .top, spacing: 16) {
+            HStack(alignment: .top, spacing: 14) {
                 browser.frame(maxWidth: .infinity, maxHeight: .infinity)
-                detail.frame(width: 292)
+                detail.frame(width: 272)
             }
         }.font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
             .accessibilityElement(children: .contain)
@@ -109,8 +109,9 @@ struct MacShopView: View {
             Button { searchFocused = true } label: { Text(keyLabel(.search)).font(.caption.monospaced()) }
                 .buttonStyle(.plain)
                 .accessibilityLabel(GameStrings.text("mac.shop.search"))
-        }.padding(.horizontal, 14).padding(.vertical, 10).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 15))
-            .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(.white, lineWidth: 2))
+        }.font(.system(size: 13, weight: .semibold)).padding(.horizontal, 12).padding(.vertical, 7)
+            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 13))
+            .overlay(RoundedRectangle(cornerRadius: 13).strokeBorder(.white, lineWidth: 2))
     }
 
     /// Category-specific filters, quality, "hide owned" and the decorating tip, in one compact row.
@@ -157,9 +158,9 @@ struct MacShopView: View {
     }
 
     private var browser: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 10) { searchField.frame(width: 230); filterChips; Spacer(minLength: 0) }
+                HStack(spacing: 10) { searchField.frame(width: 200); filterChips; Spacer(minLength: 0) }
                 VStack(alignment: .leading, spacing: 8) {
                     searchField
                     HStack(spacing: 10) { filterChips; Spacer(minLength: 0) }
@@ -181,7 +182,7 @@ struct MacShopView: View {
                 Color.clear.onAppear { fit(proxy.size) }.onChange(of: proxy.size) { _, size in fit(size) }
             } }
             .clipped()
-            HStack(spacing: 16) {
+            HStack(spacing: 10) {
                 Text(GameStrings.format("mac.shop.pageCount", products.count, min(page, pages - 1) + 1, pages))
                     .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
                 Spacer(minLength: 0)
@@ -193,7 +194,7 @@ struct MacShopView: View {
                     Label(GameStrings.text("career.page.next") + " " + keyLabel(.nextPage), systemImage: "chevron.right")
                 }.disabled(page + 1 >= pages)
                     .accessibilityIdentifier("macShopNext")
-            }.buttonStyle(.bordered).controlSize(.large)
+            }.buttonStyle(.bordered).controlSize(.small)
         }
     }
 
@@ -211,10 +212,10 @@ struct MacShopView: View {
     private func productCard(_ product: MacShopProduct) -> some View {
         let selected = self.selected?.id == product.id
         return Button { selectedID = product.id; previewFacing = .front } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                GameIcon(asset: product.asset, symbol: product.symbol, size: 112, tint: product.tint)
-                    .frame(maxWidth: .infinity).frame(height: 130)
-                    .background(product.premium ? RoomTheme.gold.opacity(0.13) : RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 18))
+            VStack(alignment: .leading, spacing: 6) {
+                GameIcon(asset: product.asset, symbol: product.symbol, size: 84, tint: product.tint)
+                    .frame(maxWidth: .infinity).frame(height: 100)
+                    .background(product.premium ? RoomTheme.gold.opacity(0.13) : RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 14))
                     .overlay(alignment: .topLeading) {
                         if product.isForPlayer {
                             Text(GameStrings.text("supply.player.new")).font(.system(size: 10, weight: .heavy)).foregroundStyle(.white)
@@ -227,41 +228,45 @@ struct MacShopView: View {
                                 .background(RoomTheme.gold, in: Circle()).padding(6).accessibilityHidden(true)
                         }
                     }
-                Text(product.name).font(.system(size: 14, weight: .heavy)).lineLimit(2).frame(minHeight: 34, alignment: .topLeading)
-                HStack(alignment: .bottom, spacing: 4) {
+                Text(product.name).font(.system(size: 13.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                    .help(product.name)
+                Spacer(minLength: 0)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(product.footprintText ?? GameStrings.format("shop.owned", product.count(in: store.snapshot)))
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(2)
+                        .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
                     Spacer(minLength: 0)
                     Label("\(product.price)", systemImage: "dollarsign.circle.fill")
-                        .font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.gold)
-                }.frame(minHeight: 30, alignment: .bottom)
-            }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
-                .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(selected ? RoomTheme.mint : .white, lineWidth: selected ? 3 : 2))
-                .frame(height: Self.cardHeight).contentShape(RoundedRectangle(cornerRadius: 22))
+                        .font(.system(size: 12.5, weight: .heavy)).foregroundStyle(RoomTheme.gold).fixedSize()
+                }
+            }.padding(8).frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
+                .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(selected ? RoomTheme.mint : .white, lineWidth: selected ? 3 : 2))
+                .frame(height: Self.cardHeight).contentShape(RoundedRectangle(cornerRadius: 18))
         }.buttonStyle(.plain).accessibilityIdentifier("macShopProduct_\(product.id)")
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder private var detail: some View {
         if let product = selected {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 // Sized to fit one screen; the scroll view only matters in very short windows.
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 8) {
                         preview(product)
-                        Text(product.name).font(.system(size: 21, weight: .heavy)).accessibilityIdentifier("macShopDetailName")
-                        if let footprint = product.dimensions(facing: previewFacing) {
-                            Text(footprint).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(product.name).font(.system(size: 19, weight: .heavy)).accessibilityIdentifier("macShopDetailName")
+                            if let footprint = product.dimensions(facing: previewFacing) {
+                                Text(footprint).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
+                            }
                         }
-                        Text(product.detail).font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                        Text(product.detail).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         if case .player(let supply) = product { playerInfo(supply) } else { ownership(product) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
                 Spacer(minLength: 0)
                 if case .player(let supply) = product { playerPurchaseBar(supply) } else { purchaseBar(product) }
-            }.macContentCard69().frame(maxHeight: .infinity)
+            }.macContentCard69(padding: 14).frame(maxHeight: .infinity)
         } else {
             ContentUnavailableView(GameStrings.text("mac.shop.empty"), systemImage: "magnifyingglass")
                 .macContentCard69().frame(maxHeight: .infinity)
@@ -270,7 +275,7 @@ struct MacShopView: View {
 
     private func preview(_ product: MacShopProduct) -> some View {
         VStack(spacing: 8) {
-            GameIcon(asset: product.previewAsset(facing: previewFacing), symbol: product.symbol, size: 132, tint: product.tint)
+            GameIcon(asset: product.previewAsset(facing: previewFacing), symbol: product.symbol, size: 104, tint: product.tint)
             if let furniture = product.furniture, furniture.kind.supportsRotation {
                 HStack(spacing: 16) {
                     Button { previewFacing = previewFacing.turnedLeft } label: { Image(systemName: "arrow.counterclockwise") }
@@ -281,44 +286,57 @@ struct MacShopView: View {
                         .accessibilityLabel(GameStrings.text("build68.rotateRight"))
                 }.buttonStyle(.bordered).controlSize(.small).foregroundStyle(RoomTheme.darkMint)
             }
-        }.padding(10).frame(maxWidth: .infinity).background(RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 20))
+        }.padding(8).frame(maxWidth: .infinity).background(RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 16))
     }
 
+    /// Owned count and free floor slots as two chips in one row.
     private func ownership(_ product: MacShopProduct) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(GameStrings.text("gear.owned"))
-                Spacer()
-                Text("\(product.count(in: store.snapshot))").fontWeight(.heavy)
-            }
+        HStack(spacing: 6) {
+            infoChip(GameStrings.text("gear.owned"), "\(product.count(in: store.snapshot))", tint: RoomTheme.secondary)
             if product.furniture != nil {
-                HStack {
-                    Text(GameStrings.text("mac.shop.floorSpace"))
-                    Spacer()
-                    Text(GameStrings.format("mac.shop.slots", store.availableFurnitureSlots(on: store.visibleHomeFloor)))
-                        .foregroundStyle(RoomTheme.darkMint).fontWeight(.heavy)
-                }
+                infoChip(GameStrings.text("mac.shop.floorSpace"),
+                         GameStrings.format("mac.shop.slots", store.availableFurnitureSlots(on: store.visibleHomeFloor)), tint: RoomTheme.darkMint)
             }
-        }.padding(11).font(.caption).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    private func infoChip(_ title: String, _ value: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(title).font(.system(size: 10, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
+            Text(value).font(.system(size: 12.5, weight: .heavy)).foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.75)
+        }.padding(.horizontal, 9).padding(.vertical, 6).frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 11))
+            .accessibilityElement(children: .combine)
     }
 
     private func purchaseBar(_ product: MacShopProduct) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Text(product.status(in: store.snapshot)).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+        // The status only explains why buying is blocked; when buyable it just repeats the description and owned count.
+        let purchasable = product.canPurchase(in: store.snapshot)
+        let canBuy = !store.isBusy && purchasable
+        return VStack(alignment: .leading, spacing: 8) {
+            if !purchasable {
+                Text(product.status(in: store.snapshot)).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack(alignment: .firstTextBaseline) {
-                Label("\(product.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 22, weight: .heavy))
+                Label("\(product.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 20, weight: .heavy))
                 Spacer()
                 Text(GameStrings.format("mac.shop.afterBalance", max(0, (store.snapshot?.player.gold ?? 0) - product.price)))
                     .font(.caption).foregroundStyle(RoomTheme.secondary)
             }
-            Button { purchase(product, arrange: false) } label: {
-                HStack { Text(GameStrings.text("mac.shop.buy")); Text(keyLabel(.confirm)).font(.caption.monospaced()) }.frame(maxWidth: .infinity)
-            }.buttonStyle(MintButtonStyle()).disabled(store.isBusy || !product.canPurchase(in: store.snapshot))
-                .accessibilityIdentifier("macShopBuy")
-            if product.furniture != nil {
-                Button(GameStrings.text("mac.shop.buyArrange")) { purchase(product, arrange: true) }
-                    .buttonStyle(SoftButtonStyle()).disabled(store.isBusy || !product.canPurchase(in: store.snapshot))
-                    .accessibilityIdentifier("macShopBuyArrange")
+            HStack(spacing: 8) {
+                Button { purchase(product, arrange: false) } label: {
+                    HStack(spacing: 4) { Text(GameStrings.text("mac.shop.buy")); Text(keyLabel(.confirm)).font(.caption.monospaced()) }
+                        .font(.system(size: 13.5, weight: .heavy)).frame(maxWidth: .infinity)
+                }.buttonStyle(MintButtonStyle()).disabled(!canBuy)
+                    .accessibilityIdentifier("macShopBuy")
+                if product.furniture != nil {
+                    Button { purchase(product, arrange: true) } label: {
+                        Text(GameStrings.text("mac.shop.buyArrange")).font(.system(size: 12.5, weight: .heavy))
+                            .lineLimit(1).minimumScaleFactor(0.7).frame(maxWidth: .infinity)
+                    }.buttonStyle(SoftButtonStyle()).disabled(!canBuy)
+                        .accessibilityIdentifier("macShopBuyArrange")
+                }
             }
         }
     }

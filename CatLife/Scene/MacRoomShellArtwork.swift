@@ -3,12 +3,18 @@ import SpriteKit
 import AppKit
 import CatGameCore
 
-/// Existing material/window assets are warped over one cutaway room, never a screenshot of the prototype.
+/// The Mac room's painted materials (floor, full-height wall strip with skirting and wainscot,
+/// day/night windows, door) are warped over one cutaway room, never a screenshot of the prototype.
 @MainActor
 final class MacRoomShellArtwork: SKNode {
-    private let wood = SKTexture(imageNamed: "room-floor-wood")
-    private let plaster = SKTexture(imageNamed: "room-wall-plaster")
-    private let windowArt = SKTexture(imageNamed: "room-window-arched")
+    private let groundFloor = SKTexture(imageNamed: "mac-room-floor")
+    private let upperFloor = SKTexture(imageNamed: "mac-room-floor-upper")
+    private let groundWall = SKTexture(imageNamed: "mac-room-wall")
+    private let upperWall = SKTexture(imageNamed: "mac-room-wall-upper")
+    // Window and door art sit on transparent canvases; crop to the painted part so it fills its slot.
+    private let windowDay = MacRoomShellArtwork.cropped("mac-room-window-day", x: 21, y: 156, width: 727, height: 713, of: CGSize(width: 768, height: 1024))
+    private let windowNight = MacRoomShellArtwork.cropped("mac-room-window-night", x: 21, y: 156, width: 727, height: 713, of: CGSize(width: 768, height: 1024))
+    private let doorArt = MacRoomShellArtwork.cropped("mac-room-door", x: 24, y: 64, width: 492, height: 896, of: CGSize(width: 540, height: 1024))
     private(set) var fixedFrames: [MacRoomStructure: CGRect] = [:]
     private(set) var fixedPolygons: [MacRoomStructure: [CGPoint]] = [:]
     private(set) var contentBounds = CGRect.zero
@@ -20,10 +26,9 @@ final class MacRoomShellArtwork: SKNode {
         removeAllChildren(); fixedFrames.removeAll(); fixedPolygons.removeAll()
         contentBounds = model.contentBounds
         let upper = floor == .upper
+        let wood = upper ? upperFloor : groundFloor, wallArt = upper ? upperWall : groundWall
         let wallpaper = upper ? NSColor(red: 0.93, green: 0.86, blue: 0.96, alpha: 1)
             : NSColor(red: 0.99, green: 0.92, blue: 0.80, alpha: 1)
-        let skirt = upper ? NSColor(red: 0.75, green: 0.62, blue: 0.81, alpha: 1)
-            : NSColor(red: 0.62, green: 0.76, blue: 0.59, alpha: 1)
         func p(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CGPoint { model.projectCell(x: x, height: y, z: z) }
         for layer in 0..<6 {
             let spread = CGFloat(layer) * 0.12
@@ -34,20 +39,15 @@ final class MacRoomShellArtwork: SKNode {
             polygon(points, color: NSColor.brown.withAlphaComponent(0.022), z: -90 - CGFloat(layer))
         }
         func wall(_ a: CGPoint, _ b: CGPoint, outside: CGPoint) {
-            func surface(_ startHeight: CGFloat, _ endHeight: CGFloat, texture: SKTexture, tint: NSColor, z: CGFloat) {
-                textured(texture, tint: tint, blend: 0.55, z: z) { u, v in
-                    p(a.x + (b.x - a.x) * u, startHeight + (endHeight - startHeight) * v, a.y + (b.y - a.y) * u)
-                }
-            }
+            // One wall strip is 1024×1178 px for the full 4.6-cell height, so a tile is about 4 cells wide.
             let length = hypot(b.x - a.x, b.y - a.y), tiles = max(1, Int((length / 4).rounded()))
             for tile in 0..<tiles {
                 let t0 = CGFloat(tile) / CGFloat(tiles), t1 = CGFloat(tile + 1) / CGFloat(tiles)
-                textured(plaster, tint: wallpaper, blend: 0.55, z: -40) { u, v in
+                textured(wallArt, tint: .white, blend: 0, z: -40) { u, v in
                     let t = t0 + (t1 - t0) * u
                     return p(a.x + (b.x - a.x) * t, 4.6 * v, a.y + (b.y - a.y) * t)
                 }
             }
-            surface(0, 0.34, texture: wood, tint: skirt, z: -36)
             textured(wood, tint: .white, blend: 0.08, z: -34) { u, v in
                 p(a.x + (b.x - a.x) * u + outside.x * v, 4.6, a.y + (b.y - a.y) * u + outside.y * v)
             }
@@ -67,12 +67,16 @@ final class MacRoomShellArtwork: SKNode {
         // One 1024px tile holds 12 planks; tiling it 2×2 keeps each plank about half a cell wide.
         for column in 0..<2 { for row in 0..<2 {
             let x0 = CGFloat(column) * 6, z0 = CGFloat(row) * 3.5
-            textured(wood, tint: upper ? NSColor(red: 0.82, green: 0.69, blue: 0.56, alpha: 1) : .white,
-                     blend: upper ? 0.18 : 0, z: -15) { u, v in p(x0 + 6 * u, 0, z0 + 3.5 * v) }
+            textured(wood, tint: .white, blend: 0, z: -15) { u, v in p(x0 + 6 * u, 0, z0 + 3.5 * v) }
         } }
+        // The painted window is about square with its curtains, so it is drawn a little wider than the
+        // wall-decor keep-out slot and centred in it; the curtains may overhang the slot slightly.
+        let slot = MacRoomProjection.windowHeights, windowWidth: CGFloat = 2.1, windowHeight = windowWidth * 713 / 727
+        let windowBottom = (slot.lowerBound + slot.upperBound - windowHeight) / 2
         for x in MacRoomProjection.windowCenters {
-            let half = MacRoomProjection.windowHalfWidth
-            textured(windowArt, tint: .white, blend: 0, z: -30) { u, v in p(x - half + 2 * half * u, MacRoomProjection.windowHeights.lowerBound + (MacRoomProjection.windowHeights.upperBound - MacRoomProjection.windowHeights.lowerBound) * v, 6.99) }
+            textured(isDaylight ? windowDay : windowNight, tint: .white, blend: 0, z: -30) { u, v in
+                p(x - windowWidth / 2 + windowWidth * u, windowBottom + windowHeight * v, 6.99)
+            }
             children.last?.name = "mac-room-window"
         }
         if isDaylight {
@@ -80,16 +84,13 @@ final class MacRoomShellArtwork: SKNode {
                     color: NSColor(red: 1, green: 0.95, blue: 0.75, alpha: 0.33), z: -13)
         }
         if model.angle != .left { installDoor(model) }
-        installStairs(model, upper: upper, unlocked: level >= 6)
+        installStairs(model, wood: wood, upper: upper, unlocked: level >= 6)
         if !isDaylight {
             polygon([p(1.2, 0.014, 6.8), p(3.2, 0.014, 6.8), p(4.4, 0.014, 3.6), p(1.8, 0.014, 3.6)],
                     color: NSColor(red: 1, green: 0.72, blue: 0.36, alpha: 0.12), z: -13)
             for case let sprite as SKSpriteNode in children {
-                if sprite.name == "mac-room-window" {
-                    sprite.color = NSColor(red: 1, green: 0.74, blue: 0.43, alpha: 1)
-                    sprite.colorBlendFactor = 0.3
-                    continue
-                }
+                // The night window is painted with its own moonlit sky and warm glow.
+                if sprite.name == "mac-room-window" { continue }
                 sprite.color = sprite.color.blended(withFraction: 0.18, of: NSColor(red: 0.23, green: 0.25, blue: 0.39, alpha: 1)) ?? sprite.color
                 sprite.colorBlendFactor = max(0.28, sprite.colorBlendFactor)
             }
@@ -100,22 +101,14 @@ final class MacRoomShellArtwork: SKNode {
         func p(_ z: CGFloat, _ height: CGFloat, _ offset: CGFloat = 0.025) -> CGPoint {
             model.projectCell(x: offset, height: height, z: z)
         }
-        textured(wood, tint: .white, blend: 0.03, z: -29) { u, v in p(1.35 + 1.7 * u, 3.3 * v) }
-        let mint = NSColor(red: 0.55, green: 0.77, blue: 0.68, alpha: 1)
-        textured(wood, tint: mint, blend: 0.8, z: -28) { u, v in p(1.48 + 1.44 * u, 0.04 + 3.10 * v, 0.035) }
-        textured(plaster, tint: NSColor.white.withAlphaComponent(0.8), blend: 0.6, z: -27) { u, v in
-            p(1.67 + 1.05 * u, 1.7 + 1.05 * v, 0.04)
-        }
-        let knob = (0..<20).map { index in
-            let a = CGFloat(index) * .pi * 2 / 20
-            return p(1.68 + cos(a) * 0.08, 1.45 + sin(a) * 0.08, 0.065)
-        }
-        polygon(knob, color: NSColor(red: 0.87, green: 0.65, blue: 0.26, alpha: 1), z: -26)
+        // Painted door (492×896 px after cropping) standing on the floor in the 1.35…3.05 opening.
+        let width: CGFloat = 1.62, height = width * 896 / 492, start: CGFloat = 2.2 - width / 2
+        textured(doorArt, tint: .white, blend: 0, z: -28) { u, v in p(start + width * u, height * v) }
         let hit = [p(1.35, 0), p(3.05, 0), p(3.05, 3.3), p(1.35, 3.3)]
         fixedPolygons[.door] = hit; fixedFrames[.door] = MacRoomProjection.bounds(hit)
     }
 
-    private func installStairs(_ model: MacRoomProjection, upper: Bool, unlocked: Bool) {
+    private func installStairs(_ model: MacRoomProjection, wood: SKTexture, upper: Bool, unlocked: Bool) {
         func p(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CGPoint { model.projectCell(x: x, height: y, z: z) }
         let depth = 10_000 - p(11, 0, 5.5).y
         if upper {
@@ -145,6 +138,14 @@ final class MacRoomShellArtwork: SKNode {
         let hit = [p(10, 0, 4), p(12, 0, 4), p(12, upper ? 0 : 2.6, 7), p(10, upper ? 0 : 2.6, 7)]
         fixedFrames[.stairs] = MacRoomProjection.bounds(hit)
         fixedPolygons[.stairs] = hit
+    }
+
+    /// A sub-rectangle of an image, given in top-left pixel coordinates of the full canvas.
+    private static func cropped(_ name: String, x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat,
+                                of canvas: CGSize) -> SKTexture {
+        SKTexture(rect: CGRect(x: x / canvas.width, y: 1 - (y + height) / canvas.height,
+                               width: width / canvas.width, height: height / canvas.height),
+                  in: SKTexture(imageNamed: name))
     }
 
     private func polygon(_ points: [CGPoint], color: NSColor, z: CGFloat) {

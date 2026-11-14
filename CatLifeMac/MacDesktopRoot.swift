@@ -14,6 +14,8 @@ struct MacDesktopRoot: View {
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
+    /// The cat shown in the profile sheet; kept while the sheet animates away after `inspectedCatID` clears.
+    @State private var profileCatID: String?
     @State private var scene: RoomScene? = nil
     @State private var windowController: MacWindowController?
     @State private var keyboard: MacKeyboardRouter?
@@ -24,6 +26,7 @@ struct MacDesktopRoot: View {
     @State private var quitting = false
     @State private var creatingHome = false
     @State private var appIsActive = NSApp.isActive
+    @State private var phaseIsActive = true
     @State private var workNotifications = MacWorkNotificationTracker()
     @State private var catUrgencies = MacCatUrgencyTracker()
     @State private var restRequest: String?
@@ -33,7 +36,17 @@ struct MacDesktopRoot: View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
-    private var appForeground: Bool { appIsActive && phase == .active && !quitting }
+    /// Built from @State only. `phase` is an environment snapshot: read inside a long-lived closure
+    /// such as `start()` it is still the first render's value (not yet active at launch), which left
+    /// the store believing the app was in the background until the next app switch.
+    private var appForeground: Bool { appIsActive && phaseIsActive && !quitting }
+    private func syncForeground(appActive: Bool? = nil, phaseActive: Bool? = nil) {
+        if let appActive { appIsActive = appActive }
+        if let phaseActive { phaseIsActive = phaseActive }
+        let value = (appActive ?? appIsActive) && (phaseActive ?? phaseIsActive) && !quitting
+        GamePlayLog.foreground(value, app: appActive ?? appIsActive, phase: phaseActive ?? phaseIsActive)
+        store.setForeground(value)
+    }
     private var active: Bool { appForeground && auxiliary == nil && !showsHelp && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil }
     // The tour's scrim blocks clicks and `handle` blocks game keys, so the room keeps rendering behind it.
     /// The first-run tour only runs over the plain home layout, never over sheets, arranging or the title.
@@ -111,8 +124,11 @@ struct MacDesktopRoot: View {
         statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in
             // The bag has three columns (categories, items, the use card) and needs a wider sheet;
             // narrower, its content overflowed and was clipped on both sides.
-            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : 600, idealWidth: item == .bag ? 980 : 780,
-                                      minHeight: 600, idealHeight: 760)
+            // The upgrade sheet is one compact comparison; it does not need the tall default.
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : item == .catProfile ? 900 : 600,
+                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : item == .catProfile ? 960 : 780,
+                                      minHeight: item == .upgrade ? 490 : item == .catProfile ? 580 : 600,
+                                      idealHeight: item == .upgrade ? 520 : item == .catProfile ? 640 : 760)
         }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
@@ -145,12 +161,30 @@ struct MacDesktopRoot: View {
         }
         .saveRecoveryAlert(store: store, isActive: auxiliary == nil && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil && !store.isPresentingHabitGuide && !store.isPresentingHabitMemory)
     }
+    private var celebrationPresented: Bool { store.homeUpgradeCelebration != nil && auxiliary == nil && !titleVisible }
+    /// The upgrade happens inside its sheet; close it so the celebration plays over the room.
+    /// The overlay sits outside `baseContent`, so it gets the in-game reduce-motion setting explicitly.
+    private var celebratedContent: some View {
+        presentedContent
+            .overlay {
+                if celebrationPresented, let celebration = store.homeUpgradeCelebration {
+                    MacHomeUpgradeCelebration(store: store, celebration: celebration) { store.homeUpgradeCelebration = nil }
+                        .environment(\.locale, Locale(identifier: store.language.rawValue))
+                        .environment(\.gameReduceMotionOverride, systemReduceMotion || preferences.reduceMotion)
+                        .transaction { if preferences.reduceMotion { $0.disablesAnimations = true } }
+                        .transition(.opacity)
+                }
+            }
+            .onChange(of: store.homeUpgradeCelebration?.id) { _, id in
+                if id != nil, auxiliary == .upgrade { auxiliary = nil }
+            }
+    }
     private var observedContent: some View {
-        presentedContent.task { await start() }
+        celebratedContent.task { await start() }
         .onChange(of: preferences.backgroundAudio && !quitting, initial: true) { _, keep in store.audioContinuesInBackground = keep }
-        .onChange(of: phase) { _, _ in store.setForeground(appForeground) }
+        .onChange(of: phase, initial: true) { _, value in syncForeground(phaseActive: value == .active) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            appIsActive = true; store.setForeground(appForeground)
+            syncForeground(appActive: true)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
             appIsActive = false; store.setForeground(false)
@@ -160,7 +194,7 @@ struct MacDesktopRoot: View {
         .onChange(of: store.isShowingMarket) { _, shown in if shown { auxiliary = .market } }
         .onChange(of: store.isShowingTownBoard) { _, shown in if shown { auxiliary = .board } }
         .onChange(of: store.isShowingSettings) { _, shown in if shown { select(.settings); store.isShowingSettings = false } }
-        .onChange(of: store.inspectedCatID) { _, id in if id != nil { auxiliary = .catProfile } }
+        .onChange(of: store.inspectedCatID) { _, id in if let id { profileCatID = id; auxiliary = .catProfile } }
         .onChange(of: store.saveSceneGeneration) { _, _ in hadSave = true; scene = canCreateRoomScene ? makeScene() : nil; auxiliary = nil }
         .onChange(of: store.visibleHomeFloor) { _, _ in scene = canCreateRoomScene ? makeScene() : nil }
         .onChange(of: store.isLoading) { _, loading in
@@ -275,8 +309,7 @@ struct MacDesktopRoot: View {
         hadSave = hadExistingSave
         await store.load()
         if canCreateRoomScene { scene = makeScene() }
-        appIsActive = NSApp.isActive
-        workNotifications.reset(workNotificationState); catUrgencies.reset(catUrgencyState); store.setForeground(appForeground)
+        workNotifications.reset(workNotificationState); catUrgencies.reset(catUrgencyState); syncForeground(appActive: NSApp.isActive)
         #if APP_STORE
         if !hadExistingSave && !store.loadFailed && store.macPreviousSaveAt == nil && confirmNativeSaveImport() {
             openNativeSaveOnAppear = true
@@ -335,17 +368,20 @@ struct MacDesktopRoot: View {
     private func completePlayChoice() {
         guard let pending = pendingPlayChoice else { return }
         pendingPlayChoice = nil
-        guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id,
-              store.isHabitInteractionActive, !store.isBusy, !store.isDecorating else { return }
-        if pending.choice == .quick { store.play() }
-        else {
-            Task { @MainActor in
-                // macOS drops a sheet presented while another is still sliding out, so wait for the
-                // choices sheet to finish closing before opening the play scene.
-                try? await Task.sleep(for: .milliseconds(400))
-                guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id else { return }
-                _ = await store.openPlayTogether()
+        Task { @MainActor in
+            // The room scene is paused behind the choices sheet. Once the sheet has slid out the scene
+            // resumes and needs a moment to finish whatever it suspended (eating, a stroll) and report
+            // the cat as idle again, so wait for the real gate instead of a fixed delay.
+            try? await Task.sleep(for: .milliseconds(pending.choice == .quick ? 120 : 400))
+            let ready: () -> Bool = { pending.choice == .quick ? store.isHabitInteractionActive && !store.isBusy : store.canOpenPlayTogether }
+            for _ in 0..<80 where !ready() { try? await Task.sleep(for: .milliseconds(100)) }
+            guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id, !store.isDecorating else { return }
+            if pending.choice == .together { _ = await store.openPlayTogether(); return }
+            guard ready() else {
+                GamePlayLog.refused(store.playTogetherBlockers, source: "quick")
+                store.showNotice(GameStrings.text("catHabits.error.busy")); return
             }
+            store.play()
         }
     }
     private func select(_ next: MacPage) {
@@ -392,7 +428,9 @@ struct MacDesktopRoot: View {
         MacRecoveryExits(
             cafe: { auxiliary = nil; if page != .town { select(.town) }; showsCafe = true },
             rest: { auxiliary = .rest },
-            shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) })
+            shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) },
+            close: { auxiliary = nil },
+            profile: { auxiliary = nil; select(.profile) })
     }
     private func fixedStructure(_ structure: MacRoomStructure) {
         guard !store.isBusy, !store.isSavingLayout, !store.saveTransferInProgress else { return }
@@ -440,8 +478,13 @@ struct MacDesktopRoot: View {
             if command == .escape { store.onboarding.isPresented = false; return true }
             return false
         }
-        if command == .settings { select(.settings); return true }
         if command == .fullscreen { windowController?.toggleFullscreen(); return true }
+        if celebrationPresented {
+            // The celebration covers the room: Esc / ↩ close it, every game shortcut waits.
+            if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }
+            return true
+        }
+        if command == .settings { select(.settings); return true }
         if command == .help { showsHelp.toggle(); return true }
         if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {
             NotificationCenter.default.post(name: .macToggleRecovery, object: nil); return true
@@ -546,7 +589,7 @@ struct MacDesktopRoot: View {
             let allowed = outcome == .timedOut ? confirmQuitAfterTimeout()
                 : !store.hasSaveFailure || confirm("mac.quit.failed", body: "mac.quit.failedBody")
             quitting = false; NSApp.reply(toApplicationShouldTerminate: allowed)
-            if !allowed { appIsActive = NSApp.isActive; store.setForeground(appForeground) }
+            if !allowed { syncForeground(appActive: NSApp.isActive) }
         }
         return .terminateLater
     }
@@ -584,7 +627,7 @@ struct MacDesktopRoot: View {
                 switch item {
                 case .tasks: TaskDestinationView(store: store)
                 case .inventory: InventoryView(store: store)
-                case .upgrade: HomeUpgradeView(store: store)
+                case .upgrade: MacHomeUpgradeView(store: store)
                 case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)
                 case .neighborDetail: NavigationStack { if let neighborID { NeighborDetailView(store: store, neighborID: neighborID) } }
                 case .neighbors: CommunityView(store: store, onClose: { auxiliary = nil })
@@ -599,7 +642,12 @@ struct MacDesktopRoot: View {
                 case .player: PlayerProfileView(store: store)
                 case .bag: MacBagView(store: store, exits: recoveryExits)
                 case .rest: WorkRestView(store: store)
-                case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
+                case .catProfile:
+                    if let id = store.inspectedCatID ?? profileCatID {
+                        MacCatProfileView(store: store, catID: id, close: { auxiliary = nil }).id(id)
+                    } else {
+                        CatCollectionView(store: store)
+                    }
                 }
             }
         }.background(RoomTheme.cream).interactiveDismissDisabled(store.isBusy || store.saveTransferInProgress)

@@ -51,6 +51,8 @@ struct CatHabitsSection: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let store: GameStore
     let cat: CatState
+    /// Desktop profile: the two habit rows sit side by side and memories fit in one row.
+    var compact = false
     @State private var choosing = false
     @State private var showingGuide = false
     @State private var expandedMemory: CatMemory?
@@ -59,15 +61,16 @@ struct CatHabitsSection: View {
 
     var body: some View {
         if let definition = CatHabitCatalog.definition(for: cat.id) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: compact ? 10 : 12) {
                 ViewThatFits(in: .horizontal) {
                     HStack { habitsTitle; Spacer(minLength: 8); slowly }
                     VStack(alignment: .leading, spacing: 5) { habitsTitle; slowly }
                 }
                 Label(GameStrings.text("catHabits.style.\(definition.style.rawValue)"), systemImage: "quote.opening")
-                    .font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    .font(compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    .padding(compact ? 8 : 10).frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 13))
+                habitRowsLayout {
                 habitRow("catHabits.rest", value: cat.habits.restConfirmed
                          ? GameStrings.text("catHabits.restConfirmed.\(definition.rest.rawValue)") : GameStrings.text("catHabits.learning"),
                          count: cat.habits.restClueSessionIDs.count, confirmed: cat.habits.restConfirmed,
@@ -76,6 +79,7 @@ struct CatHabitsSection: View {
                          ? GameStrings.text("catHabits.playConfirmed.\(definition.play.rawValue)") : GameStrings.text("catHabits.learning"),
                          count: cat.habits.playClueSessionIDs.count, confirmed: cat.habits.playConfirmed,
                          symbol: "tennisball.fill", tint: RoomTheme.friendship, emptyKey: "habit68.clues.none.play", id: "habitPlayProgress")
+                }
                 cornerRow(definition)
                 if let receipt = cat.habits.lastRestObservation, canChoose(receipt) {
                     Button { choose(receipt) } label: {
@@ -85,12 +89,16 @@ struct CatHabitsSection: View {
                         .accessibilityIdentifier("habitChooseCorner")
                 }
             }
-            .padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 25)
+            .padding(compact ? 12 : 14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: compact ? 20 : 25)
             .accessibilityElement(children: .contain).accessibilityIdentifier("catHabitsSection")
             .onDisappear { cornerVisitID = nil }
             memories
             pinnedGuide
         }
+    }
+
+    private var habitRowsLayout: AnyLayout {
+        compact ? AnyLayout(HStackLayout(alignment: .top, spacing: 10)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
     }
 
     private var habitsTitle: some View {
@@ -106,8 +114,8 @@ struct CatHabitsSection: View {
     private func habitRow(_ title: String, value: String, count: Int, confirmed: Bool,
                           symbol: String, tint: Color, emptyKey: String, id: String) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: symbol).font(.title2.weight(.semibold)).foregroundStyle(tint)
-                .frame(width: 40, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 13))
+            Image(systemName: symbol).font(compact ? .title3.weight(.semibold) : .title2.weight(.semibold)).foregroundStyle(tint)
+                .frame(width: compact ? 34 : 40, height: compact ? 38 : 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 13))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(GameStrings.text(title)).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
@@ -121,11 +129,12 @@ struct CatHabitsSection: View {
                     Circle().fill(index < count ? tint : .clear)
                         .overlay(Circle().strokeBorder(index < count ? tint : RoomTheme.track,
                             style: StrokeStyle(lineWidth: 2, dash: index < count ? [] : [4, 3])))
-                        .frame(width: 14, height: 14)
+                        .frame(width: compact ? 11 : 14, height: compact ? 11 : 14)
                 }
             }.accessibilityHidden(true)
         }
-        .padding(10).background(confirmed ? tint.opacity(0.055) : .white, in: RoundedRectangle(cornerRadius: 18))
+        .frame(maxWidth: .infinity, maxHeight: compact ? .infinity : nil, alignment: .leading)
+        .padding(compact ? 8 : 10).background(confirmed ? tint.opacity(0.055) : .white, in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(confirmed ? tint.opacity(0.3) : RoomTheme.track.opacity(0.7), lineWidth: 2))
         .accessibilityElement(children: .combine).accessibilityIdentifier(id)
         .accessibilityValue(TownEventAccessibility.value(value, diagnostic: "\(count)/\(CatHabitCatalog.cluesToConfirm)"))
@@ -172,7 +181,8 @@ struct CatHabitsSection: View {
                 HStack { memoriesTitle; Spacer(minLength: 8); memoriesSubtitle }
                 VStack(alignment: .leading, spacing: 5) { memoriesTitle; memoriesSubtitle }
             }
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 9), count: 3), spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 9), count: compact ? CatMemoryKind.allCases.count : 3),
+                      spacing: 12) {
                 ForEach(CatMemoryKind.allCases, id: \.self) { kind in
                     memoryTile(HabitMemorySlot68(kind: kind, cat: cat))
                 }
@@ -182,7 +192,7 @@ struct CatHabitsSection: View {
                     .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
             }
         }
-        .padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 25)
+        .padding(compact ? 12 : 14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: compact ? 20 : 25)
         .accessibilityElement(children: .contain).accessibilityIdentifier("catMemoriesSection")
         .id("catMemoriesAnchor")
         .sheet(item: $expandedMemory) { memory in HabitMemoryDetail68(store: store, cat: cat, memory: memory) }
@@ -204,12 +214,12 @@ struct CatHabitsSection: View {
             Button { expandedMemory = memory } label: {
                 VStack(spacing: 7) {
                     Image(systemName: HabitMemorySlot68.symbol(for: slot.kind))
-                        .font(.system(size: 27, weight: .semibold)).foregroundStyle(HabitMemorySlot68.tint(for: slot.kind))
-                        .frame(maxWidth: .infinity, minHeight: 62)
+                        .font(.system(size: compact ? 21 : 27, weight: .semibold)).foregroundStyle(HabitMemorySlot68.tint(for: slot.kind))
+                        .frame(maxWidth: .infinity, minHeight: compact ? 42 : 62)
                         .background(HabitMemorySlot68.tint(for: slot.kind).opacity(0.19), in: RoundedRectangle(cornerRadius: 5))
                     Text(slot.title).font(.caption2.weight(.heavy)).foregroundStyle(RoomTheme.ink)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, minHeight: 30)
+                        .frame(maxWidth: .infinity, minHeight: compact ? 26 : 30)
                 }
                 .padding(6).padding(.bottom, 3).background(.white, in: RoundedRectangle(cornerRadius: 9))
                 .shadow(color: RoomTheme.ink.opacity(0.14), radius: 4, y: 3)
@@ -218,11 +228,11 @@ struct CatHabitsSection: View {
             .buttonStyle(.plain).accessibilityLabel(slot.title).accessibilityIdentifier(slot.accessibilityIdentifier)
         } else {
             VStack(spacing: 7) {
-                Image(systemName: "questionmark.circle.fill").font(.system(size: 25)).foregroundStyle(RoomTheme.track)
-                    .frame(maxWidth: .infinity, minHeight: 62).accessibilityHidden(true)
+                Image(systemName: "questionmark.circle.fill").font(.system(size: compact ? 20 : 25)).foregroundStyle(RoomTheme.track)
+                    .frame(maxWidth: .infinity, minHeight: compact ? 42 : 62).accessibilityHidden(true)
                 Text(slot.title).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, minHeight: 30)
+                    .frame(maxWidth: .infinity, minHeight: compact ? 26 : 30)
             }
             .padding(6).padding(.bottom, 3)
             .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(RoomTheme.track, style: StrokeStyle(lineWidth: 2, dash: [6, 4])))
@@ -263,11 +273,11 @@ struct CatHabitsSection: View {
                 }
                 .buttonStyle(.plain).disabled(store.isBusy).accessibilityIdentifier("habitGuideMenu")
             }
-            .fixedSize(horizontal: false, vertical: true).padding(12)
+            .fixedSize(horizontal: false, vertical: true).padding(compact ? 8 : 12)
             .background(RoomTheme.sky.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
             .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RoomTheme.sky.opacity(0.25), lineWidth: 2))
         }
-        .padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 25)
+        .padding(compact ? 12 : 14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: compact ? 20 : 25)
         .sheet(isPresented: $showingGuide) { HabitGuidePicker68(store: store, cat: cat) }
     }
 

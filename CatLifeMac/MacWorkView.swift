@@ -31,10 +31,10 @@ struct MacWorkView: View {
     var body: some View {
         VStack(spacing: 14) {
             MacPlaceBanner(store: store, place: .work, height: 132, onTown: onTown) { bannerStats }
-            HStack(alignment: .top, spacing: 16) {
-                jobs.frame(width: 280)
+            HStack(alignment: .top, spacing: 14) {
+                jobs.frame(width: 260)
                 detail.frame(maxWidth: .infinity, maxHeight: .infinity)
-                summary.frame(width: 285)
+                summary.frame(width: 260)
             }
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -79,9 +79,9 @@ struct MacWorkView: View {
     }
 
     private var jobs: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Label(GameStrings.text("mac.work.jobs"), systemImage: "briefcase.fill").font(.headline)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Label(GameStrings.text("mac.work.jobs"), systemImage: "briefcase.fill").font(.system(size: 14, weight: .heavy))
                 Spacer()
                 Button { moveSelection(-1) } label: { Text(keyLabel(.listUp)) }
                     .help(GameStrings.text("mac.content.previous"))
@@ -89,67 +89,72 @@ struct MacWorkView: View {
                 Button { moveSelection(1) } label: { Text(keyLabel(.listDown)) }
                     .help(GameStrings.text("mac.content.next"))
                     .accessibilityLabel(GameStrings.text("mac.content.next"))
-            }
+            }.controlSize(.small)
             ScrollView {
-                VStack(spacing: 8) { ForEach(WorkCatalog.all) { job in jobRow(job) } }
+                VStack(spacing: 4) { ForEach(WorkCatalog.all) { job in jobRow(job) } }
             }
-        }.macContentCard69().frame(maxHeight: .infinity)
+        }.macContentCard69(padding: 12).frame(maxHeight: .infinity)
     }
 
+    /// One compact line per job: icon, name, time · stamina, and the reward (or the level it unlocks at).
     private func jobRow(_ job: WorkJob) -> some View {
         let unlocked = (store.snapshot?.player.level ?? 1) >= job.unlockLevel
         let preview = store.snapshot.flatMap { GameEngine.workQuote(for: $0.player, jobID: job.id) }
+        let chosen = (active?.jobID ?? selectedID) == job.id
         return Button { selectedID = job.id } label: {
-            HStack(spacing: 10) {
-                GameIcon(asset: WorkJobPresentation.asset(job.id), symbol: WorkJobPresentation.symbol(job.id), size: 44)
-                    .padding(6).background(RoomTheme.wood.opacity(0.25), in: RoundedRectangle(cornerRadius: 16))
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 5) {
-                        Text(WorkJobPresentation.name(job.id)).font(.system(size: 15, weight: .heavy))
+            HStack(spacing: 9) {
+                GameIcon(asset: WorkJobPresentation.asset(job.id), symbol: WorkJobPresentation.symbol(job.id), size: 32)
+                    .padding(4).background(RoomTheme.wood.opacity(0.22), in: RoundedRectangle(cornerRadius: 11))
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(WorkJobPresentation.name(job.id)).font(.system(size: 13.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
                         if WorkJobPresentation.isNew(job.id) {
                             Text(GameStrings.text("jobs.newBadge")).font(.system(size: 8, weight: .heavy))
-                                .padding(4).foregroundStyle(.white).background(RoomTheme.friendship, in: Capsule())
+                                .padding(.horizontal, 4).padding(.vertical, 2).foregroundStyle(.white).background(RoomTheme.friendship, in: Capsule())
                         }
                     }
                     Text(WorkJobPresentation.duration(preview?.durationSeconds ?? job.durationMinutes * 60) + " · " + GameStrings.text("player.stamina") + " −\(preview?.staminaCost ?? job.staminaCost)")
-                        .font(.caption).foregroundStyle(RoomTheme.secondary)
-                    if !unlocked {
-                        Label(GameStrings.format("career.unlock", job.unlockLevel), systemImage: "lock.fill")
-                            .font(.caption2).foregroundStyle(RoomTheme.secondary)
-                    }
+                        .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                Text("+\(job.goldReward)").font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.gold)
-            }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background((active?.jobID ?? selectedID) == job.id ? RoomTheme.paleMint.opacity(0.5) : .clear, in: RoundedRectangle(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder((active?.jobID ?? selectedID) == job.id ? RoomTheme.mint : .clear, lineWidth: 2))
-                .opacity(unlocked ? 1 : 0.55).contentShape(RoundedRectangle(cornerRadius: 18))
+                if unlocked {
+                    Text("+\(job.goldReward)").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.gold).monospacedDigit()
+                } else {
+                    Label("Lv\(job.unlockLevel)", systemImage: "lock.fill").font(.system(size: 10.5, weight: .heavy))
+                        .foregroundStyle(RoomTheme.secondary).labelStyle(.titleAndIcon)
+                        .help(GameStrings.format("career.unlock", job.unlockLevel))
+                }
+            }.padding(6).frame(maxWidth: .infinity, alignment: .leading)
+                .background(chosen ? RoomTheme.paleMint.opacity(0.5) : .clear, in: RoundedRectangle(cornerRadius: 13))
+                .overlay(RoundedRectangle(cornerRadius: 13).strokeBorder(chosen ? RoomTheme.mint : .clear, lineWidth: 2))
+                .opacity(unlocked ? 1 : 0.6).contentShape(RoundedRectangle(cornerRadius: 13))
         }.buttonStyle(.plain).accessibilityIdentifier("macJob_\(job.id)")
-            .accessibilityAddTraits((active?.jobID ?? selectedID) == job.id ? .isSelected : [])
+            .accessibilityAddTraits(chosen ? .isSelected : [])
+            .accessibilityHint(unlocked ? "" : GameStrings.format("career.unlock", job.unlockLevel))
     }
 
     private var detail: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            ScrollView {
-                if let active {
-                    working(active)
-                } else {
-                    VStack(alignment: .leading, spacing: 18) {
-                        HStack(spacing: 12) {
-                            GameIcon(asset: WorkJobPresentation.asset(displayed.id), symbol: WorkJobPresentation.symbol(displayed.id), size: 46)
-                                .frame(width: 60, height: 60)
-                                .background(RoomTheme.sky.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
-                                .accessibilityHidden(true)
-                            Text(WorkJobPresentation.name(displayed.id)).font(.system(size: 28, weight: .heavy))
-                        }
-                        Text(GameStrings.text("jobs.\(displayed.id).detail")).foregroundStyle(RoomTheme.secondary)
-                        metrics
-                        if staminaShort > 0 { lowStamina } else { preview }
-                    }.frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 12) {
+            if let active {
+                ScrollView { working(active) }
+            } else {
+                HStack(spacing: 12) {
+                    GameIcon(asset: WorkJobPresentation.asset(displayed.id), symbol: WorkJobPresentation.symbol(displayed.id), size: 40)
+                        .frame(width: 52, height: 52)
+                        .background(RoomTheme.sky.opacity(0.16), in: RoundedRectangle(cornerRadius: 14))
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(WorkJobPresentation.name(displayed.id)).font(.system(size: 22, weight: .heavy))
+                        Text(GameStrings.text("jobs.\(displayed.id).detail")).font(.system(size: 12.5, weight: .semibold))
+                            .foregroundStyle(RoomTheme.secondary).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                metrics
+                ScrollView {
+                    if staminaShort > 0 { lowStamina } else { preview }
                 }
             }
-            Spacer(minLength: 0)
             actionBar
-        }.macContentCard69(padding: 22)
+        }.macContentCard69(padding: 18)
     }
 
     /// Today's work at a glance on the scene banner; while working, a live countdown leads.
@@ -218,7 +223,7 @@ struct MacWorkView: View {
     }
 
     private var metrics: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             metric("mac.work.duration", WorkJobPresentation.duration(quote?.durationSeconds ?? displayed.durationMinutes * 60), "timer", RoomTheme.secondary)
             metric("player.stamina", "−\(quote?.staminaCost ?? displayed.staminaCost)", "bolt.fill", RoomTheme.darkMint)
             metric("player.mood", "−\(quote?.moodCost ?? displayed.moodCost)", "face.smiling.fill", RoomTheme.friendshipDeep)
@@ -228,25 +233,27 @@ struct MacWorkView: View {
     }
 
     private func metric(_ key: String, _ value: String, _ symbol: String, _ color: Color) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: symbol).font(.title3).accessibilityHidden(true)
-            Text(value).font(.system(size: 17, weight: .heavy)).monospacedDigit()
-            Text(GameStrings.text(key)).font(.caption).foregroundStyle(RoomTheme.secondary)
-        }.padding(.vertical, 14).frame(maxWidth: .infinity)
-            .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 18)).foregroundStyle(color)
+        VStack(spacing: 3) {
+            Text(value).font(.system(size: 16, weight: .heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+            Label(GameStrings.text(key), systemImage: symbol).font(.system(size: 10.5, weight: .bold)).lineLimit(1).minimumScaleFactor(0.75)
+                .opacity(0.85)
+        }.padding(.vertical, 9).padding(.horizontal, 4).frame(maxWidth: .infinity)
+            .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 14)).foregroundStyle(color)
+            .accessibilityElement(children: .combine)
     }
 
     private var preview: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(GameStrings.text("mac.work.after")).font(.headline)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(GameStrings.text("mac.work.after")).font(.system(size: 13.5, weight: .heavy))
             HStack {
                 Label("\(store.snapshot?.player.stamina ?? 0) → \(max(0, (store.snapshot?.player.stamina ?? 0) - (quote?.staminaCost ?? selected.staminaCost)))", systemImage: "bolt.fill")
                 Spacer()
                 Label(GameStrings.format("mac.work.rewardUpTo", selected.goldReward), systemImage: "dollarsign.circle.fill")
-            }.font(.subheadline.weight(.heavy)).foregroundStyle(RoomTheme.darkMint)
-            Text(GameStrings.text("mac.work.background")).font(.caption).foregroundStyle(RoomTheme.secondary)
-        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 20))
+            }.font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+            Text(GameStrings.text("mac.work.background")).font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 16))
     }
 
     @ViewBuilder private var actionBar: some View {
@@ -280,29 +287,31 @@ struct MacWorkView: View {
 
     private var summary: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 10) {
                 recoveryToday
-                Button { showsRest = true } label: {
-                    Label(GameStrings.text("work.rest.open"), systemImage: store.snapshot?.player.activeSleep == nil ? "moon.stars.fill" : "sun.max.fill")
-                        .frame(maxWidth: .infinity)
-                }.buttonStyle(SoftButtonStyle()).accessibilityIdentifier("macWorkRest")
                 equipment
-                VStack(alignment: .leading, spacing: 14) {
-                    Label(GameStrings.text("mac.work.latest"), systemImage: "clock.arrow.circlepath").font(.headline)
-                    if let result = store.snapshot?.player.lastWorkResult {
-                        Text(WorkJobPresentation.name(result.jobID)).font(.headline)
-                        Text(result.completedAt, style: .date).font(.caption).foregroundStyle(RoomTheme.secondary)
-                        HStack {
-                            Label("+\(result.goldReward)", systemImage: "dollarsign.circle.fill").foregroundStyle(RoomTheme.gold)
-                            Spacer()
-                            Label("+\(result.expReward)", systemImage: "star.fill").foregroundStyle(RoomTheme.lilac)
-                        }.font(.headline)
-                    } else {
-                        Text(GameStrings.text("mac.work.noResult")).foregroundStyle(RoomTheme.secondary)
-                    }
-                }.macContentCard69()
+                latest
+            }.padding(.bottom, 4)
+        }.scrollIndicators(.never)
+    }
+
+    private var latest: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Label(GameStrings.text("mac.work.latest"), systemImage: "clock.arrow.circlepath").font(.system(size: 13.5, weight: .heavy))
+            if let result = store.snapshot?.player.lastWorkResult {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(WorkJobPresentation.name(result.jobID)).font(.system(size: 13, weight: .heavy)).lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text(result.completedAt, style: .date).font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                }
+                HStack(spacing: 6) {
+                    rewardChip("+\(result.goldReward)", symbol: "dollarsign.circle.fill", tint: RoomTheme.gold)
+                    rewardChip("+\(result.expReward)", symbol: "star.fill", tint: RoomTheme.lilac)
+                }
+            } else {
+                Text(GameStrings.text("mac.work.noResult")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
             }
-        }
+        }.macContentCard69(padding: 12)
     }
 
     /// Stamina still missing for the selected, unlocked job (0 when it can be afforded or is locked).
@@ -324,11 +333,13 @@ struct MacWorkView: View {
         let left = snapshot?.suppliesLeftToday ?? 0
         let riceBalls = player.carried(.riceBall)
         let riceBall = PlayerSupplyCatalog.definition(.riceBall)
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 9) {
             Label(GameStrings.format("work.low.title", cost, player.stamina), systemImage: "bolt.trianglebadge.exclamationmark.fill")
-                .font(.system(size: 15, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
-            MacCapsuleProgress(value: Double(player.stamina), total: Double(max(1, cost)), tint: RoomTheme.coral)
-            Text(GameStrings.text("work.low.options")).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                .font(.system(size: 13.5, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
+                .fixedSize(horizontal: false, vertical: true)
+            MacCapsuleProgress(value: Double(player.stamina), total: Double(max(1, cost)), tint: RoomTheme.coral).frame(height: 7)
+            Text(GameStrings.text("work.low.options")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], alignment: .leading, spacing: 8) {
             if left > 0 {
                 if riceBalls > 0 {
                     option("fork.knife", RoomTheme.gold, GameStrings.format("work.low.eat", riceBall.effect.stamina),
@@ -343,35 +354,38 @@ struct MacWorkView: View {
                        GameStrings.format("recover.exit.cafeDetail", Int(CafeCatalog.napDuration / 60), CafeCatalog.napPrice), badge: nil, action: exits.cafe)
             }
             option("moon.zzz.fill", RoomTheme.darkMint, GameStrings.text("recover.exit.rest"), GameStrings.text("recover.exit.restDetail"), badge: nil) { showsRest = true }
+            }
             if let lighter = lighterJob {
                 Button { selectedID = lighter.id } label: {
                     Label(GameStrings.format("work.low.lighter", WorkJobPresentation.name(lighter.id)), systemImage: "arrow.down.forward.circle")
                         .font(.caption.weight(.bold))
                 }.buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint)
             }
-        }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.paleCoral.opacity(0.55), in: RoundedRectangle(cornerRadius: 20))
+        }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.paleCoral.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .contain).accessibilityIdentifier("macWorkLowStamina")
     }
     private func option(_ symbol: String, _ tint: Color, _ title: String, _ detail: String, badge: String?, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: symbol).font(.system(size: 17, weight: .bold)).foregroundStyle(tint)
-                    .frame(width: 36, height: 36).background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 11))
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(title).font(.system(size: 13.5, weight: .heavy))
+            HStack(spacing: 8) {
+                Image(systemName: symbol).font(.system(size: 14, weight: .bold)).foregroundStyle(tint)
+                    .frame(width: 30, height: 30).background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 9))
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(spacing: 4) {
+                        Text(title).font(.system(size: 12.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
                         if let badge {
-                            Text(badge).font(.system(size: 9.5, weight: .heavy)).foregroundStyle(.white)
-                                .padding(.horizontal, 6).padding(.vertical, 2).background(RoomTheme.coral, in: Capsule())
+                            Text(badge).font(.system(size: 9, weight: .heavy)).foregroundStyle(.white).lineLimit(1)
+                                .padding(.horizontal, 5).padding(.vertical, 1).background(RoomTheme.coral, in: Capsule())
                         }
                     }
-                    Text(detail).font(.caption).foregroundStyle(RoomTheme.secondary)
+                    Text(detail).font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                        .lineLimit(1).minimumScaleFactor(0.75)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-            }.padding(10).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 15)).contentShape(RoundedRectangle(cornerRadius: 15))
-        }.buttonStyle(.plain).disabled(store.isBusy)
+                Image(systemName: "chevron.right").font(.system(size: 10, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+            }.padding(8).frame(maxWidth: .infinity)
+                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 12)).contentShape(RoundedRectangle(cornerRadius: 12))
+        }.buttonStyle(.plain).disabled(store.isBusy).help(detail)
     }
     /// Overflow goes through the same explicit confirm as the bag and the top-bar popover.
     private func eatRiceBall() {
@@ -380,34 +394,71 @@ struct MacWorkView: View {
         let waste = effect.total - effect.applied(to: player).total
         if waste > 0 { riceBallWaste = waste } else { store.usePlayerSupply(.riceBall) }
     }
+    /// Today's supplies, the café nap and the rest button in one card.
     private var recoveryToday: some View {
         let snapshot = store.snapshot
-        return VStack(alignment: .leading, spacing: 12) {
-            Label(GameStrings.text("work.today.recovery"), systemImage: "heart.circle.fill").font(.headline)
+        return VStack(alignment: .leading, spacing: 8) {
+            Label(GameStrings.text("work.today.recovery"), systemImage: "heart.circle.fill").font(.system(size: 13.5, weight: .heavy))
             MacRecoveryDots(used: snapshot?.suppliesUsedToday ?? 0)
             Label(GameStrings.text(snapshot?.player.activeNap != nil ? "recover.exit.cafeNapping"
                                    : snapshot?.napUsedToday == true ? "recover.exit.cafeUsed" : "cafe.napAvailable"),
-                  systemImage: "cup.and.saucer.fill").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.lilac)
-        }.macContentCard69()
+                  systemImage: "cup.and.saucer.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.lilac)
+                .fixedSize(horizontal: false, vertical: true)
+            Button { showsRest = true } label: {
+                Label(GameStrings.text("work.rest.open"), systemImage: snapshot?.player.activeSleep == nil ? "moon.stars.fill" : "sun.max.fill")
+                    .font(.system(size: 13, weight: .heavy)).frame(maxWidth: .infinity)
+            }.buttonStyle(SoftButtonStyle()).accessibilityIdentifier("macWorkRest")
+        }.macContentCard69(padding: 12)
     }
 
+    /// The outfit's combined bonus up top, then one small icon per worn piece (hover for its effect).
     private var equipment: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label(GameStrings.text("mac.work.equipment"), systemImage: "tshirt.fill").font(.headline)
-            ForEach(EquipmentSlot.allCases, id: \.self) { slot in
-                if let id = store.snapshot?.player.profile.equipped[slot], let item = PlayerCatalog.item(id: id) {
-                    HStack(spacing: 8) {
-                        GameIcon(asset: item.displayAssetName, symbol: "tshirt.fill", size: 36)
-                        Text(GameStrings.text(item.nameKey)).font(.caption.weight(.bold))
-                        Spacer(minLength: 0)
-                        Text(GameStrings.text(item.detailKey)).font(.caption2).foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.trailing)
+        let profile = store.snapshot?.player.profile
+        let worn = EquipmentSlot.allCases.compactMap { slot in profile?.equipped[slot].flatMap(PlayerCatalog.item(id:)) }
+        let total = profile.map(PlayerCatalog.bonuses(for:))
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label(GameStrings.text("mac.work.equipment"), systemImage: "tshirt.fill").font(.system(size: 13.5, weight: .heavy))
+                Spacer(minLength: 4)
+                Button(GameStrings.text("bag.dressUp") + " ›") { exits.profile() }
+                    .buttonStyle(.plain).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                    .accessibilityIdentifier("macWorkDressUp")
+            }
+            if worn.isEmpty {
+                Text(GameStrings.text("mac.work.noEquipment")).font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                if let total {
+                    HStack(spacing: 5) {
+                        bonusFigure("mac.profile.duration", total.durationReductionPercent)
+                        bonusFigure("mac.profile.stamina", total.staminaReductionPercent)
+                        bonusFigure("mac.profile.mood", total.moodReductionPercent)
+                    }
+                }
+                HStack(spacing: 6) {
+                    ForEach(worn, id: \.id) { item in
+                        GameIcon(asset: item.displayAssetName, symbol: "tshirt.fill", size: 30)
+                            .frame(maxWidth: .infinity).padding(.vertical, 5)
+                            .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 10))
+                            .help(GameStrings.text(item.nameKey) + " · " + (MacProfilePage.bonusText(item.bonuses) ?? GameStrings.text(item.detailKey)))
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(GameStrings.text(item.nameKey))
+                            .accessibilityValue(MacProfilePage.bonusText(item.bonuses) ?? "")
                     }
                 }
             }
-            if store.snapshot?.player.profile.equipped.isEmpty != false {
-                Text(GameStrings.text("mac.work.noEquipment")).font(.caption).foregroundStyle(RoomTheme.secondary)
-            }
-        }.macContentCard69()
+        }.macContentCard69(padding: 12)
+    }
+
+    private func bonusFigure(_ key: String, _ value: Int) -> some View {
+        VStack(spacing: 1) {
+            Text(value > 0 ? "−\(value)%" : "—").font(.system(size: 14, weight: .heavy)).monospacedDigit()
+                .foregroundStyle(value > 0 ? RoomTheme.darkMint : RoomTheme.secondary)
+            Text(GameStrings.text(key)).font(.system(size: 9.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                .lineLimit(1).minimumScaleFactor(0.7)
+        }.padding(.vertical, 6).frame(maxWidth: .infinity)
+            .background(RoomTheme.paleMint.opacity(0.45), in: RoundedRectangle(cornerRadius: 10))
+            .accessibilityElement(children: .combine)
     }
 
     private func keyLabel(_ command: MacCommand) -> String { (preferences?.binding(for: command) ?? command.defaultBinding).label }

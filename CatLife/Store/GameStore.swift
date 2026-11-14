@@ -1634,6 +1634,23 @@ final class GameStore {
     func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }
     var canPresentTownEventResult: Bool { foreground && hasEnteredHome }
     var isHabitInteractionActive: Bool { foreground && hasEnteredHome && !isLoading }
+    /// Which gates currently block Play Together. Diagnostics only: logged when the play is refused.
+    var playTogetherBlockers: [String] {
+        var names: [String] = []
+        if !foreground { names.append("foreground") }
+        if !hasEnteredHome { names.append("enteredHome") }
+        if isLoading { names.append("loading") }
+        if pendingCatPlayEnd != nil { names.append("pendingPlayEnd") }
+        if isShowingPlayTogether { names.append("alreadyShowing") }
+        if isBusy { names.append("busy") }
+        if isDecorating { names.append("decorating") }
+        if isInspectingHealth { names.append("inspectingHealth") }
+        if isChangingHomeFloor { names.append("changingFloor") }
+        if saveTransferInProgress { names.append("saveTransfer") }
+        if !(roomFloorTravelReady || (restingFurnitureID != nil && cat?.activeRest != nil)) { names.append("roomNotIdle") }
+        if cat == nil { names.append("noCat") }
+        return names
+    }
 
     private func message(for outcome: ActionOutcome) -> String {
         GameActionNotice.message(for: outcome, snapshot: snapshot)

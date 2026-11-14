@@ -7,6 +7,9 @@ struct MacRecoveryExits {
     var cafe: () -> Void = {}
     var rest: () -> Void = {}
     var shop: () -> Void = {}
+    /// Closes the bag (or whatever sheet hosts these exits) before an action opens another window.
+    var close: () -> Void = {}
+    var profile: () -> Void = {}
 }
 
 /// "🍴 Today's supplies ●○○ 1 / 3" — shared by bag, work, café and the top-bar popover.
@@ -295,9 +298,7 @@ struct MacBagView: View {
                 Text(GameStrings.text("recover.bag.note")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
             }.frame(width: 170)
             if showsOthers {
-                NavigationStack { InventoryView(store: store) }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("macBagOthers")
+                MacBagOthersView(store: store, exits: exits).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 supplies(snapshot)
             }

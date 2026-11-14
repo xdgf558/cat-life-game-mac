@@ -27,6 +27,7 @@ struct MacDesktopRoot: View {
     @State private var restRequest: String?
     @State private var pendingPlayChoice: (choice: PlayChoice68, generation: UUID, catID: String)?
     @State private var neighborID: String?
+    @State private var showsCafe = false
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
@@ -50,10 +51,11 @@ struct MacDesktopRoot: View {
                     .disabled(creatingHome)
             } else {
                 HStack(spacing: 0) {
-                    MacNavigationRail(page: page, preferences: preferences, isWorking: store.snapshot?.player.activeWork != nil, select: select, help: { showsHelp = true })
+                    MacNavigationRail(page: page, preferences: preferences, isWorking: store.snapshot?.player.activeWork != nil,
+                                      isNapping: store.snapshot?.player.activeNap != nil, select: select, help: { showsHelp = true })
                     VStack(spacing: 0) {
                         MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { store.activeSheet = .player },
-                                  onResumeTour: resumeTour)
+                                  onResumeTour: resumeTour, exits: recoveryExits)
                         pageContent.padding(16)
                     }
                 }
@@ -197,12 +199,19 @@ struct MacDesktopRoot: View {
                 if let scene {
                     MacHomeView(store: store, scene: scene, preferences: preferences, isActive: active,
                         onTasks: { store.activeSheet = .tasks }, onInventory: { store.activeSheet = .inventory },
-                        onCats: { select(.cats) }, onRest: { restRequest = $0 }, onContext: context, onFixedStructure: fixedStructure)
+                        onCats: { select(.cats) }, onRest: { restRequest = $0 }, onContext: context, onFixedStructure: fixedStructure,
+                        onBag: { auxiliary = .bag })
                 } else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
-            case .work: MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences)
+            case .work: MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits)
             case .shop: MacShopView(store: store, onHome: { page = .home }, preferences: preferences)
             case .cats: MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
-            case .town: MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
+            case .town:
+                if showsCafe {
+                    MacCafeView(store: store, onBack: { showsCafe = false; store.playNavigationSound() }, onWork: { select(.work) },
+                                onHome: { select(.home) }, onRest: { auxiliary = .rest })
+                } else {
+                    MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
+                }
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
@@ -313,7 +322,7 @@ struct MacDesktopRoot: View {
             guard !store.hasUnsavedLayoutChanges || confirm("mac.draft.title", body: "mac.draft.body") else { return }
             store.cancelDecorating()
         }
-        titleVisible = false; page = next; store.playNavigationSound()
+        titleVisible = false; page = next; showsCafe = false; store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
     }
     private func route(_ sheet: HomeSheet?) {
@@ -342,8 +351,16 @@ struct MacDesktopRoot: View {
         case .street: store.openNeighbors()
         case .market: store.openExchangeMarket()
         case .plaza, .board: store.openTownBoard()
+        case .cafe: showsCafe = true; store.playNavigationSound()
         default: break
         }
+    }
+    /// Where the recovery popover, bag and work page send the player.
+    private var recoveryExits: MacRecoveryExits {
+        MacRecoveryExits(
+            cafe: { auxiliary = nil; if page != .town { select(.town) }; showsCafe = true },
+            rest: { auxiliary = .rest },
+            shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) })
     }
     private func fixedStructure(_ structure: MacRoomStructure) {
         guard !store.isBusy, !store.isSavingLayout, !store.saveTransferInProgress else { return }
@@ -394,11 +411,15 @@ struct MacDesktopRoot: View {
         if command == .settings { select(.settings); return true }
         if command == .fullscreen { windowController?.toggleFullscreen(); return true }
         if command == .help { showsHelp.toggle(); return true }
+        if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {
+            NotificationCenter.default.post(name: .macToggleRecovery, object: nil); return true
+        }
         if command == .escape {
             if store.showsPlayChoices { pendingPlayChoice = nil; store.showsPlayChoices = false }
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
-            else if store.isDecorating { select(.home) } else if !titleVisible { titleVisible = true }
+            else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
+            else if !titleVisible { titleVisible = true }
             return true
         }
         if titleVisible, command == .confirm, auxiliary == nil, !store.isLoading, !store.loadFailed {
@@ -540,6 +561,8 @@ struct MacDesktopRoot: View {
                     SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } })
                     #endif
                 case .player: PlayerProfileView(store: store)
+                case .bag: MacBagView(store: store, exits: recoveryExits, onOtherItems: { auxiliary = .inventory })
+                case .rest: WorkRestView(store: store)
                 case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
                 }
             }
@@ -571,13 +594,13 @@ enum MacQuitWaitPolicy {
 }
 
 private enum MacAuxiliary: String, Identifiable {
-    case tasks, inventory, upgrade, hospital, neighbors, neighborDetail, market, board, saves, player, catProfile
+    case tasks, inventory, upgrade, hospital, neighbors, neighborDetail, market, board, saves, player, catProfile, bag, rest
     var id: String { rawValue }
     var usesActiveSheet: Bool { [.tasks, .inventory, .upgrade, .hospital, .player].contains(self) }
     var key: String { switch self {
         case .tasks: "tasks.title"; case .inventory: "inventory.title"; case .upgrade: "homeUpgrade.title"; case .hospital: "hospital.title"
         case .neighbors, .neighborDetail: "community.title"; case .market: "market.title"; case .board: "townEvents.title"; case .saves: "saveTransfer.title"
-        case .player: "player.title"; case .catProfile: "town.title"
+        case .player: "player.title"; case .catProfile: "town.title"; case .bag: "recover.bag.title"; case .rest: "work.rest.open"
     } }
 }
 #endif

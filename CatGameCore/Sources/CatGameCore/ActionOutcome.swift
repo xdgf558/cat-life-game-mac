@@ -65,6 +65,19 @@ public enum ActionFailure: String, Equatable, Sendable {
     case homeLevelRequired = "home.levelRequired"
     case roomCapacityReached = "room.capacityReached"
     case sleepWorkActive = "sleep.workActive"
+    case sleepNapping = "sleep.napping"
+    case workNapping = "work.napping"
+    case supplyCarryLimit = "supply.player.carryLimit"
+    case supplyNone = "supply.player.none"
+    case recoveryDailyLimit = "recover.dailyLimit"
+    case recoveryFull = "recover.full"
+    /// The synchronized state would overflow; the caller must confirm with `allowingWaste`.
+    case recoveryWouldWaste = "recover.wouldWaste"
+    case cafeClosed = "cafe.closed"
+    case cafeNapActive = "cafe.napActive"
+    case cafeNapWorking = "cafe.napWorking"
+    case cafeNapSleeping = "cafe.napSleeping"
+    case cafeNapUsed = "cafe.napUsed"
     case workAlreadyActive = "work.alreadyActive"
     case workJobMissing = "work.jobMissing"
     case workLevelRequired = "work.levelRequired"
@@ -82,6 +95,11 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case townMilestoneClaimed = "townEvents.milestoneClaimedNotice"
     case exchanged = "market.exchanged"
     case supplyPurchased = "shop.supplyPurchased"
+    case playerSupplyPurchased = "supply.player.purchased"
+    case playerSupplyUsed = "supply.player.used"
+    case cafeOrdered = "cafe.ordered"
+    case cafeNapStarted = "cafe.napStarted"
+    case cafeNapEnded = "cafe.napEnded"
     case neighborVisited = "community.visited"
     case neighborChatted = "community.chatted"
     case neighborGifted = "community.gifted"
@@ -115,7 +133,9 @@ public enum ActionSuccess: String, Equatable, Sendable {
     public var kind: ActionKind {
         switch self {
         case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
-             .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased, .supplyPurchased, .exchanged: return .purchase
+             .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased, .supplyPurchased, .exchanged,
+             .playerSupplyPurchased, .cafeOrdered, .cafeNapStarted: return .purchase
+        case .playerSupplyUsed, .cafeNapEnded: return .none
         case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
              .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted,
               .townEventCompleted, .townMilestoneClaimed: return .none

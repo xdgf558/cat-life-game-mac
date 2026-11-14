@@ -935,7 +935,9 @@ final class GameStore {
                 guard self.snapshot != nil else { continue }
                 let workDue = self.snapshot?.player.activeWork.map { $0.endsAt <= self.now } ?? false
                 let restDue = self.snapshot?.cats.contains { $0.activeRest.map { $0.endsAt <= self.now } ?? false } ?? false
-                if workDue || restDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
+                // A finished café nap settles on the next tick, so its gain and the work button don't wait for the 60 s sweep.
+                let napDue = self.snapshot?.player.activeNap.map { $0.endsAt <= self.now } ?? false
+                if workDue || restDue || napDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
                     self.syncAudio()
                     self.synchronize(playsProgressFeedback: self.foreground)
                 }
@@ -1018,6 +1020,37 @@ final class GameStore {
     }
 
     func buySupply(_ kind: SupplyKind) { perform { GameEngine.buySupply(&$0, kind: kind, now: $1) } }
+
+    // MARK: Player supplies and café (1.1.0)
+    func buyPlayerSupply(_ kind: PlayerSupplyKind, quantity: Int = 1) {
+        perform { GameEngine.buyPlayerSupply(&$0, kind: kind, quantity: quantity, now: $1) }
+    }
+    /// `allowingWaste` only from an explicit overflow confirm; otherwise the engine refuses any waste.
+    func usePlayerSupply(_ kind: PlayerSupplyKind, allowingWaste: Bool = false) {
+        let supply = PlayerSupplyCatalog.definition(kind)
+        let previous = snapshot?.player.lastRecoveryReceipt?.id
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: supply.nameKey, drink: supply.isDrink, previousReceipt: previous) ?? false }) {
+            GameEngine.usePlayerSupply(&$0, kind: kind, allowingWaste: allowingWaste, now: $1)
+        }
+    }
+    func orderCafeItem(_ kind: CafeItemKind, allowingWaste: Bool = false) {
+        let item = CafeCatalog.item(kind)
+        let previous = snapshot?.player.lastRecoveryReceipt?.id
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: item.nameKey, drink: item.isDrink, previousReceipt: previous) ?? false }) {
+            GameEngine.orderCafeItem(&$0, kind: kind, allowingWaste: allowingWaste, now: $1)
+        }
+    }
+    func startCafeNap() { perform { GameEngine.startCafeNap(&$0, now: $1) } }
+    func wakeFromCafeNap() { perform { GameEngine.wakeFromCafeNap(&$0, now: $1) } }
+    /// "Ate a rice ball · Stamina +25", from this action's receipt rather than the catalog value or a before/after diff.
+    private func showRecoveryNotice(name: String, drink: Bool, previousReceipt: String?) -> Bool {
+        guard let receipt = snapshot?.player.lastRecoveryReceipt, receipt.id != previousReceipt else { return false }
+        var parts = [GameStrings.format(drink ? "recover.notice.drank" : "recover.notice.ate", GameStrings.text(name))]
+        if receipt.gained.stamina > 0 { parts.append(GameStrings.format("recover.notice.stamina", receipt.gained.stamina)) }
+        if receipt.gained.mood > 0 { parts.append(GameStrings.format("recover.notice.mood", receipt.gained.mood)) }
+        showNotice(parts.joined(separator: " · "))
+        return true
+    }
     func buyFood() { perform { GameEngine.buyFood(&$0, quantity: 1, now: $1) } }
     func buyLitter() { perform { GameEngine.buyLitter(&$0, quantity: 1, now: $1) } }
     func buyToy() { perform { GameEngine.buyToy(&$0, quantity: 1, now: $1) } }

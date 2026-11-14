@@ -1074,4 +1074,5 @@ extension GameStrings {
         .merging(macContent69TraditionalChinese) { _, new in new }
         .merging(macTitleV2Traditional) { _, new in new }
         .merging(macRoomV2Traditional) { _, new in new }
+        .merging(recovery110Traditional) { _, new in new }
 }

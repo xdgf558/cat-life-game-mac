@@ -16,8 +16,8 @@ struct CommunityMigrationTests {
     @Test func schema15FurnitureMigrationKeepsReviewedCommunityLedgers() throws {
         // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
         let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
-        #expect(GameSnapshot.currentSchemaVersion == 16,
-                "Review v16 daily work tallies and v15 orientation migration before changing this guard; preserve the independent v7/v8/v10, v11 events, v12/v13 habits and v14 companionship ledgers.")
+        #expect(GameSnapshot.currentSchemaVersion == 17,
+                "Review v17 player supplies/café nap, v16 daily work tallies and v15 orientation migration before changing this guard; preserve the independent v7/v8/v10, v11 events, v12/v13 habits and v14 companionship ledgers.")
         #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
                 "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
         let recordedRelationship: [String: Any] = [

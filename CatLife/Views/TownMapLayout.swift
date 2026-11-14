@@ -77,6 +77,11 @@ struct TownMapStatus {
             let remaining = max(0, Int(ceil(active.endsAt.timeIntervalSince(max(now, snapshot?.meta.lastSyncAt ?? now)))))
             if remaining == 0 { return GameStrings.text("townMap.workReady") }
             return GameStrings.format("townMap.working", String(format: "%02d:%02d", remaining / 60, remaining % 60))
+        case .cafe:
+            if snapshot?.player.activeNap != nil { return GameStrings.text("cafe.badge.napping") }
+            if !CafeCatalog.isOpen(at: now) { return GameStrings.text("cafe.badge.closed") }
+            if snapshot?.napUsedToday == true { return GameStrings.text("cafe.badge.napped") }
+            return GameStrings.text("cafe.badge.nap")
         default: return nil
         }
     }
@@ -87,6 +92,7 @@ struct TownMapStatus {
         case .hospital: return RoomTheme.coral
         case .street: return RoomTheme.friendship
         case .work: return RoomTheme.gold
+        case .cafe: return RoomTheme.lilac
         case .market where exhaustedExchanges: return RoomTheme.secondary
         default: return RoomTheme.mint
         }

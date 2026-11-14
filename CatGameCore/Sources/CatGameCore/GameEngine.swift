@@ -111,6 +111,7 @@ public enum GameEngine {
         guard state.player.activeSleep == nil else { return ActionOutcome() }
         var candidate = state
         guard candidate.player.activeWork == nil else { return failure(.sleepWorkActive) }
+        guard candidate.player.activeNap == nil else { return failure(.sleepNapping) }
         candidate.player.activeSleep = PlayerSleep(startedAt: effectiveTime(candidate, now: now))
         state = candidate
         return ActionOutcome(success: .sleepStarted)
@@ -359,6 +360,7 @@ public enum GameEngine {
         guard let job = WorkCatalog.job(id: jobID) else { return failure(.workJobMissing) }
         guard state.player.level >= job.unlockLevel else { return failure(.workLevelRequired) }
         guard state.player.activeSleep == nil else { return failure(.workSleeping) }
+        guard state.player.activeNap == nil else { return failure(.workNapping) }
         guard state.player.activeWork == nil else { return failure(.workAlreadyActive) }
         guard let quote = workQuote(for: state.player, jobID: jobID) else { return failure(.gameInvalidState) }
         guard state.player.stamina >= quote.staminaCost else { return failure(.workStaminaRequired) }
@@ -432,6 +434,8 @@ public enum GameEngine {
                     ? timestamp : state.player.staminaUpdatedAt.addingTimeInterval(Double(steps) * 3600)
             }
         }
+
+        settleDueNap(&state, at: timestamp)
 
         state.meta.lastSyncAt = timestamp
         let previousDay = state.tasks.dailyDayKey
@@ -603,7 +607,7 @@ public enum GameEngine {
         for index in state.cats.indices { finishCatRest(&state, index: index, now: now) }
     }
 
-    private static func effectiveTime(_ state: GameSnapshot, now: Date) -> Date {
+    static func effectiveTime(_ state: GameSnapshot, now: Date) -> Date {
         max(now, state.meta.lastSyncAt)
     }
 
@@ -644,7 +648,7 @@ extension GameSnapshot {
               }),
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
-              player.profile.isValid,
+              player.profile.isValid, playerRecoveryIsValid,
               tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),

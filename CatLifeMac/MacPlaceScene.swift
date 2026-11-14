@@ -14,12 +14,20 @@ enum MacPlaceSceneArt {
 }
 
 @MainActor
-struct MacPlaceBanner: View {
+struct MacPlaceBanner<Extra: View>: View {
     let store: GameStore
     let place: TownPlace
     var height: CGFloat = 150
     /// Pages reached from the town show a way back to the map; sheets already have Done.
     var onTown: (() -> Void)? = nil
+    /// Page controls that live on the scene (shop tabs, today's work stats), under the description.
+    var extra: Extra
+
+    init(store: GameStore, place: TownPlace, height: CGFloat = 150, onTown: (() -> Void)? = nil,
+         @ViewBuilder extra: () -> Extra) {
+        self.store = store; self.place = place; self.height = height; self.onTown = onTown; self.extra = extra()
+    }
+    private var hasExtra: Bool { Extra.self != EmptyView.self }
 
     private var status: TownMapStatus { TownMapStatus(snapshot: store.snapshot) }
     private var description: String {
@@ -54,7 +62,8 @@ struct MacPlaceBanner: View {
                         }
                     }
                     Text(description).font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
-                        .lineLimit(2).frame(maxWidth: 420, alignment: .leading)
+                        .lineLimit(hasExtra ? 1 : 2).frame(maxWidth: 420, alignment: .leading)
+                    if hasExtra { extra.padding(.top, 2) }
                 }
                 Spacer(minLength: 8)
             }
@@ -108,6 +117,24 @@ struct MacPlaceBanner: View {
         Image(systemName: "tree.fill").resizable().scaledToFit().frame(width: size, height: size)
             .foregroundStyle(Color(red: 0.42, green: 0.66, blue: 0.43)).padding(.bottom, size * 0.15)
             .accessibilityHidden(true)
+    }
+}
+extension MacPlaceBanner where Extra == EmptyView {
+    init(store: GameStore, place: TownPlace, height: CGFloat = 150, onTown: (() -> Void)? = nil) {
+        self.init(store: store, place: place, height: height, onTown: onTown) { EmptyView() }
+    }
+}
+
+/// A small capsule for live values on a place banner.
+struct MacBannerChip: View {
+    let text: String
+    let symbol: String
+    var tint: Color = RoomTheme.darkMint
+    var body: some View {
+        Label(text, systemImage: symbol).font(.system(size: 12, weight: .heavy)).monospacedDigit()
+            .foregroundStyle(tint).padding(.horizontal, 10).padding(.vertical, 5)
+            .background(RoomTheme.paper.opacity(0.95), in: Capsule())
+            .overlay(Capsule().strokeBorder(tint.opacity(0.25), lineWidth: 1))
     }
 }
 #endif

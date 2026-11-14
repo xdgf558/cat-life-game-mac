@@ -203,9 +203,9 @@ struct MacDesktopRoot: View {
                         onBag: { auxiliary = .bag })
                 } else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
             case .work:
-                placePage(.work) { MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits) }
+                MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits, onTown: { select(.town) })
             case .shop:
-                placePage(.shop) { MacShopView(store: store, onHome: { page = .home }, preferences: preferences) }
+                MacShopView(store: store, onHome: { page = .home }, preferences: preferences, onTown: { select(.town) })
             case .cats:
                 placePage(.adoption) { MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences) }
             case .town:

@@ -308,11 +308,9 @@ final class RoomPresentationRenderer {
         if let rest, let target = furniture[rest.item.id] {
             let base = projection.project(target.position)
             sync("rest-front", restFront, anchor: base, depth: catDepth + 0.2)
-            if let variant = FurnitureArtwork68.variant(for: rest.item, angle: projection.angle,
-                placement: world?.placements.first { $0.itemID == rest.item.id }) {
-                setFrontSlice68(key: "rest-front", variant: variant, referenceWidth: target.size.width,
-                                surface: "frontEntrySurface", defaultFraction: 0.22)
-            }
+            let variant = FurnitureArtwork68.variant(for: rest.item, angle: projection.angle,
+                placement: world?.placements.first { $0.itemID == rest.item.id })
+            setRestFrontSlice68(furnitureKey: "furniture-" + rest.item.id, variant: variant)
         }
         let selectedWall = selectedID.flatMap { id in items.first { $0.id == id } }
             .map { FurnitureCatalog.metadata(for: $0.kind).isWall } ?? false
@@ -375,6 +373,29 @@ final class RoomPresentationRenderer {
         sprite.setScale(factor)
         #endif
         objectFrames[key] = sprite.calculateAccumulatedFrame()
+    }
+
+    /// The near rim of the bed a cat is resting in, cut from exactly what that bed is showing.
+    /// It used to be sized from the new model render even when the bed itself was still drawn
+    /// from the older, wider artwork, so the rim came out far larger than the bed.
+    private func setRestFrontSlice68(furnitureKey: String, variant: FurnitureArtwork68.Variant?) {
+        guard let sprite = mirrors["rest-front"]?.node as? SKSpriteNode,
+              let bed = mirrors[furnitureKey]?.node as? SKSpriteNode, let texture = bed.texture,
+              bed.size.height > 0 else { return }
+        var fraction: CGFloat = 0.22
+        if let variant, artworkNames[furnitureKey] == variant.assetName {
+            let unscaled = variant.size(referenceWidth: variant.croppedSize.width)
+            if let offset = variant.surfaceOffset("frontEntrySurface", referenceWidth: variant.croppedSize.width), unscaled.height > 0 {
+                fraction = (variant.anchorPoint.y * unscaled.height + offset.y - 2) / unscaled.height
+            }
+        }
+        fraction = min(0.8, max(0.08, fraction))
+        sprite.texture = SKTexture(rect: CGRect(x: 0, y: 0, width: 1, height: fraction), in: texture)
+        sprite.size = CGSize(width: bed.size.width, height: bed.size.height * fraction)
+        sprite.anchorPoint = CGPoint(x: bed.anchorPoint.x, y: bed.anchorPoint.y / fraction)
+        sprite.xScale = bed.xScale; sprite.yScale = bed.yScale
+        sprite.position = bed.position
+        objectFrames["rest-front"] = sprite.calculateAccumulatedFrame()
     }
 
     func updateCamera() {

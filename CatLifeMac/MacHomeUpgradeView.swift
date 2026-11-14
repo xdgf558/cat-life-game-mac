@@ -2,8 +2,8 @@
 import SwiftUI
 import CatGameCore
 
-/// Room upgrade on the desktop: now → after side by side, with a floor-plan sketch of how much
-/// the room grows, then one strip with the price, the work-level gate and the confirm button.
+/// Room upgrade on the desktop: now → after side by side, each with the level's cutaway home drawn
+/// to scale, then one strip with the price, the work-level gate and the confirm button.
 @MainActor
 struct MacHomeUpgradeView: View {
     let store: GameStore
@@ -66,7 +66,7 @@ struct MacHomeUpgradeView: View {
                     .accessibilityValue("\(home.level)")
             }
             HStack(alignment: .center, spacing: 14) {
-                MacMiniRoom(home: home, previous: previous).frame(width: 128, height: 100)
+                MacMiniRoom(home: home, previous: previous).frame(width: 150, height: 120)
                 VStack(alignment: .leading, spacing: 7) {
                     stat("square.dashed", "mac.upgrade.area", "×" + number(area(home)),
                          delta: previous.map { "+" + number(area(home) - area($0)) })
@@ -196,12 +196,23 @@ struct MacHomeUpgradeView: View {
     }
 }
 
-/// A tiny version of the in-game room (back wall with a window, side walls, wooden floor) drawn
-/// at this level's size. The previous room is dashed on the floor so the growth is visible, and
-/// two-floor homes show a staircase.
+/// This level's cutaway home. The painted `home-level-N` art is drawn to scale (a bigger home is a
+/// wider picture, cats and furniture keep their size); levels without art fall back to a tiny
+/// code-drawn room with the previous room dashed on the floor.
 struct MacMiniRoom: View {
     let home: HomeLevel
     var previous: HomeLevel? = nil
+
+    static func artwork(level: Int) -> NSImage? { NSImage(named: "home-level-\(level)") }
+
+    var body: some View {
+        if let art = Self.artwork(level: home.level) {
+            Image(nsImage: art).resizable().interpolation(.high).aspectRatio(contentMode: .fit)
+                .accessibilityHidden(true)
+        } else {
+            drawn
+        }
+    }
 
     private static let floorWood = Color(red: 0.95, green: 0.72, blue: 0.43)
     private static let plank = Color(red: 0.80, green: 0.52, blue: 0.27)
@@ -211,7 +222,7 @@ struct MacMiniRoom: View {
     private static let glass = Color(red: 0.62, green: 0.82, blue: 0.93)
     private static let bed = Color(red: 0.55, green: 0.70, blue: 0.42)
 
-    var body: some View {
+    private var drawn: some View {
         Canvas { context, size in
             let largest = HomeCatalog.all.map(\.worldScale).max() ?? 2
             func fit(_ scale: Double) -> CGFloat { 0.58 + 0.42 * CGFloat((scale - 1) / max(0.01, largest - 1)) }
@@ -341,7 +352,7 @@ struct MacHomeUpgradeCelebration: View {
         VStack(spacing: 14) {
             ZStack {
                 rays
-                GameIcon(asset: "town-home-cartoon", symbol: "house.fill", size: 116, tint: RoomTheme.darkMint)
+                celebrationArt
                     .padding(10).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 30))
                     .overlay(RoundedRectangle(cornerRadius: 30).strokeBorder(.white, lineWidth: 4))
                     .rotationEffect(.degrees(appeared || reduceMotion ? 0 : -8))
@@ -350,7 +361,7 @@ struct MacHomeUpgradeCelebration: View {
                             .padding(.horizontal, 12).padding(.vertical, 5).background(RoomTheme.gold, in: Capsule())
                             .overlay(Capsule().strokeBorder(.white, lineWidth: 3)).offset(x: 14, y: -10)
                     }
-            }.frame(height: 176)
+            }.frame(height: 190)
             Text(GameStrings.text("homeUpgrade.successTitle")).font(.system(size: 26, weight: .heavy, design: .rounded))
             Text(GameStrings.text("homeUpgrade.successBody")).font(.system(size: 13.5, weight: .semibold))
                 .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
@@ -381,6 +392,15 @@ struct MacHomeUpgradeCelebration: View {
         .overlay(RoundedRectangle(cornerRadius: 32).strokeBorder(.white, lineWidth: 4))
         .compositingGroup().shadow(color: RoomTheme.ink.opacity(0.25), radius: 30, y: 12)
         .foregroundStyle(RoomTheme.ink)
+    }
+
+    @ViewBuilder private var celebrationArt: some View {
+        if let art = MacMiniRoom.artwork(level: celebration.level) {
+            Image(nsImage: art).resizable().interpolation(.high).aspectRatio(contentMode: .fit)
+                .frame(width: 190, height: 152).accessibilityHidden(true)
+        } else {
+            GameIcon(asset: "town-home-cartoon", symbol: "house.fill", size: 116, tint: RoomTheme.darkMint)
+        }
     }
 
     private var rays: some View {

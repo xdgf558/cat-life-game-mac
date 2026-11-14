@@ -125,7 +125,7 @@ struct MacDesktopRoot: View {
             // The upgrade sheet is one compact comparison; it does not need the tall default.
             auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : 600,
                                       idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : 780,
-                                      minHeight: item == .upgrade ? 470 : 600, idealHeight: item == .upgrade ? 500 : 760)
+                                      minHeight: item == .upgrade ? 490 : 600, idealHeight: item == .upgrade ? 520 : 760)
         }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {

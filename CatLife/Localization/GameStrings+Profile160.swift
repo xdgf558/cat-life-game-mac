@@ -2,6 +2,7 @@ import Foundation
 
 // 1.6.0: the desktop profile page (character · what you wear · your numbers).
 let profile160Chinese: [String: String] = [
+    "mac.bag.noEquipment": "还没有装备，可以去商店看看。", "mac.bag.pickItem": "选一件看看详情。", "mac.bag.carried": "背包里 %d 份",
     "mac.top.profile": "形象 · 穿戴 · 加成，一页看完",
     "mac.profile.save": "保存", "mac.profile.cancel": "取消",
     "mac.profile.nameHint": "1–%d 个字，邻居和回信里会用这个名字称呼你。留空就用默认称呼。",
@@ -42,6 +43,7 @@ let profile160Chinese: [String: String] = [
 ]
 
 let profile160Traditional: [String: String] = [
+    "mac.bag.noEquipment": "還沒有裝備，可以去商店看看。", "mac.bag.pickItem": "選一件看看詳情。", "mac.bag.carried": "背包裡 %d 份",
     "mac.top.profile": "形象 · 穿戴 · 加成，一頁看完",
     "mac.profile.save": "儲存", "mac.profile.cancel": "取消",
     "mac.profile.nameHint": "1–%d 個字，鄰居和回信裡會用這個名字稱呼你。留空就用預設稱呼。",
@@ -82,6 +84,7 @@ let profile160Traditional: [String: String] = [
 ]
 
 let profile160English: [String: String] = [
+    "mac.bag.noEquipment": "No gear yet. Have a look in the shop.", "mac.bag.pickItem": "Pick an item to see details.", "mac.bag.carried": "%d in your bag",
     "mac.top.profile": "Look, outfit and bonuses on one page",
     "mac.profile.save": "Save", "mac.profile.cancel": "Cancel",
     "mac.profile.nameHint": "1–%d characters. Neighbors and letters will call you this. Leave it empty for the default.",

@@ -405,7 +405,9 @@ struct MacDesktopRoot: View {
         MacRecoveryExits(
             cafe: { auxiliary = nil; if page != .town { select(.town) }; showsCafe = true },
             rest: { auxiliary = .rest },
-            shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) })
+            shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) },
+            close: { auxiliary = nil },
+            profile: { auxiliary = nil; select(.profile) })
     }
     private func fixedStructure(_ structure: MacRoomStructure) {
         guard !store.isBusy, !store.isSavingLayout, !store.saveTransferInProgress else { return }

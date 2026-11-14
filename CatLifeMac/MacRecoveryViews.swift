@@ -168,7 +168,7 @@ struct MacSupplyUseCard: View {
             } else if waste > 0 {
                 // Overflow is allowed, but only through an explicit, gold "use anyway".
                 hint(GameStrings.format("recover.wasteHint", waste), warning: true)
-                Button { store.usePlayerSupply(kind) } label: {
+                Button { store.usePlayerSupply(kind, allowingWaste: true) } label: {
                     Text(GameStrings.text(supply.isDrink ? "recover.use.anywayDrink" : "recover.use.anyway")).frame(maxWidth: .infinity)
                 }.buttonStyle(GoldButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("macUseSupplyAnyway")
                 Button(GameStrings.text("recover.use.keep"), action: onKeep).buttonStyle(SoftButtonStyle())

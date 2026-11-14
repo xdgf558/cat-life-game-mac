@@ -71,6 +71,8 @@ public enum ActionFailure: String, Equatable, Sendable {
     case supplyNone = "supply.player.none"
     case recoveryDailyLimit = "recover.dailyLimit"
     case recoveryFull = "recover.full"
+    /// The synchronized state would overflow; the caller must confirm with `allowingWaste`.
+    case recoveryWouldWaste = "recover.wouldWaste"
     case cafeClosed = "cafe.closed"
     case cafeNapActive = "cafe.napActive"
     case cafeNapWorking = "cafe.napWorking"

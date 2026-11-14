@@ -163,6 +163,8 @@ public struct PlayerState: Codable, Equatable, Sendable {
     public var recoveryDay = PlayerRecoveryDay()
     public var activeNap: PlayerNap?
     public var lastNapResult: PlayerNapResult?
+    /// What the latest supply or café order restored by itself (natural regeneration excluded).
+    public var lastRecoveryReceipt: PlayerRecoveryReceipt?
 
     public init(gold: Int = 200, stamina: Int = 80, mood: Int = 80,
                 activeWork: ActiveWork? = nil, staminaUpdatedAt: Date,
@@ -189,7 +191,7 @@ public struct PlayerState: Codable, Equatable, Sendable {
         case gold, stamina, mood, activeWork, staminaUpdatedAt, completedWorkCount
         case activeSleep, sleepStaminaRemainder, sleepMoodRemainder
         case level, exp, lastWorkResult, profile
-        case supplies, recoveryDay, activeNap, lastNapResult
+        case supplies, recoveryDay, activeNap, lastNapResult, lastRecoveryReceipt
     }
 
     public init(from decoder: Decoder) throws {
@@ -215,6 +217,7 @@ public struct PlayerState: Codable, Equatable, Sendable {
         recoveryDay = try values.decodeIfPresent(PlayerRecoveryDay.self, forKey: .recoveryDay) ?? PlayerRecoveryDay()
         activeNap = try values.decodeIfPresent(PlayerNap.self, forKey: .activeNap)
         lastNapResult = try values.decodeIfPresent(PlayerNapResult.self, forKey: .lastNapResult)
+        lastRecoveryReceipt = try values.decodeIfPresent(PlayerRecoveryReceipt.self, forKey: .lastRecoveryReceipt)
     }
 }
 

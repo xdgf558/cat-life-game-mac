@@ -13,7 +13,7 @@ struct MacCafeView: View {
     let onRest: () -> Void
     @State private var tab = Tab.menu
     @State private var selected = CafeItemKind.latte
-    @State private var pendingOrder: (kind: CafeItemKind, usedBefore: Int, stamina: Int, mood: Int)?
+    @State private var pendingOrder: (kind: CafeItemKind, previousReceipt: String?)?
     /// The order just served, with what it actually restored (never more than the room left below 100).
     @State private var served: (kind: CafeItemKind, gained: RecoveryEffect)?
     @State private var shownNapResult: String?
@@ -197,7 +197,7 @@ struct MacCafeView: View {
                             .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoomTheme.coral.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
                             .fixedSize(horizontal: false, vertical: true)
-                        Button { order(item) } label: {
+                        Button { order(item, allowingWaste: true) } label: {
                             Text(GameStrings.format("cafe.order.anyway", item.price)).frame(maxWidth: .infinity)
                         }.buttonStyle(GoldButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("macCafeOrderAnyway")
                     } else {
@@ -245,18 +245,18 @@ struct MacCafeView: View {
             Button(GameStrings.text("cafe.backToWork"), action: onWork).buttonStyle(SoftButtonStyle())
         }
     }
-    private func order(_ item: CafeMenuItem) {
+    private func order(_ item: CafeMenuItem, allowingWaste: Bool = false) {
         guard !store.isBusy else { return }
-        let player = snapshot?.player
-        pendingOrder = (item.kind, snapshot?.suppliesUsedToday ?? 0, player?.stamina ?? 0, player?.mood ?? 0)
-        store.orderCafeItem(item.kind)
+        pendingOrder = (item.kind, snapshot?.player.lastRecoveryReceipt?.id)
+        store.orderCafeItem(item.kind, allowingWaste: allowingWaste)
     }
     private func finishOrder() {
         guard let pending = pendingOrder else { return }
         pendingOrder = nil
-        guard let after = snapshot, after.suppliesUsedToday > pending.usedBefore else { return }
-        served = (pending.kind, RecoveryEffect(stamina: max(0, after.player.stamina - pending.stamina),
-                                               mood: max(0, after.player.mood - pending.mood)))
+        // The engine's receipt holds only what this order restored, never same-moment regeneration.
+        guard let receipt = snapshot?.player.lastRecoveryReceipt, receipt.id != pending.previousReceipt,
+              receipt.source == PlayerRecoveryReceipt.source(pending.kind) else { return }
+        served = (pending.kind, receipt.gained.effect)
     }
 
     @ViewBuilder private var napContent: some View {

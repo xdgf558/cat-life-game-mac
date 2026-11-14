@@ -1025,28 +1025,29 @@ final class GameStore {
     func buyPlayerSupply(_ kind: PlayerSupplyKind, quantity: Int = 1) {
         perform { GameEngine.buyPlayerSupply(&$0, kind: kind, quantity: quantity, now: $1) }
     }
-    func usePlayerSupply(_ kind: PlayerSupplyKind) {
+    /// `allowingWaste` only from an explicit overflow confirm; otherwise the engine refuses any waste.
+    func usePlayerSupply(_ kind: PlayerSupplyKind, allowingWaste: Bool = false) {
         let supply = PlayerSupplyCatalog.definition(kind)
-        let before = snapshot?.player
-        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: supply.nameKey, drink: supply.isDrink, before: before) ?? false }) {
-            GameEngine.usePlayerSupply(&$0, kind: kind, now: $1)
+        let previous = snapshot?.player.lastRecoveryReceipt?.id
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: supply.nameKey, drink: supply.isDrink, previousReceipt: previous) ?? false }) {
+            GameEngine.usePlayerSupply(&$0, kind: kind, allowingWaste: allowingWaste, now: $1)
         }
     }
-    func orderCafeItem(_ kind: CafeItemKind) {
+    func orderCafeItem(_ kind: CafeItemKind, allowingWaste: Bool = false) {
         let item = CafeCatalog.item(kind)
-        let before = snapshot?.player
-        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: item.nameKey, drink: item.isDrink, before: before) ?? false }) {
-            GameEngine.orderCafeItem(&$0, kind: kind, now: $1)
+        let previous = snapshot?.player.lastRecoveryReceipt?.id
+        perform(presentSuccess: { [weak self] in self?.showRecoveryNotice(name: item.nameKey, drink: item.isDrink, previousReceipt: previous) ?? false }) {
+            GameEngine.orderCafeItem(&$0, kind: kind, allowingWaste: allowingWaste, now: $1)
         }
     }
     func startCafeNap() { perform { GameEngine.startCafeNap(&$0, now: $1) } }
     func wakeFromCafeNap() { perform { GameEngine.wakeFromCafeNap(&$0, now: $1) } }
-    /// "Ate a rice ball · Stamina +25", from the committed difference rather than the catalog value.
-    private func showRecoveryNotice(name: String, drink: Bool, before: PlayerState?) -> Bool {
-        guard let before, let after = snapshot?.player else { return false }
+    /// "Ate a rice ball · Stamina +25", from this action's receipt rather than the catalog value or a before/after diff.
+    private func showRecoveryNotice(name: String, drink: Bool, previousReceipt: String?) -> Bool {
+        guard let receipt = snapshot?.player.lastRecoveryReceipt, receipt.id != previousReceipt else { return false }
         var parts = [GameStrings.format(drink ? "recover.notice.drank" : "recover.notice.ate", GameStrings.text(name))]
-        if after.stamina > before.stamina { parts.append(GameStrings.format("recover.notice.stamina", after.stamina - before.stamina)) }
-        if after.mood > before.mood { parts.append(GameStrings.format("recover.notice.mood", after.mood - before.mood)) }
+        if receipt.gained.stamina > 0 { parts.append(GameStrings.format("recover.notice.stamina", receipt.gained.stamina)) }
+        if receipt.gained.mood > 0 { parts.append(GameStrings.format("recover.notice.mood", receipt.gained.mood)) }
         showNotice(parts.joined(separator: " · "))
         return true
     }

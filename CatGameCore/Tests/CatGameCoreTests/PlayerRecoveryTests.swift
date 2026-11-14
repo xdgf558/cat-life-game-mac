@@ -33,19 +33,50 @@ struct PlayerRecoveryTests {
         #expect(s.player.carried(.flowerTea) == 1 && s.suppliesUsedToday == 0)
     }
 
-    @Test func overflowIsAllowedAndCappedAtOneHundred() {
+    @Test func overflowNeedsExplicitConfirmationAndIsCappedAtOneHundred() {
         var s = state(stamina: 92)
         _ = GameEngine.buyPlayerSupply(&s, kind: .riceBall, now: now)
-        let outcome = GameEngine.usePlayerSupply(&s, kind: .riceBall, now: now)
+        let refused = GameEngine.usePlayerSupply(&s, kind: .riceBall, now: now)
+        #expect(refused.failure == .recoveryWouldWaste && refused.amount == 17)
+        #expect(s.player.stamina == 92 && s.player.carried(.riceBall) == 1 && s.suppliesUsedToday == 0)
+        let outcome = GameEngine.usePlayerSupply(&s, kind: .riceBall, allowingWaste: true, now: now)
         #expect(outcome.success == .playerSupplyUsed && outcome.amount == 8)
         #expect(s.player.stamina == 100 && s.player.carried(.riceBall) == 0 && s.suppliesUsedToday == 1)
+    }
+
+    @Test func regenerationLandingAtTheSameMomentStillNeedsTheOverflowConfirm() {
+        // The UI saw 75 (no waste for +25), but the hourly +5 lands inside the transaction.
+        var s = state(stamina: 75)
+        s.player.staminaUpdatedAt = now.addingTimeInterval(-3_599)
+        _ = GameEngine.buyPlayerSupply(&s, kind: .riceBall, now: now)
+        let later = now.addingTimeInterval(1)
+        let refused = GameEngine.usePlayerSupply(&s, kind: .riceBall, now: later)
+        #expect(refused.failure == .recoveryWouldWaste && refused.amount == 5)
+        #expect(s.player.stamina == 80 && s.player.carried(.riceBall) == 1 && s.suppliesUsedToday == 0)
+        var cafe = state(stamina: 95, mood: 30)
+        cafe.player.staminaUpdatedAt = now.addingTimeInterval(-3_599)
+        #expect(GameEngine.orderCafeItem(&cafe, kind: .pancake, now: later).failure == .recoveryWouldWaste)
+        #expect(cafe.player.gold == 2_000 && cafe.suppliesUsedToday == 0)
+    }
+
+    @Test func receiptCountsOnlyWhatTheOrderRestored() throws {
+        var s = state(stamina: 50, mood: 40)
+        s.player.staminaUpdatedAt = now.addingTimeInterval(-3_600)
+        #expect(GameEngine.orderCafeItem(&s, kind: .latte, now: now).succeeded)
+        let receipt = try #require(s.player.lastRecoveryReceipt)
+        #expect(s.player.stamina == 55 && s.player.mood == 55)
+        #expect(receipt.source == PlayerRecoveryReceipt.source(CafeItemKind.latte))
+        #expect(receipt.gained.stamina == 0 && receipt.gained.mood == 15)
     }
 
     @Test func compositeEffectIsUsefulWhileEitherAttributeIsBelowFull() {
         var s = state(stamina: 100, mood: 50)
         _ = GameEngine.buyPlayerSupply(&s, kind: .dessert, now: now)
-        #expect(GameEngine.usePlayerSupply(&s, kind: .dessert, now: now).succeeded)
+        // The stamina half overflows, so it still goes through the confirm.
+        #expect(GameEngine.usePlayerSupply(&s, kind: .dessert, now: now).failure == .recoveryWouldWaste)
+        #expect(GameEngine.usePlayerSupply(&s, kind: .dessert, allowingWaste: true, now: now).succeeded)
         #expect(s.player.stamina == 100 && s.player.mood == 62)
+        #expect(s.player.lastRecoveryReceipt?.gained.stamina == 0 && s.player.lastRecoveryReceipt?.gained.mood == 12)
     }
 
     @Test func carriedSuppliesAndCafeItemsShareTheDailyLimitWhichResetsNextDay() throws {
@@ -102,7 +133,7 @@ struct PlayerRecoveryTests {
         var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(s)) as? [String: Any])
         object["schemaVersion"] = 16
         var player = try #require(object["player"] as? [String: Any])
-        for key in ["supplies", "recoveryDay", "activeNap", "lastNapResult"] { player.removeValue(forKey: key) }
+        for key in ["supplies", "recoveryDay", "activeNap", "lastNapResult", "lastRecoveryReceipt"] { player.removeValue(forKey: key) }
         object["player"] = player
         let loaded = try JSONDecoder().decode(GameSnapshot.self, from: snapshotFixtureData(object))
         #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)

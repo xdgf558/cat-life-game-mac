@@ -126,6 +126,21 @@ public struct PlayerNapResult: Codable, Equatable, Sendable {
     public var early: Bool
 }
 
+/// Receipt for one supply or café order: only the points that item granted, after the
+/// transaction's own synchronization, so natural regeneration is never credited to it.
+public struct PlayerRecoveryReceipt: Codable, Equatable, Sendable {
+    public var id: String
+    /// `supply.<kind>` or `cafe.<kind>`.
+    public var source: String
+    public var gained: RecoveryEffectRecord
+    public var at: Date
+    public init(id: String = UUID().uuidString, source: String, gained: RecoveryEffect, at: Date) {
+        self.id = id; self.source = source; self.gained = RecoveryEffectRecord(gained); self.at = at
+    }
+    public static func source(_ kind: PlayerSupplyKind) -> String { "supply.\(kind.rawValue)" }
+    public static func source(_ kind: CafeItemKind) -> String { "cafe.\(kind.rawValue)" }
+}
+
 extension PlayerState {
     public func carried(_ kind: PlayerSupplyKind) -> Int { supplies[kind.rawValue] ?? 0 }
 }
@@ -180,8 +195,9 @@ extension GameEngine {
         return .init(success: .playerSupplyPurchased, amount: quantity)
     }
 
-    /// Full attributes never waste an item or a daily portion; overflow is allowed (the UI warns first).
-    public static func usePlayerSupply(_ state: inout GameSnapshot, kind: PlayerSupplyKind,
+    /// Full attributes never waste an item or a daily portion. Overflow needs `allowingWaste`, checked
+    /// against the synchronized state, so regeneration landing at the same moment can't slip past the confirm.
+    public static func usePlayerSupply(_ state: inout GameSnapshot, kind: PlayerSupplyKind, allowingWaste: Bool = false,
                                        now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
@@ -190,13 +206,17 @@ extension GameEngine {
         let effect = PlayerSupplyCatalog.definition(kind).effect
         guard effect.isUseful(for: state.player) else { return .init(failure: .recoveryFull) }
         let gained = effect.applied(to: state.player)
-        apply(gained, to: &state, at: effectiveTime(state, now: now))
+        let waste = effect.total - gained.total
+        guard waste == 0 || allowingWaste else { return .init(failure: .recoveryWouldWaste, amount: waste) }
+        let timestamp = effectiveTime(state, now: now)
+        apply(gained, to: &state, at: timestamp)
         state.player.supplies[kind.rawValue] = state.player.carried(kind) - 1
         state.recordRecovery(supply: true)
+        state.player.lastRecoveryReceipt = PlayerRecoveryReceipt(source: PlayerRecoveryReceipt.source(kind), gained: gained, at: timestamp)
         return .init(success: .playerSupplyUsed, amount: gained.total)
     }
 
-    public static func orderCafeItem(_ state: inout GameSnapshot, kind: CafeItemKind,
+    public static func orderCafeItem(_ state: inout GameSnapshot, kind: CafeItemKind, allowingWaste: Bool = false,
                                      now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
@@ -207,9 +227,12 @@ extension GameEngine {
         guard item.effect.isUseful(for: state.player) else { return .init(failure: .recoveryFull) }
         guard state.player.gold >= item.price else { return .init(failure: .shopGoldRequired, amount: item.price) }
         let gained = item.effect.applied(to: state.player)
+        let waste = item.effect.total - gained.total
+        guard waste == 0 || allowingWaste else { return .init(failure: .recoveryWouldWaste, amount: waste) }
         state.player.gold -= item.price
         apply(gained, to: &state, at: timestamp)
         state.recordRecovery(supply: true)
+        state.player.lastRecoveryReceipt = PlayerRecoveryReceipt(source: PlayerRecoveryReceipt.source(kind), gained: gained, at: timestamp)
         return .init(success: .cafeOrdered, amount: gained.total)
     }
 

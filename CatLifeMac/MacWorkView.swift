@@ -63,7 +63,7 @@ struct MacWorkView: View {
         .onChange(of: store.saveSceneGeneration) { _, _ in showsRest = false }
         .confirmationDialog(GameStrings.format("recover.wasteHint", riceBallWaste ?? 0),
                             isPresented: Binding(get: { riceBallWaste != nil }, set: { if !$0 { riceBallWaste = nil } })) {
-            Button(GameStrings.text("recover.use.anyway")) { riceBallWaste = nil; store.usePlayerSupply(.riceBall) }
+            Button(GameStrings.text("recover.use.anyway")) { riceBallWaste = nil; store.usePlayerSupply(.riceBall, allowingWaste: true) }
             Button(GameStrings.text("recover.use.keep"), role: .cancel) { riceBallWaste = nil }
         }
         .confirmationDialog(GameStrings.text("mac.work.cancelTitle"), isPresented: $confirmsCancellation) {

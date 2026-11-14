@@ -96,7 +96,7 @@ enum GameActionNotice {
               .cafeNapActive, .cafeNapWorking, .cafeNapSleeping, .cafeNapUsed:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
-             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit:
+             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit, .recoveryWouldWaste:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:
             let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil

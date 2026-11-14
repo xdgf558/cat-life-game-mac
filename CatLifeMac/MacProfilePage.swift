@@ -740,7 +740,8 @@ private struct FlowChips<Content: View>: View {
     var body: some View { FlowLayout(spacing: 6) { content } }
 }
 
-private struct FlowLayout: Layout {
+/// Lays chips out in rows, wrapping when a row is full (also used by the garden).
+struct FlowLayout: Layout {
     var spacing: CGFloat
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = proposal.width ?? .infinity

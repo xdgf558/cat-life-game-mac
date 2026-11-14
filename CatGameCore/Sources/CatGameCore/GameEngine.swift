@@ -112,6 +112,8 @@ public enum GameEngine {
         var candidate = state
         guard candidate.player.activeWork == nil else { return failure(.sleepWorkActive) }
         guard candidate.player.activeNap == nil else { return failure(.sleepNapping) }
+        // Sleeping settles an unfinished outing; its remaining footprints are lost.
+        settleOuting(&candidate, reason: .sleep, at: effectiveTime(candidate, now: now))
         candidate.player.activeSleep = PlayerSleep(startedAt: effectiveTime(candidate, now: now))
         state = candidate
         return ActionOutcome(success: .sleepStarted)
@@ -274,7 +276,8 @@ public enum GameEngine {
         let comfortBonus = state.home.comfortScore / 20
         state.cats[index].mood = cap(state.cats[index].mood + 18 + comfortBonus)
         // The web rule awards +8 intimacy and a further +4 toy bonus.
-        state.cats[index].intimacy = cap(state.cats[index].intimacy + 12)
+        let bondBonus = Int((12 * Double(OutingBonuses.value(.bond, in: state)) / 100).rounded())
+        state.cats[index].intimacy = cap(state.cats[index].intimacy + 12 + bondBonus)
         state.cats[index].energy = cap(state.cats[index].energy - 10)
         state.player.mood = cap(state.player.mood + 4)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
@@ -362,6 +365,7 @@ public enum GameEngine {
         guard state.player.activeSleep == nil else { return failure(.workSleeping) }
         guard state.player.activeNap == nil else { return failure(.workNapping) }
         guard state.player.activeWork == nil else { return failure(.workAlreadyActive) }
+        guard state.outing.trip == nil else { return failure(.workOuting) }
         guard let quote = workQuote(for: state.player, jobID: jobID) else { return failure(.gameInvalidState) }
         guard state.player.stamina >= quote.staminaCost else { return failure(.workStaminaRequired) }
         let timestamp = effectiveTime(state, now: now)
@@ -404,16 +408,23 @@ public enum GameEngine {
             workProgress = progress
         }
         if let session = state.catPlay.activeSession, timestamp >= session.endsAt { CatHabitEngine.finishPlay(&state, now: timestamp) }
+        let energyBonus = OutingBonuses.value(.catEnergy, in: state)
         for index in state.cats.indices {
             var cat = state.cats[index]
+            var completedRestReward = 0
             if let rest = cat.activeRest, timestamp >= rest.endsAt {
                 CatHabitEngine.completeRest(&cat, rest: rest, home: state.home, inventory: state.inventory)
+                completedRestReward = rest.energyReward
             }
             if cat.growthState == nil {
                 cat.growthState = .legacy(appearance: cat.appearance, now: timestamp, isPregnant: cat.isPregnant)
             }
             CatHealthEngine.synchronize(&cat, now: timestamp)
             settleCatNeeds(&cat, now: timestamp)
+            // Placed garden decor: a finished rest gives a little more energy.
+            if completedRestReward > 0, energyBonus > 0 {
+                cat.energy = min(100, cat.energy + Int((Double(completedRestReward) * Double(energyBonus) / 100).rounded()))
+            }
             if let legacy = cat.habits.legacyRestSessionID, cat.activeRest?.id != legacy {
                 cat.habits.legacyRestSessionID = nil
             }
@@ -442,6 +453,9 @@ public enum GameEngine {
         state.tasks.advanceDay(to: timestamp)
         if state.tasks.dailyDayKey != previousDay { state.community.startNewDay() }
         state.community.events.advance(to: state.tasks.dailyDayKey)
+        // A trip belongs to its day: the first sync of a new day settles it.
+        if let trip = state.outing.trip, trip.dayKey != state.tasks.dailyDayKey { settleOuting(&state, reason: .newDay, at: timestamp) }
+        accrueHomeBonuses(&state, at: timestamp)
         if let work = state.player.activeWork, let progress = workProgress {
             let levelBefore = state.player.level
             // The wallet has a storage cap; a completed shift still advances time,
@@ -592,7 +606,7 @@ public enum GameEngine {
         }
     }
 
-    private static func finishCatRest(_ state: inout GameSnapshot, index: Int, now: Date) {
+    static func finishCatRest(_ state: inout GameSnapshot, index: Int, now: Date) {
         guard state.cats[index].activeRest != nil else { return }
         var cat = state.cats[index]
         settleCatEnergy(&cat, now: now)
@@ -649,7 +663,8 @@ extension GameSnapshot {
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid, playerRecoveryIsValid,
-              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid,
+              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid, outing.isValid,
+              outing.trip.map({ trip in cats.contains { $0.id == trip.catID } }) ?? true,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),
               [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),

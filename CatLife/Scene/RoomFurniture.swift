@@ -55,6 +55,13 @@ struct RoomFurnitureSpec: Sendable {
         case .sideTable: return .init(width: 170, footprint: CGSize(width: 136, height: 72), anchorY: 0.13, isWall: false)
         case .wallSunrise: return .init(width: 104, footprint: CGSize(width: 104, height: 178), anchorY: 0.5, isWall: true)
         case .wallTownMemory: return .init(width: 132, footprint: CGSize(width: 132, height: 126), anchorY: 0.5, isWall: true)
+        case .gardenWindChime: return .init(width: 84, footprint: CGSize(width: 84, height: 150), anchorY: 0.5, isWall: true)
+        case .gardenClayPot: return .init(width: 110, footprint: CGSize(width: 78, height: 46), anchorY: 0.1, isWall: false)
+        case .gardenLeafWreath: return .init(width: 120, footprint: CGSize(width: 120, height: 120), anchorY: 0.5, isWall: true)
+        case .gardenPebbleLamp: return .init(width: 92, footprint: CGSize(width: 70, height: 44), anchorY: 0.08, isWall: false)
+        case .gardenPicnicBasket: return .init(width: 150, footprint: CGSize(width: 120, height: 66), anchorY: 0.14, isWall: false)
+        case .gardenBirdhouse: return .init(width: 96, footprint: CGSize(width: 96, height: 140), anchorY: 0.5, isWall: true)
+        case .keepsakeShelf: return .init(width: 176, footprint: CGSize(width: 176, height: 120), anchorY: 0.5, isWall: true)
         }
     }
 }

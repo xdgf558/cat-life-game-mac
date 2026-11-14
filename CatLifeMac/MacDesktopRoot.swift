@@ -33,6 +33,11 @@ struct MacDesktopRoot: View {
     @State private var pendingPlayChoice: (choice: PlayChoice68, generation: UUID, catID: String)?
     @State private var neighborID: String?
     @State private var showsCafe = false
+    /// 2.0: the garden (outing) page inside the town, the cat it opens with, and whether it owns 1/2/3.
+    @State private var showsGarden = false
+    @State private var gardenCatID: String?
+    @State private var gardenTakesNumbers = false
+    @State private var catsTab = "cats"
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
@@ -254,11 +259,30 @@ struct MacDesktopRoot: View {
             case .shop:
                 MacShopView(store: store, onHome: { page = .home }, preferences: preferences, onTown: { select(.town) })
             case .cats:
-                placePage(.adoption) { MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences) }
+                VStack(spacing: 14) {
+                    MacPlaceBanner(store: store, place: .adoption, height: 132, onTown: { select(.town) }) {
+                        MacSegmented(selection: $catsTab, options: [("cats", GameStrings.text("outing.tab.cats")),
+                                                                    ("album", GameStrings.text("outing.tab.album"))])
+                            .fixedSize().accessibilityIdentifier("macCatsTabs")
+                    }
+                    if catsTab == "album" {
+                        MacKeepsakesView(store: store, arrange: arrangeOutingItem, openGarden: { openGarden(catID: nil) })
+                    } else {
+                        MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
+                    }
+                }
             case .town:
                 if showsCafe {
                     MacCafeView(store: store, onBack: { showsCafe = false; store.playNavigationSound() }, onWork: { select(.work) },
                                 onHome: { select(.home) }, onRest: { auxiliary = .rest })
+                } else if showsGarden {
+                    MacGardenView(store: store, preferences: preferences, exits: MacGardenExits(
+                        town: { showsGarden = false; store.playNavigationSound() },
+                        home: { select(.home) },
+                        album: { catsTab = "album"; select(.cats) },
+                        arrange: arrangeOutingItem),
+                        preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers)
+                        .id(gardenCatID ?? "garden")
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
@@ -390,7 +414,9 @@ struct MacDesktopRoot: View {
             guard !store.hasUnsavedLayoutChanges || confirm("mac.draft.title", body: "mac.draft.body") else { return }
             store.cancelDecorating()
         }
-        titleVisible = false; page = next; showsCafe = false; store.playNavigationSound()
+        titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false
+        if next != .cats { catsTab = "cats" }
+        store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
     }
     private func route(_ sheet: HomeSheet?) {
@@ -420,8 +446,23 @@ struct MacDesktopRoot: View {
         case .market: store.openExchangeMarket()
         case .plaza, .board: store.openTownBoard()
         case .cafe: showsCafe = true; store.playNavigationSound()
+        case .garden: openGarden(catID: nil)
         default: break
         }
+    }
+    /// The garden opens on the town page; a cat chosen from the room is preselected.
+    private func openGarden(catID: String?) {
+        if page != .town || store.isDecorating { select(.town) }
+        gardenCatID = catID; showsCafe = false; showsGarden = true
+        store.playNavigationSound()
+    }
+    /// Home, arrange mode, and the outing piece selected (placed or still in the bag).
+    private func arrangeOutingItem(_ itemID: String) {
+        select(.home)
+        guard store.snapshot?.inventory.furniture.contains(where: { $0.id == itemID }) == true else { store.beginDecorating(); return }
+        store.beginDecorating()
+        if store.storedFurniture.contains(where: { $0.id == itemID }) { store.selectStoredFurniture(id: itemID) }
+        else { store.selectFurniture(id: itemID) }
     }
     /// Where the recovery popover, bag and work page send the player.
     private var recoveryExits: MacRecoveryExits {
@@ -469,6 +510,7 @@ struct MacDesktopRoot: View {
         case .rest(let id): restRequest = id
         case .decorate(let id): store.beginDecorating(); if let id { store.selectFurniture(id: id) }
         case .store(let id): store.beginDecorating(); store.selectFurniture(id: id); store.storeSelectedFurniture()
+        case .outing(let id): openGarden(catID: id)
         }
     }
     private func handle(_ command: MacCommand) -> Bool {
@@ -494,6 +536,7 @@ struct MacDesktopRoot: View {
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
+            else if page == .town && showsGarden { NotificationCenter.default.post(name: .macGardenEscape, object: nil) }
             else if page == .profile && profileNested { NotificationCenter.default.post(name: .macProfileEscape, object: nil) }
             else if !titleVisible { titleVisible = true }
             return true
@@ -504,6 +547,13 @@ struct MacDesktopRoot: View {
         }
         guard !titleVisible, auxiliary == nil, !showsHelp, !store.isShowingPlayTogether, !store.showsPlayChoices, store.supplyPicker == nil else { return false }
         let scope: MacShortcutScope = store.isDecorating ? .arrangement : page == .home ? .home : page == .town ? .town : page == .shop ? .shop : .list
+        if page == .town && showsGarden && !store.isDecorating {
+            // In the garden 1/2/3 pick a spot or an answer, and ↩ continues.
+            if gardenTakesNumbers, let index = [MacCommand.home, .work, .shop].firstIndex(of: command) {
+                NotificationCenter.default.post(name: .macGardenKey, object: index); return true
+            }
+            if command == .confirm { NotificationCenter.default.post(name: .macGardenConfirm, object: nil); return true }
+        }
         guard command.scope.overlaps(scope) else { return false }
         switch command {
         case .home: select(.home)

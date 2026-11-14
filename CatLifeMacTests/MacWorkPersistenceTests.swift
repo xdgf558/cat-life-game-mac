@@ -44,9 +44,9 @@ final class MacWorkPersistenceTests: XCTestCase {
                 XCTAssertTrue(dictionary.values.allSatisfy { !$0.isEmpty })
             }
         }
-        XCTAssertEqual(AppVersion.current.version, "1.99")
-        XCTAssertEqual(AppVersion.current.build, "103")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [103, 102, 101])
+        XCTAssertEqual(AppVersion.current.version, "2.0")
+        XCTAssertEqual(AppVersion.current.build, "104")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [104, 103, 102])
     }
 }
 private actor MacWorkTestRepository: GameSaveRepository {

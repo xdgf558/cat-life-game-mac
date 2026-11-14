@@ -26,3 +26,41 @@ final class MacTownViewportTests: XCTestCase {
     }
 }
 #endif
+
+final class MacTownWalkTests: XCTestCase {
+    func testRoutesStayOnRoadsAndEndBesideThePlace() {
+        for from in TownPlace.mapPlaces {
+            for to in TownPlace.mapPlaces {
+                let start = MacTownWalk.destination(for: from)
+                let route = MacTownWalk.route(from: start, to: to)
+                XCTAssertEqual(route.last ?? start, MacTownWalk.destination(for: to), "\(from) → \(to)")
+                var previous = start
+                for point in route {
+                    // Every leg is either along a road, along a spur, or one of the connectors.
+                    let horizontal = abs(point.y - previous.y) < 0.001
+                    let vertical = abs(point.x - previous.x) < 0.001
+                    let connector = MacTownWalk.connectors.joined().contains { abs($0.top - previous.x) < 0.001 && abs($0.bottom - point.x) < 0.001
+                        || abs($0.bottom - previous.x) < 0.001 && abs($0.top - point.x) < 0.001 }
+                    XCTAssertTrue(horizontal || vertical || connector, "\(from) → \(to): \(previous) → \(point)")
+                    previous = point
+                }
+            }
+        }
+    }
+}
+
+final class MacTownWalkRouteTests: XCTestCase {
+    func testHomeToShopTakesTheCentralConnectorsNotASideDetour() {
+        let route = MacTownWalk.route(from: MacTownWalk.start, to: .shop)
+        XCTAssertFalse(route.contains { abs($0.x - 0.80) < 0.001 && abs($0.y - MacTownWalk.roads[1]) < 0.001 },
+                       "The right-hand path would mean walking back to the bridge.")
+    }
+
+    func testRedirectMidBridgeStartsFromTheBridgeNotItsFarEnd() {
+        let leg = (start: CGPoint(x: 0.52, y: MacTownWalk.roads[1]), end: CGPoint(x: 0.52, y: MacTownWalk.roads[0]))
+        let middle = CGPoint(x: 0.52, y: (leg.start.y + leg.end.y) / 2)
+        let route = MacTownWalk.route(from: middle, leg: leg, to: .market)
+        XCTAssertEqual(route.first, leg.start, "Heading back south, the player turns round on the bridge.")
+        XCTAssertEqual(route.last, MacTownWalk.destination(for: .market))
+    }
+}

@@ -15,6 +15,16 @@ struct MacTownView: View {
     @State private var dragOrigin: CGSize?
     @State private var magnifyOrigin: CGFloat?
     @State private var inspectedNeighbor: NeighborDefinition?
+    /// The player's spot on the map (normalized); walks along the roads to the place you click.
+    @State private var walker = MacTownWalk.lastSpot
+    @State private var walkerFacesLeft = false
+    @State private var isWalking = false
+    @State private var walkTask: Task<Void, Never>?
+    @State private var walkEnd: CGPoint?
+    /// The leg being animated right now, so a redirect starts from where the player really is.
+    @State private var leg: (start: CGPoint, end: CGPoint, began: Date, duration: Double)?
+    /// The system setting merged with the game's own Reduce Motion switch (set by the desktop root).
+    @Environment(\.gameReduceMotionOverride) private var reduceMotion
     private var status: TownMapStatus { TownMapStatus(snapshot: store.snapshot) }
 
     var body: some View {
@@ -37,6 +47,55 @@ struct MacTownView: View {
                 }.frame(width: 640, height: 620)
             }
             .onChange(of: store.saveSceneGeneration) { _, _ in inspectedNeighbor = nil }
+            // Leaving mid-walk (double-click to enter) counts as arriving.
+            .onDisappear { walkTask?.cancel(); MacTownWalk.lastSpot = walkEnd ?? walker }
+    }
+
+    /// Select a place and walk there along the roads. A new click redirects from wherever the player is.
+    private func walk(to place: TownPlace) {
+        selected = place
+        walkTask?.cancel()
+        let position = currentPosition()
+        let route = MacTownWalk.route(from: position, leg: leg.map { ($0.start, $0.end) }, to: place)
+        // Stop the running animation exactly where the player is before planning the next legs.
+        var still = Transaction(); still.disablesAnimations = true
+        withTransaction(still) { walker = position }
+        leg = nil
+        guard let last = route.last else { finishWalk(); return }
+        walkEnd = last
+        if reduceMotion {
+            walker = last; finishWalk(); return
+        }
+        // About 0.55 map-widths a second, but never longer than 2.4 seconds for the whole walk.
+        let speed = max(0.55, MacTownWalk.length(from: position, route) / 2.4)
+        isWalking = true
+        walkTask = Task { @MainActor in
+            for point in route {
+                guard !Task.isCancelled else { return }
+                let seconds = Double(MacTownWalk.distance(walker, point) / speed)
+                if abs(point.x - walker.x) > 0.004 { walkerFacesLeft = point.x < walker.x }
+                leg = (walker, point, Date(), seconds)
+                withAnimation(.linear(duration: seconds)) { walker = point }
+                try? await Task.sleep(for: .seconds(seconds))
+            }
+            guard !Task.isCancelled else { return }
+            finishWalk()
+        }
+    }
+
+    /// Where the player is drawn now: part-way along the current leg, or at rest.
+    private func currentPosition(at date: Date = Date()) -> CGPoint {
+        guard let leg else { return walker }
+        let t = leg.duration > 0 ? min(1, max(0, date.timeIntervalSince(leg.began) / leg.duration)) : 1
+        return CGPoint(x: leg.start.x + (leg.end.x - leg.start.x) * t, y: leg.start.y + (leg.end.y - leg.start.y) * t)
+    }
+
+    /// One place that ends every walk: arrived, redirected to nowhere, or skipped by Reduce Motion.
+    private func finishWalk() {
+        leg = nil
+        isWalking = false
+        walkEnd = nil
+        MacTownWalk.lastSpot = walker
     }
 
     private var map: some View {
@@ -205,20 +264,23 @@ struct MacTownView: View {
 
     private func hereMarker(size: CGSize) -> some View {
         let avatar = store.snapshot?.player.profile.avatarID.flatMap(PlayerCatalog.avatar(id:))?.assetName ?? "app-icon-preview"
-        let point = MacTownViewport69.position(.home)
         return VStack(spacing: 3) {
             Text(GameStrings.text("mac.town.v2.here")).font(.system(size: 10.5, weight: .heavy)).foregroundStyle(.white)
                 .padding(.horizontal, 8).padding(.vertical, 3).background(RoomTheme.mint, in: Capsule())
                 .overlay(Capsule().strokeBorder(.white, lineWidth: 1.5))
             GameIcon(asset: avatar, symbol: "person.crop.circle.fill", size: 40)
+                .scaleEffect(x: walkerFacesLeft ? -1 : 1, y: 1)
                 .frame(width: 46, height: 46).background(RoomTheme.paper, in: Circle())
                 .overlay(Circle().strokeBorder(.white, lineWidth: 3)).compositingGroup().shadow(color: .black.opacity(0.15), radius: 0, y: 3)
-        }.position(x: (point.x + 0.09) * size.width, y: (point.y - 0.03) * size.height)
-            .allowsHitTesting(false).accessibilityHidden(true)
+                .modifier(MacTownStep(active: isWalking && !reduceMotion))
+        }
+        // Feet on the road: the badge and avatar sit just above the walker's point.
+        .position(x: walker.x * size.width, y: walker.y * size.height - 38)
+        .allowsHitTesting(false).accessibilityHidden(true)
     }
 
     private func marker(_ place: TownPlace, size: CGFloat) -> some View {
-        Button { selected = place } label: {
+        Button { walk(to: place) } label: {
             VStack(spacing: 1) {
                 GameIcon(asset: place.asset, symbol: place.symbol, size: size, tint: place.tint)
                     .opacity(place.isFuture ? 0.65 : 1)
@@ -256,7 +318,7 @@ struct MacTownView: View {
                 .padding(.horizontal, 10).padding(.vertical, 7).background(RoomTheme.paper.opacity(0.9), in: Capsule())
                 .fixedSize().accessibilityHidden(true)
             Spacer(minLength: 0)
-            Button { selected = .home; scale = 1; offset = .zero; enter(.home) } label: {
+            Button { walk(to: .home); scale = 1; offset = .zero; enter(.home) } label: {
                 HStack(spacing: 6) { Image(systemName: "house.fill"); Text(GameStrings.text("town.goHome")); MacKeyCap(value: keyLabel(.returnHome)) }
             }.buttonStyle(MacCompactButtonStyle()).accessibilityIdentifier("macTownHome")
             Button { scale = 1; offset = .zero } label: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
@@ -354,6 +416,21 @@ struct MacTownView: View {
         guard !store.isBusy, !place.isFuture, !place.isEmpty else { return }
         selected = place
         onEnter(place)
+    }
+}
+
+/// A small bob while the player walks.
+private struct MacTownStep: ViewModifier {
+    let active: Bool
+    func body(content: Content) -> some View {
+        if active {
+            TimelineView(.animation) { context in
+                let t = context.date.timeIntervalSinceReferenceDate
+                content.offset(y: -abs(sin(t * 11)) * 5).rotationEffect(.degrees(sin(t * 11) * 4))
+            }
+        } else {
+            content
+        }
     }
 }
 

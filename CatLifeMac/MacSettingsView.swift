@@ -185,7 +185,7 @@ struct MacSettingsView: View {
             ForEach([("mac.shortcuts.navigation", Array(MacCommand.allCases.filter { $0.scope == .global })),
                      ("mac.shortcuts.home", Array(MacCommand.allCases.filter { [.feed, .clean, .play, .nextCat, .viewLeft, .viewRight, .focusCat, .catProfile, .decorate].contains($0) })),
                      ("mac.shortcuts.build", Array(MacCommand.allCases.filter { [.rotateLeft, .rotateRight, .nudgeLeft, .nudgeRight, .nudgeUp, .nudgeDown, .grid, .putAway, .confirm, .undo, .redo, .save, .search].contains($0) })),
-                     ("mac.shortcuts.more", [.listUp, .listDown, .previousPage, .nextPage, .returnHome])], id: \.0) { heading, commands in
+                     ("mac.shortcuts.more", [.listUp, .listDown, .previousPage, .nextPage, .returnHome, .recovery])], id: \.0) { heading, commands in
                 VStack(alignment: .leading, spacing: 0) {
                     Text(GameStrings.text(heading)).font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.secondary).padding(.bottom, 8)
                     ForEach(commands, id: \.self) { command in shortcutRow(command) }

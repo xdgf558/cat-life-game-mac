@@ -11,6 +11,8 @@ struct MacShopView: View {
     @State private var placement = 0
     @State private var quality = 0
     @State private var hidesOwned = false
+    @State private var audience = 0
+    @State private var quantity = 1
     @State private var page = 0
     @State private var selectedID: String?
     @State private var isVisible = false
@@ -25,7 +27,8 @@ struct MacShopView: View {
                 || product.detail.localizedCaseInsensitiveContains(search)
             let matchesPlacement = placement == 0 || product.wall == (placement == 2)
             let matchesQuality = quality == 0 || product.premium == (quality == 2)
-            return matchesText && matchesPlacement && matchesQuality && (!hidesOwned || product.count(in: store.snapshot) == 0)
+            let matchesAudience = category != .supplies || audience == 0 || product.isForPlayer == (audience == 1)
+            return matchesText && matchesPlacement && matchesQuality && matchesAudience && (!hidesOwned || product.count(in: store.snapshot) == 0)
         }
     }
     private var selected: MacShopProduct? { products.first { $0.id == selectedID } ?? products.first }
@@ -64,6 +67,8 @@ struct MacShopView: View {
             .onChange(of: placement) { _, _ in page = 0 }
             .onChange(of: quality) { _, _ in page = 0 }
             .onChange(of: hidesOwned) { _, _ in page = 0 }
+            .onChange(of: audience) { _, _ in page = 0; selectedID = nil }
+            .onChange(of: selected?.id) { _, _ in quantity = 1 }
             .onChange(of: store.isBusy) { _, busy in if !busy { finishPurchase() } }
             .onChange(of: store.saveSceneGeneration) { _, _ in pendingArrange = nil }
     }
@@ -86,6 +91,10 @@ struct MacShopView: View {
                     .accessibilityAddTraits(category == value ? .isSelected : [])
             }
             Divider()
+            if category == .supplies {
+                filterGroup("supply.player.audience", selection: $audience,
+                            titles: ["mac.content.all", "supply.player.forMe", "supply.player.forCat"])
+            }
             if category == .furniture {
                 filterGroup("mac.shop.placement", selection: $placement,
                             titles: ["mac.content.all", "build68.filter.floor", "build68.filter.wall"])
@@ -166,6 +175,12 @@ struct MacShopView: View {
                 GameIcon(asset: product.asset, symbol: product.symbol, size: 116, tint: product.tint)
                     .frame(maxWidth: .infinity).frame(height: 135)
                     .background(product.premium ? RoomTheme.gold.opacity(0.13) : RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 18))
+                    .overlay(alignment: .topLeading) {
+                        if product.isForPlayer {
+                            Text(GameStrings.text("supply.player.new")).font(.system(size: 10, weight: .heavy)).foregroundStyle(.white)
+                                .padding(.horizontal, 7).padding(.vertical, 3).background(RoomTheme.coral, in: Capsule()).padding(7)
+                        }
+                    }
                     .overlay(alignment: .topTrailing) {
                         if product.premium {
                             Image(systemName: "sparkle").foregroundStyle(.white).padding(6)
@@ -199,11 +214,11 @@ struct MacShopView: View {
                             Text(footprint).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
                         }
                         Text(product.detail).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-                        ownership(product)
+                        if case .player(let supply) = product { playerInfo(supply) } else { ownership(product) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
                 Spacer(minLength: 0)
-                purchaseBar(product)
+                if case .player(let supply) = product { playerPurchaseBar(supply) } else { purchaseBar(product) }
             }.macContentCard69().frame(maxHeight: .infinity)
         } else {
             ContentUnavailableView(GameStrings.text("mac.shop.empty"), systemImage: "magnifyingglass")
@@ -266,7 +281,55 @@ struct MacShopView: View {
         }
     }
 
+    private func playerInfo(_ supply: PlayerSupplyDefinition) -> some View {
+        let carried = store.snapshot?.player.carried(supply.kind) ?? 0
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                MacEffectChips(effect: supply.effect)
+                Text(GameStrings.text("supply.player.instant")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+            }
+            HStack {
+                Text(GameStrings.text("gear.owned"))
+                Spacer()
+                Text(GameStrings.format("recover.carried", carried, PlayerSupplyCatalog.maxCarried)).fontWeight(.heavy)
+            }.font(.caption)
+            Label(GameStrings.format("supply.player.dailyNote", PlayerSupplyCatalog.dailyLimit), systemImage: "info.circle")
+                .font(.caption).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+        }.padding(13).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 17))
+    }
+    private func playerPurchaseBar(_ supply: PlayerSupplyDefinition) -> some View {
+        let gold = store.snapshot?.player.gold ?? 0
+        let room = max(0, PlayerSupplyCatalog.maxCarried - (store.snapshot?.player.carried(supply.kind) ?? 0))
+        let count = max(1, min(quantity, max(1, room)))
+        let total = supply.price * count
+        return VStack(alignment: .leading, spacing: 12) {
+            Stepper(value: Binding(get: { count }, set: { quantity = $0 }), in: 1...max(1, room)) {
+                Text(GameStrings.format("supply.player.quantity", count)).font(.caption.weight(.bold))
+            }.disabled(room <= 1)
+            HStack(alignment: .bottom) {
+                Label("\(total)", systemImage: "dollarsign.circle.fill").font(.system(size: 26, weight: .heavy))
+                Spacer()
+                Text(GameStrings.format("mac.shop.afterBalance", max(0, gold - total))).font(.caption).foregroundStyle(RoomTheme.secondary)
+            }
+            Button { guard !store.isBusy else { return }; store.buyPlayerSupply(supply.kind, quantity: count) } label: {
+                HStack {
+                    Text(room == 0 ? GameStrings.format("supply.player.carryLimit", PlayerSupplyCatalog.maxCarried)
+                         : gold < total ? GameStrings.format("supply.player.goldShort", total - gold)
+                         : GameStrings.format("supply.player.buyN", count))
+                    Text(keyLabel(.confirm)).font(.caption.monospaced())
+                }.frame(maxWidth: .infinity)
+            }.buttonStyle(MintButtonStyle()).disabled(store.isBusy || room == 0 || gold < total)
+                .accessibilityIdentifier("macShopBuy")
+        }
+    }
+
     private func purchase(_ product: MacShopProduct, arrange: Bool) {
+        if case .player(let supply) = product {
+            let room = PlayerSupplyCatalog.maxCarried - (store.snapshot?.player.carried(supply.kind) ?? 0)
+            guard !store.isBusy, room > 0 else { return }
+            store.buyPlayerSupply(supply.kind, quantity: max(1, min(quantity, room)))
+            return
+        }
         guard !store.isBusy, product.canPurchase(in: store.snapshot) else { return }
         if arrange { pendingArrange = (product.id, product.count(in: store.snapshot), store.saveSceneGeneration) }
         product.purchase(in: store)
@@ -301,7 +364,7 @@ struct MacShopView: View {
         guard let requested = MacShopCategory(rawValue: store.shopCategory.rawValue), category != requested else { return }
         category = requested
     }
-    private func resetBrowser() { page = 0; selectedID = nil; previewFacing = .front; search = ""; placement = 0; quality = 0 }
+    private func resetBrowser() { page = 0; selectedID = nil; previewFacing = .front; search = ""; placement = 0; quality = 0; audience = 0 }
 }
 
 private enum MacShopCategory: String, CaseIterable, Identifiable {
@@ -315,21 +378,22 @@ private enum MacShopCategory: String, CaseIterable, Identifiable {
         switch self {
         case .furniture: ShopListing.list(.furniture).map(MacShopProduct.item)
         case .equipment: ShopListing.list(.equipment).map(MacShopProduct.item)
-        case .supplies: ShopListing.list(.supplies).map(MacShopProduct.item)
+        case .supplies: PlayerSupplyCatalog.all.map(MacShopProduct.player) + ShopListing.list(.supplies).map(MacShopProduct.item)
         case .gifts: CommunityCatalog.gifts.map(MacShopProduct.gift)
         }
     }
 }
 
 private enum MacShopProduct: Identifiable {
-    case item(ShopListing), gift(CommunityGift)
-    var id: String { switch self { case .item(let p): p.id; case .gift(let p): p.id } }
-    var price: Int { switch self { case .item(let p): p.price; case .gift(let p): p.price } }
-    @MainActor var name: String { switch self { case .item(let p): GameStrings.text(p.nameKey); case .gift(let p): GameStrings.text(p.nameKey) } }
-    @MainActor var detail: String { switch self { case .item(let p): GameStrings.text(p.detailKey); case .gift(let p): GameStrings.text(p.detailKey) } }
-    var asset: String { switch self { case .item(let p): p.asset; case .gift(let p): p.assetName } }
-    var symbol: String { switch self { case .item(let p): p.symbol; case .gift(let p): p.symbol } }
-    var tint: Color { switch self { case .item(let p): p.tint; case .gift: RoomTheme.gold } }
+    case item(ShopListing), gift(CommunityGift), player(PlayerSupplyDefinition)
+    var id: String { switch self { case .item(let p): p.id; case .gift(let p): p.id; case .player(let p): "player_\(p.kind.rawValue)" } }
+    var price: Int { switch self { case .item(let p): p.price; case .gift(let p): p.price; case .player(let p): p.price } }
+    var isForPlayer: Bool { if case .player = self { return true }; return false }
+    @MainActor var name: String { switch self { case .item(let p): GameStrings.text(p.nameKey); case .gift(let p): GameStrings.text(p.nameKey); case .player(let p): GameStrings.text(p.nameKey) } }
+    @MainActor var detail: String { switch self { case .item(let p): GameStrings.text(p.detailKey); case .gift(let p): GameStrings.text(p.detailKey); case .player(let p): GameStrings.text(p.detailKey) } }
+    var asset: String { switch self { case .item(let p): p.asset; case .gift(let p): p.assetName; case .player(let p): p.assetName } }
+    var symbol: String { switch self { case .item(let p): p.symbol; case .gift(let p): p.symbol; case .player(let p): p.symbol } }
+    var tint: Color { switch self { case .item(let p): p.tint; case .gift: RoomTheme.gold; case .player: RoomTheme.coral } }
     var furniture: FurnitureOffer? {
         if case .item(let p) = self, p.kind == .furniture { return ShopCatalog.furnitureOffer(id: p.id) }
         return nil
@@ -359,13 +423,17 @@ private enum MacShopProduct: Identifiable {
         furniture.map { FurnitureArtwork68.assetName(for: .init(id: $0.id, kind: $0.kind, orientation: facing)) } ?? asset
     }
     func count(in state: GameSnapshot?) -> Int {
-        switch self { case .item(let p): p.count(in: state); case .gift(let gift): state?.inventory.gifts[gift.id] ?? 0 }
+        switch self {
+        case .item(let p): p.count(in: state); case .gift(let gift): state?.inventory.gifts[gift.id] ?? 0
+        case .player(let p): state?.player.carried(p.kind) ?? 0
+        }
     }
     func canPurchase(in state: GameSnapshot?) -> Bool {
         guard let state else { return false }
         switch self {
         case .item(let p): return p.canPurchase(in: state)
         case .gift(let gift): return state.player.gold >= gift.price && count(in: state) < GameSnapshot.maximumStock
+        case .player(let p): return state.player.gold >= p.price && count(in: state) < PlayerSupplyCatalog.maxCarried
         }
     }
     @MainActor func status(in state: GameSnapshot?) -> String {
@@ -374,9 +442,13 @@ private enum MacShopProduct: Identifiable {
         case .gift:
             return count(in: state) >= GameSnapshot.maximumStock ? GameStrings.text("action.inventoryFull")
                 : canPurchase(in: state) ? detail : GameStrings.text("action.insufficientGold")
+        case .player: return detail
         }
     }
     @MainActor func purchase(in store: GameStore) {
-        switch self { case .item(let p): p.purchase(in: store); case .gift(let p): Task { _ = await store.buyCommunityGift(id: p.id) } }
+        switch self {
+        case .item(let p): p.purchase(in: store); case .gift(let p): Task { _ = await store.buyCommunityGift(id: p.id) }
+        case .player(let p): store.buyPlayerSupply(p.kind, quantity: 1)
+        }
     }
 }

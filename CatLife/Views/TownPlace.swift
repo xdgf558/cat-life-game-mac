@@ -19,7 +19,8 @@ enum TownPlace: String, CaseIterable, Identifiable {
     case street, hospital, cafe, work, plaza, shop, home, board, market, adoption, lot1, lot2
     var id: String { rawValue }
     var isEmpty: Bool { self == .lot1 || self == .lot2 }
-    var isFuture: Bool { self == .cafe }
+    /// No place is pending any more: the café opened in 1.1.0. Kept for the shared map code paths.
+    var isFuture: Bool { false }
     var layer: TownLayer {
         if self == .street || self == .market { return .neighbors }
         return [.cafe, .plaza, .board].contains(self) ? .community : .life
@@ -69,7 +70,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         }
     }
     var tint: Color {
-        if isFuture { return RoomTheme.lilac }
+        if isFuture || self == .cafe { return RoomTheme.lilac }
         switch self {
         case .hospital: return RoomTheme.coral
         case .work, .adoption: return RoomTheme.gold
@@ -79,7 +80,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         }
     }
     var tile: Color {
-        if isFuture { return TownPalette.community }
+        if isFuture || self == .cafe { return TownPalette.community }
         switch self {
         case .hospital: return Color(red: 0.98, green: 0.89, blue: 0.86)
         case .work: return Color(red: 0.98, green: 0.92, blue: 0.78)
@@ -104,6 +105,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .shop: return "town.goShop"
         case .home: return "town.goHome"
         case .market: return "market.enter"
+        case .cafe: return "cafe.enter"
         default: return "town.meetCat"
         }
     }

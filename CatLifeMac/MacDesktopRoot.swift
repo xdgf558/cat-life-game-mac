@@ -24,6 +24,7 @@ struct MacDesktopRoot: View {
     @State private var quitting = false
     @State private var creatingHome = false
     @State private var appIsActive = NSApp.isActive
+    @State private var phaseIsActive = true
     @State private var workNotifications = MacWorkNotificationTracker()
     @State private var catUrgencies = MacCatUrgencyTracker()
     @State private var restRequest: String?
@@ -33,7 +34,17 @@ struct MacDesktopRoot: View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
-    private var appForeground: Bool { appIsActive && phase == .active && !quitting }
+    /// Built from @State only. `phase` is an environment snapshot: read inside a long-lived closure
+    /// such as `start()` it is still the first render's value (not yet active at launch), which left
+    /// the store believing the app was in the background until the next app switch.
+    private var appForeground: Bool { appIsActive && phaseIsActive && !quitting }
+    private func syncForeground(appActive: Bool? = nil, phaseActive: Bool? = nil) {
+        if let appActive { appIsActive = appActive }
+        if let phaseActive { phaseIsActive = phaseActive }
+        let value = (appActive ?? appIsActive) && (phaseActive ?? phaseIsActive) && !quitting
+        GamePlayLog.foreground(value, app: appActive ?? appIsActive, phase: phaseActive ?? phaseIsActive)
+        store.setForeground(value)
+    }
     private var active: Bool { appForeground && auxiliary == nil && !showsHelp && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil }
     // The tour's scrim blocks clicks and `handle` blocks game keys, so the room keeps rendering behind it.
     /// The first-run tour only runs over the plain home layout, never over sheets, arranging or the title.
@@ -148,9 +159,9 @@ struct MacDesktopRoot: View {
     private var observedContent: some View {
         presentedContent.task { await start() }
         .onChange(of: preferences.backgroundAudio && !quitting, initial: true) { _, keep in store.audioContinuesInBackground = keep }
-        .onChange(of: phase) { _, _ in store.setForeground(appForeground) }
+        .onChange(of: phase, initial: true) { _, value in syncForeground(phaseActive: value == .active) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            appIsActive = true; store.setForeground(appForeground)
+            syncForeground(appActive: true)
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
             appIsActive = false; store.setForeground(false)
@@ -275,8 +286,7 @@ struct MacDesktopRoot: View {
         hadSave = hadExistingSave
         await store.load()
         if canCreateRoomScene { scene = makeScene() }
-        appIsActive = NSApp.isActive
-        workNotifications.reset(workNotificationState); catUrgencies.reset(catUrgencyState); store.setForeground(appForeground)
+        workNotifications.reset(workNotificationState); catUrgencies.reset(catUrgencyState); syncForeground(appActive: NSApp.isActive)
         #if APP_STORE
         if !hadExistingSave && !store.loadFailed && store.macPreviousSaveAt == nil && confirmNativeSaveImport() {
             openNativeSaveOnAppear = true
@@ -549,7 +559,7 @@ struct MacDesktopRoot: View {
             let allowed = outcome == .timedOut ? confirmQuitAfterTimeout()
                 : !store.hasSaveFailure || confirm("mac.quit.failed", body: "mac.quit.failedBody")
             quitting = false; NSApp.reply(toApplicationShouldTerminate: allowed)
-            if !allowed { appIsActive = NSApp.isActive; store.setForeground(appForeground) }
+            if !allowed { syncForeground(appActive: NSApp.isActive) }
         }
         return .terminateLater
     }

@@ -9,6 +9,9 @@ enum GamePlayLog {
         let line = blockers.isEmpty ? "none" : blockers.joined(separator: ",")
         logger.notice("play refused (\(source, privacy: .public)): \(line, privacy: .public)")
     }
+    static func foreground(_ value: Bool, app: Bool, phase: Bool) {
+        logger.notice("foreground \(value, privacy: .public) (app \(app, privacy: .public), phase \(phase, privacy: .public))")
+    }
 }
 
 struct PendingCatPlayEnd {

@@ -8,6 +8,8 @@ struct ProfileDressingStage: View {
     let profile: PlayerProfile
     let showAttributes: () -> Void
     let chooseSlot: (EquipmentSlot) -> Void
+    /// The macOS profile sheet is short, so it uses a lower stage.
+    var height: CGFloat = 400
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -49,11 +51,11 @@ struct ProfileDressingStage: View {
                             slotButton(.accessory, width: slotWidth)
                         }
                     }
-                    .padding(.horizontal, 10).padding(.top, 30).padding(.bottom, 84)
+                    .padding(.horizontal, 10).padding(.top, height < 400 ? 16 : 30).padding(.bottom, height < 400 ? 46 : 84)
                 }
                 .overlay(RoundedRectangle(cornerRadius: 32).strokeBorder(.white, lineWidth: 3))
             }
-            .frame(height: 400)
+            .frame(height: height)
         }
     }
 

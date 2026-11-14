@@ -1078,4 +1078,6 @@ extension GameStrings {
         .merging(places120Traditional) { _, new in new }
         .merging(neighbors130Traditional) { _, new in new }
         .merging(town140Traditional) { _, new in new }
+        .merging(layout150Traditional) { _, new in new }
+        .merging(profile160Traditional) { _, new in new }
 }

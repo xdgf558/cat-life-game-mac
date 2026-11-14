@@ -9,6 +9,8 @@ struct MacDesktopRoot: View {
     @State private var store = GameStore()
     @State private var preferences = Self.makePreferences()
     @State private var page = MacPage.home
+    /// The profile page has a wardrobe, sources, rename or look picker open; Esc steps back there first.
+    @State private var profileNested = false
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
@@ -52,9 +54,11 @@ struct MacDesktopRoot: View {
             } else {
                 HStack(spacing: 0) {
                     MacNavigationRail(page: page, preferences: preferences, isWorking: store.snapshot?.player.activeWork != nil,
-                                      isNapping: store.snapshot?.player.activeNap != nil, select: select, help: { showsHelp = true })
+                                      isNapping: store.snapshot?.player.activeNap != nil,
+                                      avatarAsset: store.snapshot?.player.profile.avatarID.flatMap(PlayerCatalog.avatar(id:))?.assetName ?? "",
+                                      select: select, help: { showsHelp = true })
                     VStack(spacing: 0) {
-                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { store.activeSheet = .player },
+                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { select(.profile) },
                                   onResumeTour: resumeTour, exits: recoveryExits)
                         pageContent.padding(16)
                     }
@@ -104,7 +108,12 @@ struct MacDesktopRoot: View {
         }
     }
     private var presentedContent: some View {
-        statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in auxiliaryView(item).frame(minWidth: 600, idealWidth: 780, minHeight: 600, idealHeight: 760) }
+        statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in
+            // The bag has three columns (categories, items, the use card) and needs a wider sheet;
+            // narrower, its content overflowed and was clipped on both sides.
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : 600, idealWidth: item == .bag ? 980 : 780,
+                                      minHeight: 600, idealHeight: 760)
+        }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
             VStack(spacing: 0) {
@@ -119,6 +128,10 @@ struct MacDesktopRoot: View {
             }.frame(width: 620, height: 530).background(RoomTheme.cream)
                 .interactiveDismissDisabled(store.isBusy)
                 .saveRecoveryAlert(store: store)
+        }
+        // Fallback when macOS skips onDismiss for a sheet closed from code; completePlayChoice runs once.
+        .onChange(of: store.showsPlayChoices) { _, shown in
+            if !shown, pendingPlayChoice != nil { Task { @MainActor in await Task.yield(); completePlayChoice() } }
         }
         .sheet(isPresented: $store.isShowingPlayTogether) {
             if let session = store.presentedPlaySession { CatPlayTogetherView(store: store, session: session).id(session.id).frame(width: 1000, height: 720) }
@@ -215,6 +228,14 @@ struct MacDesktopRoot: View {
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
+            case .profile:
+                MacProfilePage(store: store, exits: MacProfileExits(
+                    work: { select(.work) }, bag: { auxiliary = .bag },
+                    shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves }),
+                    isNested: $profileNested)
+                    // A fresh page per save, so an imported save never inherits a rename draft or open wardrobe.
+                    .id(store.saveSceneGeneration)
+                    .onChange(of: store.saveSceneGeneration) { _, _ in profileNested = false }
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
@@ -319,8 +340,9 @@ struct MacDesktopRoot: View {
         if pending.choice == .quick { store.play() }
         else {
             Task { @MainActor in
-                // Resume the underlying native scene before checking its room-idle gate.
-                await Task.yield()
+                // macOS drops a sheet presented while another is still sliding out, so wait for the
+                // choices sheet to finish closing before opening the play scene.
+                try? await Task.sleep(for: .milliseconds(400))
                 guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id else { return }
                 _ = await store.openPlayTogether()
             }
@@ -343,7 +365,7 @@ struct MacDesktopRoot: View {
         case .town: page = .town; auxiliary = nil
         case .inventory: auxiliary = .inventory
         case .tasks: auxiliary = .tasks
-        case .player: auxiliary = .player
+        case .player: select(.profile)
         case .upgrade: auxiliary = .upgrade
         case .hospital: auxiliary = .hospital
         }
@@ -429,6 +451,7 @@ struct MacDesktopRoot: View {
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
+            else if page == .profile && profileNested { NotificationCenter.default.post(name: .macProfileEscape, object: nil) }
             else if !titleVisible { titleVisible = true }
             return true
         }
@@ -574,7 +597,7 @@ struct MacDesktopRoot: View {
                     SaveManagementView(store: store, recoveryOnly: store.loadFailed, onRecovered: { auxiliary = nil }, onRetryLoad: { Task { await store.load() } })
                     #endif
                 case .player: PlayerProfileView(store: store)
-                case .bag: MacBagView(store: store, exits: recoveryExits, onOtherItems: { auxiliary = .inventory })
+                case .bag: MacBagView(store: store, exits: recoveryExits)
                 case .rest: WorkRestView(store: store)
                 case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
                 }

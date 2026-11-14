@@ -245,15 +245,17 @@ struct MacShopView: View {
 
     @ViewBuilder private var detail: some View {
         if let product = selected {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Sized to fit one screen; the scroll view only matters in very short windows.
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 15) {
+                    VStack(alignment: .leading, spacing: 10) {
                         preview(product)
-                        Text(product.name).font(.system(size: 24, weight: .heavy)).accessibilityIdentifier("macShopDetailName")
+                        Text(product.name).font(.system(size: 21, weight: .heavy)).accessibilityIdentifier("macShopDetailName")
                         if let footprint = product.dimensions(facing: previewFacing) {
                             Text(footprint).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
                         }
-                        Text(product.detail).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                        Text(product.detail).font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                         if case .player(let supply) = product { playerInfo(supply) } else { ownership(product) }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -267,8 +269,8 @@ struct MacShopView: View {
     }
 
     private func preview(_ product: MacShopProduct) -> some View {
-        VStack(spacing: 12) {
-            GameIcon(asset: product.previewAsset(facing: previewFacing), symbol: product.symbol, size: 206, tint: product.tint)
+        VStack(spacing: 8) {
+            GameIcon(asset: product.previewAsset(facing: previewFacing), symbol: product.symbol, size: 132, tint: product.tint)
             if let furniture = product.furniture, furniture.kind.supportsRotation {
                 HStack(spacing: 16) {
                     Button { previewFacing = previewFacing.turnedLeft } label: { Image(systemName: "arrow.counterclockwise") }
@@ -277,9 +279,9 @@ struct MacShopView: View {
                         .help(GameStrings.text("mac.shop.rotatePreview"))
                     Button { previewFacing = previewFacing.turnedRight } label: { Image(systemName: "arrow.clockwise") }
                         .accessibilityLabel(GameStrings.text("build68.rotateRight"))
-                }.buttonStyle(.bordered).foregroundStyle(RoomTheme.darkMint)
+                }.buttonStyle(.bordered).controlSize(.small).foregroundStyle(RoomTheme.darkMint)
             }
-        }.padding(12).frame(maxWidth: .infinity).background(RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 22))
+        }.padding(10).frame(maxWidth: .infinity).background(RoomTheme.track.opacity(0.45), in: RoundedRectangle(cornerRadius: 20))
     }
 
     private func ownership(_ product: MacShopProduct) -> some View {
@@ -297,14 +299,14 @@ struct MacShopView: View {
                         .foregroundStyle(RoomTheme.darkMint).fontWeight(.heavy)
                 }
             }
-        }.padding(13).font(.caption).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 17))
+        }.padding(11).font(.caption).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func purchaseBar(_ product: MacShopProduct) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 9) {
             Text(product.status(in: store.snapshot)).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-            HStack(alignment: .bottom) {
-                Label("\(product.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 26, weight: .heavy))
+            HStack(alignment: .firstTextBaseline) {
+                Label("\(product.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 22, weight: .heavy))
                 Spacer()
                 Text(GameStrings.format("mac.shop.afterBalance", max(0, (store.snapshot?.player.gold ?? 0) - product.price)))
                     .font(.caption).foregroundStyle(RoomTheme.secondary)
@@ -323,7 +325,7 @@ struct MacShopView: View {
 
     private func playerInfo(_ supply: PlayerSupplyDefinition) -> some View {
         let carried = store.snapshot?.player.carried(supply.kind) ?? 0
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 MacEffectChips(effect: supply.effect)
                 Text(GameStrings.text("supply.player.instant")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
@@ -335,22 +337,23 @@ struct MacShopView: View {
             }.font(.caption)
             Label(GameStrings.format("supply.player.dailyNote", PlayerSupplyCatalog.dailyLimit), systemImage: "info.circle")
                 .font(.caption).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-        }.padding(13).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 17))
+        }.padding(11).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 16))
     }
     private func playerPurchaseBar(_ supply: PlayerSupplyDefinition) -> some View {
         let gold = store.snapshot?.player.gold ?? 0
         let room = max(0, PlayerSupplyCatalog.maxCarried - (store.snapshot?.player.carried(supply.kind) ?? 0))
         let count = max(1, min(quantity, max(1, room)))
         let total = supply.price * count
-        return VStack(alignment: .leading, spacing: 12) {
-            Stepper(value: Binding(get: { count }, set: { quantity = $0 }), in: 1...max(1, room)) {
-                Text(GameStrings.format("supply.player.quantity", count)).font(.caption.weight(.bold))
-            }.disabled(room <= 1)
-            HStack(alignment: .bottom) {
-                Label("\(total)", systemImage: "dollarsign.circle.fill").font(.system(size: 26, weight: .heavy))
-                Spacer()
-                Text(GameStrings.format("mac.shop.afterBalance", max(0, gold - total))).font(.caption).foregroundStyle(RoomTheme.secondary)
+        return VStack(alignment: .leading, spacing: 9) {
+            // Price, quantity and the balance after buying share one row.
+            HStack(alignment: .center, spacing: 10) {
+                Label("\(total)", systemImage: "dollarsign.circle.fill").font(.system(size: 22, weight: .heavy))
+                Spacer(minLength: 4)
+                Stepper(value: Binding(get: { count }, set: { quantity = $0 }), in: 1...max(1, room)) {
+                    Text(GameStrings.format("supply.player.quantity", count)).font(.caption.weight(.bold))
+                }.fixedSize().disabled(room <= 1)
             }
+            Text(GameStrings.format("mac.shop.afterBalance", max(0, gold - total))).font(.caption).foregroundStyle(RoomTheme.secondary)
             Button { guard !store.isBusy else { return }; store.buyPlayerSupply(supply.kind, quantity: count) } label: {
                 HStack {
                     Text(room == 0 ? GameStrings.format("supply.player.carryLimit", PlayerSupplyCatalog.maxCarried)

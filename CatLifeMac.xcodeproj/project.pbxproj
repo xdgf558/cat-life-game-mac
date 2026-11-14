@@ -88,6 +88,7 @@
 		4B00EEBA887E6477120C091AC661B77B /* SettingsSoundPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046A7AA089F1B6E3A4DCA5B8BA72D373 /* SettingsSoundPage.swift */; };
 		4B28381BF6091C03FA3DF8C9A5F3C93E /* HabitStudySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30475B337FEAD2A2AE9F4F20C90A36F7 /* HabitStudySettingsView.swift */; };
 		4E41B8600246497FDEB25E316D9984D5 /* MacTownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A076C6274FA3A75927A2C5318E89C23F /* MacTownView.swift */; };
+		4E64D8E9833A30DB0457B943AFC0E784 /* MacGardenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B9BAF87AC4C02483653E90337FFBEA /* MacGardenView.swift */; };
 		4FDAF96CA74A31B2878FA8264E27A873 /* SaveTransferComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D3EA3F9A52093D893320FB61DE1BB8 /* SaveTransferComponents.swift */; };
 		5171596AB896C557603A8EAC6B600B35 /* RoomViewProjection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27749C9667A6541866A1DE83FD1E6A69 /* RoomViewProjection.swift */; };
 		52160948A1831908E2993AA6B1ADB2B1 /* GameStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43B0CA0AA03B5D1807695367350F2B8 /* GameStrings.swift */; };
@@ -143,6 +144,7 @@
 		8A168750A53A893D2F88D4AF18D1621D /* MacRoomSaveRepair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B9E1144A3C28A2DD4790057F16EC95 /* MacRoomSaveRepair.swift */; };
 		8ADC666A4B7CA5B20CA9A9C290F0BB71 /* GameStrings+HomeHUD63.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDE89577800BDAABC2EA9946BA0D500 /* GameStrings+HomeHUD63.swift */; };
 		8B632636E5DD4CA36928816D5827A7B5 /* RoomFloor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A36B4421D716E771CCE8CED464CB91 /* RoomFloor.swift */; };
+		8C413FECD8F2DB6E10470BB2D2F2987B /* GameStrings+Outing200.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05BD43C71D5B77ED37F8E7BBBD691976 /* GameStrings+Outing200.swift */; };
 		8E77B2DAC2952078AEC77BCBEAE7BDEF /* GameStrings+Design68.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C6713B8F8E4A212F0C99F5C6DA4909 /* GameStrings+Design68.swift */; };
 		8EA4B6B36CBA0325D253C6B42FB665D5 /* ExchangeMarketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E20A2F0E98BB24635188E0F22F770B /* ExchangeMarketView.swift */; };
 		9127B901397A2F8A12C266ABB221423B /* MacKeyboardRepeatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63574D472AC14B6FD6B242584F23BD64 /* MacKeyboardRepeatTests.swift */; };
@@ -211,7 +213,9 @@
 		D356033FA016759A6E61549DCB35D640 /* CompanionshipPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3F6D405A06F63C448E3C09B9B0BACD /* CompanionshipPresentation.swift */; };
 		D39AE76091A03F292DC22CF1DE258503 /* MacPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 384F769B5FC9E6CF276628A07749E2D9 /* MacPreferences.swift */; };
 		D42F26BA9B60A8CF1C88B7243A200E16 /* GameStrings+Market.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAF7B8A968233DC6F40AB244F62269B /* GameStrings+Market.swift */; };
+		D4C871CDEDDA4CDFBE947B8502FD92B1 /* GameStore+Outing.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1B7454F10AA6B6D64369CAE14A31B4 /* GameStore+Outing.swift */; };
 		D4E60EDE8E50523BF9DAC9CE91352E53 /* GameStrings+TraditionalChinese.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481B51D0D424A427A5571988B2781E26 /* GameStrings+TraditionalChinese.swift */; };
+		D69AD9A36D08F1744FBC19869978A16B /* MacKeepsakesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 236CB3F88241B12D9F90B74FA7F849EC /* MacKeepsakesView.swift */; };
 		D6A339E299FB314633BAB3AEFBBE4A93 /* GameStrings+Neighbors130.swift in Sources */ = {isa = PBXBuildFile; fileRef = F952003CC729086732FCE436A058DE44 /* GameStrings+Neighbors130.swift */; };
 		D81A325BF1A612188223DAC0DD4824E2 /* MacArrangementHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 199910A81BDB467D26A68900129ACAF1 /* MacArrangementHistoryTests.swift */; };
 		D8616A247D70A92ACBC0BD4CEA180006 /* ShopPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8933806BAFF6D16319C5AEA42C6EEB /* ShopPresentation.swift */; };
@@ -278,6 +282,7 @@
 		04B45E6993475312D44CB9DB8872CC23 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		0504B4C43FDF1FA0F262B987ECBA543C /* RoomHabitBehavior.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomHabitBehavior.swift; path = Scene/RoomHabitBehavior.swift; sourceTree = "<group>"; };
 		055F11650CDEA761354C227C5F257755 /* PlayChoicesSheet68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlayChoicesSheet68.swift; path = Views/PlayChoicesSheet68.swift; sourceTree = "<group>"; };
+		05BD43C71D5B77ED37F8E7BBBD691976 /* GameStrings+Outing200.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Outing200.swift"; path = "Localization/GameStrings+Outing200.swift"; sourceTree = "<group>"; };
 		06CF84FB675B1546047A6FB257F3954F /* RoomArrangementPanel68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomArrangementPanel68.swift; path = Views/RoomArrangementPanel68.swift; sourceTree = "<group>"; };
 		06E9408B9374750BBB77C9238D7D5995 /* MacPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacPreferencesTests.swift; sourceTree = "<group>"; };
 		087D80DE6226FA3FB2C6094EA1D119AF /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
@@ -303,6 +308,7 @@
 		1F49011922C8074A04085842049DEA9E /* RoomSceneArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomSceneArtwork.swift; path = Scene/RoomSceneArtwork.swift; sourceTree = "<group>"; };
 		1F5A96728054F33E9EF2250B4DC6B7AB /* CatPlayTogetherView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatPlayTogetherView.swift; path = Views/CatPlayTogetherView.swift; sourceTree = "<group>"; };
 		1FBDDD4273CE8198E36967F27BFD911B /* GameStrings+Careers57.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Careers57.swift"; path = "Localization/GameStrings+Careers57.swift"; sourceTree = "<group>"; };
+		236CB3F88241B12D9F90B74FA7F849EC /* MacKeepsakesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacKeepsakesView.swift; sourceTree = "<group>"; };
 		23A72D7E029B238102808E71FDFE9AC0 /* PreservedNewerSavesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PreservedNewerSavesView.swift; path = Views/PreservedNewerSavesView.swift; sourceTree = "<group>"; };
 		23E479EB2D5A17FF422B40CEA215A6ED /* RoomFurniture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomFurniture.swift; path = Scene/RoomFurniture.swift; sourceTree = "<group>"; };
 		23EACA6C909482043914BB71112C7CA1 /* RoomShellArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomShellArtwork.swift; path = Scene/RoomShellArtwork.swift; sourceTree = "<group>"; };
@@ -347,6 +353,7 @@
 		4F274281674303E7CA5F020344EF1610 /* RoomResidentCats.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomResidentCats.swift; path = Scene/RoomResidentCats.swift; sourceTree = "<group>"; };
 		4FACF92551DC9A22B2D6D7B4D31AEB0B /* CommunityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CommunityView.swift; path = Views/CommunityView.swift; sourceTree = "<group>"; };
 		51BC9DA9A17947C4CDE6214B1353A323 /* SupplyPickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SupplyPickerView.swift; path = Views/SupplyPickerView.swift; sourceTree = "<group>"; };
+		52B9BAF87AC4C02483653E90337FFBEA /* MacGardenView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacGardenView.swift; sourceTree = "<group>"; };
 		5440894047968F77F4D866B1AD42045A /* CatGrowthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatGrowthView.swift; path = Views/CatGrowthView.swift; sourceTree = "<group>"; };
 		56DF10B24AF69573541740A0EB63ED6A /* AdoptionAvailableBanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AdoptionAvailableBanner.swift; path = Views/AdoptionAvailableBanner.swift; sourceTree = "<group>"; };
 		572CFF1DCC0959EBABD1A9C084603C60 /* TownEventPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownEventPresentation.swift; path = Views/TownEventPresentation.swift; sourceTree = "<group>"; };
@@ -459,6 +466,7 @@
 		CC25976D23A0C4E7CECA1F2E0509E308 /* TownNoticeBoardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownNoticeBoardView.swift; path = Views/TownNoticeBoardView.swift; sourceTree = "<group>"; };
 		CCCDFD00887FB23FB8D3DF5CD072159F /* CatPlayTogetherController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatPlayTogetherController.swift; path = Store/CatPlayTogetherController.swift; sourceTree = "<group>"; };
 		CDEEEFA70BF1733314C3F5FF3FB668E1 /* GameSavePipeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GameSavePipeline.swift; path = Store/GameSavePipeline.swift; sourceTree = "<group>"; };
+		CE1B7454F10AA6B6D64369CAE14A31B4 /* GameStore+Outing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStore+Outing.swift"; path = "Store/GameStore+Outing.swift"; sourceTree = "<group>"; };
 		CE28E523E6AD3A514FC208A091EB5C11 /* GameStrings+Town140.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Town140.swift"; path = "Localization/GameStrings+Town140.swift"; sourceTree = "<group>"; };
 		CEE87CB41FC50F9998543F1A523B2BA3 /* AppleGraphics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppleGraphics.swift; path = Platform/AppleGraphics.swift; sourceTree = "<group>"; };
 		CFAF7B8A968233DC6F40AB244F62269B /* GameStrings+Market.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Market.swift"; path = "Localization/GameStrings+Market.swift"; sourceTree = "<group>"; };
@@ -623,6 +631,7 @@
 				CFAF7B8A968233DC6F40AB244F62269B /* GameStrings+Market.swift */,
 				92388D100D1450A4D50CA5E26421E194 /* GameStrings+MarketDesign55.swift */,
 				F952003CC729086732FCE436A058DE44 /* GameStrings+Neighbors130.swift */,
+				05BD43C71D5B77ED37F8E7BBBD691976 /* GameStrings+Outing200.swift */,
 				EA7876D59DDE8E9DB02F4DB3DEBE4BB5 /* GameStrings+Places120.swift */,
 				8DA3C781CA9AC0FE1A7D16E8C4ACE558 /* GameStrings+PlayDesign68.swift */,
 				3B4BCBB2D3B71EE40F322170B494DF10 /* GameStrings+Profile160.swift */,
@@ -693,6 +702,7 @@
 				989A185AABCAB2D43D693BF01A39D646 /* GameStore+HomeInventory.swift */,
 				F1D80FDE449999293FABFBC05F7D38BB /* GameStore+Mac69.swift */,
 				FDF26DB5C3F15CEE89BE5882A4FE210F /* GameStore+Onboarding.swift */,
+				CE1B7454F10AA6B6D64369CAE14A31B4 /* GameStore+Outing.swift */,
 				12DCAB73F2CDE8504689CC98763DBCBF /* GameStore+SharedHomeNotices.swift */,
 				7A70B38ECF692E217C0D7D49D1D90199 /* GameStore+Tasks.swift */,
 				B637D0368A2BF46ED28999ECF4CDCCD1 /* GameStore+TownEvents.swift */,
@@ -833,8 +843,10 @@
 				E6B73E5FE65C272E195961F55E9C9E08 /* MacCatsView.swift */,
 				35844050B7877DDAE553E96AD2E4B129 /* MacCommonViews.swift */,
 				F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */,
+				52B9BAF87AC4C02483653E90337FFBEA /* MacGardenView.swift */,
 				F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */,
 				374ABBC067961B4274066AFEE5BB1434 /* MacHomeView.swift */,
+				236CB3F88241B12D9F90B74FA7F849EC /* MacKeepsakesView.swift */,
 				028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */,
 				6DA641B2BB74D96B0195E00A0A32CD11 /* MacPlaceScene.swift */,
 				384F769B5FC9E6CF276628A07749E2D9 /* MacPreferences.swift */,
@@ -1062,6 +1074,7 @@
 				D42F26BA9B60A8CF1C88B7243A200E16 /* GameStrings+Market.swift in Sources */,
 				5C688669FACE8ABBEFA5271C8FC299F9 /* GameStrings+MarketDesign55.swift in Sources */,
 				D6A339E299FB314633BAB3AEFBBE4A93 /* GameStrings+Neighbors130.swift in Sources */,
+				8C413FECD8F2DB6E10470BB2D2F2987B /* GameStrings+Outing200.swift in Sources */,
 				827286C227F5FCC216A7952ADDC6562C /* GameStrings+Places120.swift in Sources */,
 				99FE46D0DD8AB8A478FE353283E85757 /* GameStrings+PlayDesign68.swift in Sources */,
 				E679A005EF31A49C8315A4334B45E45D /* GameStrings+Profile160.swift in Sources */,
@@ -1132,6 +1145,7 @@
 				57991E88988AE8F642E64346D194557A /* GameStore+HomeInventory.swift in Sources */,
 				3EC22A5B27B74EB732A361DE63543651 /* GameStore+Mac69.swift in Sources */,
 				D0788332EDC2F358C3ACEF28D4058F44 /* GameStore+Onboarding.swift in Sources */,
+				D4C871CDEDDA4CDFBE947B8502FD92B1 /* GameStore+Outing.swift in Sources */,
 				C348960658D736EE468992787DC2814E /* GameStore+SharedHomeNotices.swift in Sources */,
 				785FE51682A1B3E4163D394033FC9014 /* GameStore+Tasks.swift in Sources */,
 				329C019ED0D15F05074056027217FF02 /* GameStore+TownEvents.swift in Sources */,
@@ -1239,8 +1253,10 @@
 				82690A04E3EFBBA04990BB70F185BF23 /* MacCatsView.swift in Sources */,
 				66C24C043623276180C1260399B357FF /* MacCommonViews.swift in Sources */,
 				9E417F696CC6F2A5456AF81B5421C754 /* MacDesktopRoot.swift in Sources */,
+				4E64D8E9833A30DB0457B943AFC0E784 /* MacGardenView.swift in Sources */,
 				E8E34CC70F078784A002A25C512B8C6C /* MacHomeUpgradeView.swift in Sources */,
 				9433836444AF4738092AD8ED3C1860A6 /* MacHomeView.swift in Sources */,
+				D69AD9A36D08F1744FBC19869978A16B /* MacKeepsakesView.swift in Sources */,
 				3B3BECBA703DD9D00B0B0B135A57CB3D /* MacOnboardingTour.swift in Sources */,
 				5897C51BF8187AF6B367602C9E81BF97 /* MacPlaceScene.swift in Sources */,
 				D39AE76091A03F292DC22CF1DE258503 /* MacPreferences.swift in Sources */,

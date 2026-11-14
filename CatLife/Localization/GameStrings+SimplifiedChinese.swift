@@ -1080,4 +1080,5 @@ extension GameStrings {
         .merging(town140Chinese) { _, new in new }
         .merging(layout150Chinese) { _, new in new }
         .merging(profile160Chinese) { _, new in new }
+        .merging(outing200Chinese) { _, new in new }
 }

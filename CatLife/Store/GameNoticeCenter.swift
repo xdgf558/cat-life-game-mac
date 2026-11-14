@@ -77,6 +77,8 @@ enum GameActionNotice {
                  .cafeNapStarted: return GameStrings.text(success.rawValue)
             case .cafeNapEnded: return GameStrings.format(success.rawValue, outcome.amount)
             case .layoutSaved: return GameStrings.text("layout.saved")
+            case .outingStarted, .outingExplored, .outingEventChosen, .outingEnded, .outingAcknowledged,
+                 .outingDuplicateResolved, .outingShelfUpdated: return GameStrings.text(success.rawValue)
             }
         }
         switch outcome.failure {
@@ -93,7 +95,11 @@ enum GameActionNotice {
               .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy,
               .habitCatUnavailable, .habitPlayBusy, .habitPlaySessionEnded, .habitInputInvalid, .habitCornerUnavailable,
               .sleepNapping, .workNapping, .supplyNone, .recoveryDailyLimit, .recoveryFull, .cafeClosed,
-              .cafeNapActive, .cafeNapWorking, .cafeNapSleeping, .cafeNapUsed:
+              .cafeNapActive, .cafeNapWorking, .cafeNapSleeping, .cafeNapUsed,
+              .workOuting, .outingActive, .outingMissing, .outingDailyLimit, .outingWorking, .outingSleeping,
+              .outingNapping, .outingCatSick, .outingCatHungry, .outingCatTired, .outingCatBusy, .outingStaminaRequired,
+              .outingNoFootprints, .outingEventPending, .outingEventMissing, .outingDuplicateMissing,
+              .outingKeepsakeMissing, .outingShelfMissing, .outingShelfFull:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit, .recoveryWouldWaste:

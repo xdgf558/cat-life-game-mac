@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 17
+    public static let currentSchemaVersion = 18
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -15,11 +15,14 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var tasks: GameTaskState
     public var community: CommunityState
     public var catPlay: CatPlayState
+    /// 2.0: cat outings, the keepsake album and garden decor.
+    public var outing: OutingState
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
                 meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil,
-                tasks: GameTaskState? = nil, community: CommunityState = CommunityState(), catPlay: CatPlayState = CatPlayState()) {
+                tasks: GameTaskState? = nil, community: CommunityState = CommunityState(), catPlay: CatPlayState = CatPlayState(),
+                outing: OutingState = OutingState()) {
         self.schemaVersion = schemaVersion
         self.player = player
         self.cats = cats
@@ -31,11 +34,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.tasks = tasks ?? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
         self.community = community
         self.catPlay = catPlay
+        self.outing = outing
         self.community.events.advance(to: self.tasks.dailyDayKey)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay, outing
     }
 
     public init(from decoder: Decoder) throws {
@@ -96,6 +100,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
             ? CommunityState() : try CommunityState(from: values.superDecoder(forKey: .community), schemaVersion: version)
         if version < 11 { community.events.advance(to: tasks.dailyDayKey) }
         catPlay = version < 12 && !values.contains(.catPlay) ? CatPlayState() : try values.decode(CatPlayState.self, forKey: .catPlay)
+        outing = version < 18 && !values.contains(.outing) ? OutingState() : try values.decode(OutingState.self, forKey: .outing)
         // Reflow only untouched starter rooms; in-use and player-authored places remain authoritative.
         if version < 13, home.bowlPosition == NormalizedPoint(x: 0.76, y: 0.79), home.upperBowlPosition == nil,
            home.furniture.sorted(by: { $0.itemID < $1.itemID })

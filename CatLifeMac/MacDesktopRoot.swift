@@ -14,6 +14,8 @@ struct MacDesktopRoot: View {
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
+    /// The cat shown in the profile sheet; kept while the sheet animates away after `inspectedCatID` clears.
+    @State private var profileCatID: String?
     @State private var scene: RoomScene? = nil
     @State private var windowController: MacWindowController?
     @State private var keyboard: MacKeyboardRouter?
@@ -123,9 +125,10 @@ struct MacDesktopRoot: View {
             // The bag has three columns (categories, items, the use card) and needs a wider sheet;
             // narrower, its content overflowed and was clipped on both sides.
             // The upgrade sheet is one compact comparison; it does not need the tall default.
-            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : 600,
-                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : 780,
-                                      minHeight: item == .upgrade ? 490 : 600, idealHeight: item == .upgrade ? 520 : 760)
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : item == .upgrade ? 760 : item == .catProfile ? 900 : 600,
+                                      idealWidth: item == .bag ? 980 : item == .upgrade ? 820 : item == .catProfile ? 960 : 780,
+                                      minHeight: item == .upgrade ? 490 : item == .catProfile ? 580 : 600,
+                                      idealHeight: item == .upgrade ? 520 : item == .catProfile ? 640 : 760)
         }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
@@ -186,7 +189,7 @@ struct MacDesktopRoot: View {
         .onChange(of: store.isShowingMarket) { _, shown in if shown { auxiliary = .market } }
         .onChange(of: store.isShowingTownBoard) { _, shown in if shown { auxiliary = .board } }
         .onChange(of: store.isShowingSettings) { _, shown in if shown { select(.settings); store.isShowingSettings = false } }
-        .onChange(of: store.inspectedCatID) { _, id in if id != nil { auxiliary = .catProfile } }
+        .onChange(of: store.inspectedCatID) { _, id in if let id { profileCatID = id; auxiliary = .catProfile } }
         .onChange(of: store.saveSceneGeneration) { _, _ in hadSave = true; scene = canCreateRoomScene ? makeScene() : nil; auxiliary = nil }
         .onChange(of: store.visibleHomeFloor) { _, _ in scene = canCreateRoomScene ? makeScene() : nil }
         .onChange(of: store.isLoading) { _, loading in
@@ -630,7 +633,12 @@ struct MacDesktopRoot: View {
                 case .player: PlayerProfileView(store: store)
                 case .bag: MacBagView(store: store, exits: recoveryExits)
                 case .rest: WorkRestView(store: store)
-                case .catProfile: CatCollectionView(store: store, initialCatID: store.inspectedCatID)
+                case .catProfile:
+                    if let id = store.inspectedCatID ?? profileCatID {
+                        MacCatProfileView(store: store, catID: id, close: { auxiliary = nil }).id(id)
+                    } else {
+                        CatCollectionView(store: store)
+                    }
                 }
             }
         }.background(RoomTheme.cream).interactiveDismissDisabled(store.isBusy || store.saveTransferInProgress)

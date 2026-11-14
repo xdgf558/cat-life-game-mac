@@ -169,6 +169,7 @@
 		A6B35095143DC9D3E8D652816DBF0203 /* MacCatUrgencyTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF8EFB6C72F814F4892A923032DBE7E /* MacCatUrgencyTrackerTests.swift */; };
 		A83A68D7EEBD1EF6BE48DE0998763589 /* CatPlayTogetherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F5A96728054F33E9EF2250B4DC6B7AB /* CatPlayTogetherView.swift */; };
 		A97D687ED598AFE6066283745FEE62D7 /* HomeExpansionPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC532C2FA1E9B28A4D409F0D1A130415 /* HomeExpansionPresentation.swift */; };
+		ACB98ACE482B504826D28F5C82029977 /* MacCatProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17C99D605C47A59A95590B99E85D2C27 /* MacCatProfileView.swift */; };
 		AEA4DADC5CD8FA5C2C3FA20873979A6C /* GameOnboardingCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED5B649195C2F650D6D2AC360ECC11BF /* GameOnboardingCenter.swift */; };
 		AF446A32D45E8C49F995A1353F4A95DE /* RoomWorldGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28E1A308C1073B2835CFDF2A348BB13 /* RoomWorldGeometry.swift */; };
 		AFA1984579F3C89F6EF6F860D4EDF015 /* SaveManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786F8B7542C2A54E22545E2046E4F95A /* SaveManagementView.swift */; };
@@ -290,6 +291,7 @@
 		1364091FC71E45894C56760CED34F9B7 /* MacProfilePage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacProfilePage.swift; sourceTree = "<group>"; };
 		16B74F93622CBC7E4E3A8064EB73644F /* CatActor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatActor.swift; path = Scene/CatActor.swift; sourceTree = "<group>"; };
 		16F4D9235FF7ABEB95530D854ABC1628 /* NativeSaveLocation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NativeSaveLocation.swift; path = Store/NativeSaveLocation.swift; sourceTree = "<group>"; };
+		17C99D605C47A59A95590B99E85D2C27 /* MacCatProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacCatProfileView.swift; sourceTree = "<group>"; };
 		1851A81A5BE450F3A452D0D2DDF910C4 /* WorkDestinationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkDestinationView.swift; path = Views/WorkDestinationView.swift; sourceTree = "<group>"; };
 		18A127C6FE0207C889019CA691B4C1F5 /* TaskRewardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskRewardView.swift; path = Views/TaskRewardView.swift; sourceTree = "<group>"; };
 		18E2E2DBB560359AD211943558B7B9EA /* MacRoomShellArtwork.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRoomShellArtwork.swift; path = Scene/MacRoomShellArtwork.swift; sourceTree = "<group>"; };
@@ -826,6 +828,7 @@
 				85702BD7F6922B12AE34B109D1D01316 /* MacBagOthersView.swift */,
 				B84BB286FBA08225CCA80DC64BD76C6D /* MacBuildView.swift */,
 				D659DA1DAD9394AE11047445EA6E8C23 /* MacCafeView.swift */,
+				17C99D605C47A59A95590B99E85D2C27 /* MacCatProfileView.swift */,
 				A558D3F0067D8AC273B35367F95550BE /* MacCatUrgencyTracker.swift */,
 				E6B73E5FE65C272E195961F55E9C9E08 /* MacCatsView.swift */,
 				35844050B7877DDAE553E96AD2E4B129 /* MacCommonViews.swift */,
@@ -1231,6 +1234,7 @@
 				D8737BB5BE0DC63E06F9B154596D2DC8 /* MacBagOthersView.swift in Sources */,
 				251A3A615B201F9CF389C2611D6207D4 /* MacBuildView.swift in Sources */,
 				FA27529A8C91CAC1433D3E6B2B41452A /* MacCafeView.swift in Sources */,
+				ACB98ACE482B504826D28F5C82029977 /* MacCatProfileView.swift in Sources */,
 				05E0BDCAEBB1DC6BBA46B3A3EAAA3F3D /* MacCatUrgencyTracker.swift in Sources */,
 				82690A04E3EFBBA04990BB70F185BF23 /* MacCatsView.swift in Sources */,
 				66C24C043623276180C1260399B357FF /* MacCommonViews.swift in Sources */,

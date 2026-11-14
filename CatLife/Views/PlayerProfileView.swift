@@ -25,13 +25,13 @@ struct PlayerProfileView: View {
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: Self.compact ? 10 : 16) {
                     identityDetails
                     portrait
                     bonusSummary
                     overviewStats
                 }
-                .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+                .padding(Self.compact ? 14 : 16).frame(maxWidth: 560).frame(maxWidth: .infinity)
             }
             .accessibilityIdentifier("profileScroll")
             .background(RoomTheme.cream)
@@ -62,8 +62,15 @@ struct PlayerProfileView: View {
         .sheet(isPresented: $isShowingAttributes) { attributesSheet }
     }
 
+    /// The macOS sheet fits the whole profile without scrolling: a lower stage and a slim stats row.
+    #if os(macOS)
+    private static let compact = true
+    #else
+    private static let compact = false
+    #endif
+
     private var portrait: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Self.compact ? 8 : 12) {
             ProfileDressingStage(avatar: avatar, profile: profile,
                                  showAttributes: { isShowingAttributes = true },
                                  chooseSlot: { slot in
@@ -74,7 +81,7 @@ struct PlayerProfileView: View {
                 } else {
                     store.activeSheet = .shop
                 }
-            })
+            }, height: Self.compact ? 300 : 400)
             HStack(spacing: 10) {
                 Button { path.append(.avatars) } label: {
                     Label(GameStrings.text(avatar == nil ? "player.avatar.choose" : "player.appearance"),
@@ -162,8 +169,8 @@ struct PlayerProfileView: View {
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.caption.weight(.bold))
             }
-            .foregroundStyle(RoomTheme.darkMint).padding(14).frame(maxWidth: .infinity, minHeight: 44)
-            .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 22))
+            .foregroundStyle(RoomTheme.darkMint).padding(Self.compact ? 10 : 14).frame(maxWidth: .infinity, minHeight: Self.compact ? 36 : 44)
+            .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: Self.compact ? 16 : 22))
         }
         .buttonStyle(.plain).accessibilityIdentifier("profileBonusesButton")
         .accessibilityLabel(GameStrings.text("player.bonuses"))
@@ -182,7 +189,26 @@ struct PlayerProfileView: View {
         }
     }
 
-    private func overviewStat(_ key: String, value: Int, identifier: String) -> some View {
+    @ViewBuilder private func overviewStat(_ key: String, value: Int, identifier: String) -> some View {
+        if Self.compact {
+            // One slim row: value then label side by side.
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(value)").font(.system(size: 19, weight: .heavy)).monospacedDigit()
+                    .lineLimit(1).minimumScaleFactor(0.6)
+                Text(GameStrings.text(key)).font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(RoomTheme.secondary).lineLimit(1)
+            }
+            .padding(.vertical, 9).frame(maxWidth: .infinity)
+            .gameCard()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(GameStrings.text(key)).accessibilityValue("\(value)")
+            .accessibilityIdentifier(identifier)
+        } else {
+            regularOverviewStat(key, value: value, identifier: identifier)
+        }
+    }
+
+    private func regularOverviewStat(_ key: String, value: Int, identifier: String) -> some View {
         VStack(spacing: 6) {
             Text("\(value)").font(.system(size: 25, weight: .heavy)).monospacedDigit()
                 .lineLimit(1).minimumScaleFactor(0.6)

@@ -935,7 +935,9 @@ final class GameStore {
                 guard self.snapshot != nil else { continue }
                 let workDue = self.snapshot?.player.activeWork.map { $0.endsAt <= self.now } ?? false
                 let restDue = self.snapshot?.cats.contains { $0.activeRest.map { $0.endsAt <= self.now } ?? false } ?? false
-                if workDue || restDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
+                // A finished café nap settles on the next tick, so its gain and the work button don't wait for the 60 s sweep.
+                let napDue = self.snapshot?.player.activeNap.map { $0.endsAt <= self.now } ?? false
+                if workDue || restDue || napDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
                     self.syncAudio()
                     self.synchronize(playsProgressFeedback: self.foreground)
                 }

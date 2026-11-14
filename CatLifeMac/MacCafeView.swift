@@ -13,8 +13,9 @@ struct MacCafeView: View {
     let onRest: () -> Void
     @State private var tab = Tab.menu
     @State private var selected = CafeItemKind.latte
-    @State private var pendingOrder: (kind: CafeItemKind, usedBefore: Int)?
-    @State private var served: CafeItemKind?
+    @State private var pendingOrder: (kind: CafeItemKind, usedBefore: Int, stamina: Int, mood: Int)?
+    /// The order just served, with what it actually restored (never more than the room left below 100).
+    @State private var served: (kind: CafeItemKind, gained: RecoveryEffect)?
     @State private var shownNapResult: String?
     @State private var petLine: String?
     @State private var hoveredCat: Int?
@@ -165,7 +166,7 @@ struct MacCafeView: View {
         let player = snapshot?.player ?? PlayerState(staminaUpdatedAt: .now)
         VStack(alignment: .leading, spacing: 14) {
             if let served {
-                servedCard(served)
+                servedCard(served.kind, gained: served.gained)
             } else {
                 ForEach(CafeCatalog.menu) { item in menuRow(item, enabled: left > 0) }
                 if left > 0 {
@@ -188,6 +189,18 @@ struct MacCafeView: View {
                     let item = CafeCatalog.item(selected)
                     let useful = item.effect.isUseful(for: player)
                     let affordable = player.gold >= item.price
+                    let waste = item.effect.total - item.effect.applied(to: player).total
+                    if useful && affordable && waste > 0 {
+                        // Same rule as carried supplies: overflow only through an explicit, gold confirm.
+                        Label(GameStrings.format("recover.wasteHint", waste), systemImage: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                            .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoomTheme.coral.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button { order(item) } label: {
+                            Text(GameStrings.format("cafe.order.anyway", item.price)).frame(maxWidth: .infinity)
+                        }.buttonStyle(GoldButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("macCafeOrderAnyway")
+                    } else {
                     Button { order(item) } label: {
                         HStack {
                             Text(!useful ? GameStrings.text("recover.preview.full")
@@ -197,6 +210,7 @@ struct MacCafeView: View {
                         }.frame(maxWidth: .infinity)
                     }.buttonStyle(MintButtonStyle()).keyboardShortcut(.defaultAction)
                         .disabled(store.isBusy || !useful || !affordable).accessibilityIdentifier("macCafeOrder")
+                    }
                 }
             }
         }
@@ -219,27 +233,30 @@ struct MacCafeView: View {
                 .opacity(enabled ? 1 : 0.5).contentShape(RoundedRectangle(cornerRadius: 16))
         }.buttonStyle(.plain).disabled(!enabled).accessibilityAddTraits(isSelected ? .isSelected : [])
     }
-    private func servedCard(_ kind: CafeItemKind) -> some View {
+    private func servedCard(_ kind: CafeItemKind, gained: RecoveryEffect) -> some View {
         let item = CafeCatalog.item(kind)
         return VStack(spacing: 12) {
             GameIcon(asset: item.assetName, symbol: item.symbol, size: 90, tint: RoomTheme.friendship)
                 .frame(maxWidth: .infinity).frame(height: 120).background(RoomTheme.friendship.opacity(0.12), in: RoundedRectangle(cornerRadius: 20))
             Text(GameStrings.format("cafe.served.title", GameStrings.text(item.nameKey))).font(.system(size: 20, weight: .heavy))
             Text(GameStrings.text("cafe.served.line")).foregroundStyle(RoomTheme.secondary)
-            HStack { MacEffectChips(effect: item.effect); Label("−\(item.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.gold) }
+            HStack { MacEffectChips(effect: gained); Label("−\(item.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.gold) }
             Button(GameStrings.text("cafe.stay")) { served = nil }.buttonStyle(MintButtonStyle())
             Button(GameStrings.text("cafe.backToWork"), action: onWork).buttonStyle(SoftButtonStyle())
         }
     }
     private func order(_ item: CafeMenuItem) {
         guard !store.isBusy else { return }
-        pendingOrder = (item.kind, snapshot?.suppliesUsedToday ?? 0)
+        let player = snapshot?.player
+        pendingOrder = (item.kind, snapshot?.suppliesUsedToday ?? 0, player?.stamina ?? 0, player?.mood ?? 0)
         store.orderCafeItem(item.kind)
     }
     private func finishOrder() {
         guard let pending = pendingOrder else { return }
         pendingOrder = nil
-        if (snapshot?.suppliesUsedToday ?? 0) > pending.usedBefore { served = pending.kind }
+        guard let after = snapshot, after.suppliesUsedToday > pending.usedBefore else { return }
+        served = (pending.kind, RecoveryEffect(stamina: max(0, after.player.stamina - pending.stamina),
+                                               mood: max(0, after.player.mood - pending.mood)))
     }
 
     @ViewBuilder private var napContent: some View {

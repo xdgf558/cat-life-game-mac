@@ -11,6 +11,8 @@ struct MacWorkView: View {
     @State private var confirmsCancellation = false
     @State private var canceling = false
     @State private var showsRest = false
+    /// Points a rice ball would waste, while its overflow confirmation is open.
+    @State private var riceBallWaste: Int?
 
     private var selected: WorkJob { WorkCatalog.job(id: selectedID) ?? WorkCatalog.all[0] }
     private var active: ActiveWork? { store.snapshot?.player.activeWork }
@@ -59,6 +61,11 @@ struct MacWorkView: View {
                 .accessibilityIdentifier("macWorkRestSheet")
         }
         .onChange(of: store.saveSceneGeneration) { _, _ in showsRest = false }
+        .confirmationDialog(GameStrings.format("recover.wasteHint", riceBallWaste ?? 0),
+                            isPresented: Binding(get: { riceBallWaste != nil }, set: { if !$0 { riceBallWaste = nil } })) {
+            Button(GameStrings.text("recover.use.anyway")) { riceBallWaste = nil; store.usePlayerSupply(.riceBall) }
+            Button(GameStrings.text("recover.use.keep"), role: .cancel) { riceBallWaste = nil }
+        }
         .confirmationDialog(GameStrings.text("mac.work.cancelTitle"), isPresented: $confirmsCancellation) {
             Button(GameStrings.text("mac.work.cancel"), role: .destructive) {
                 canceling = true
@@ -310,7 +317,7 @@ struct MacWorkView: View {
             if left > 0 {
                 if riceBalls > 0 {
                     option("fork.knife", RoomTheme.gold, GameStrings.format("work.low.eat", riceBall.effect.stamina),
-                           GameStrings.format("work.low.eatDetail", riceBalls), badge: GameStrings.text("work.low.fastest")) { store.usePlayerSupply(.riceBall) }
+                           GameStrings.format("work.low.eatDetail", riceBalls), badge: GameStrings.text("work.low.fastest")) { eatRiceBall() }
                 } else {
                     option("cart.fill", RoomTheme.gold, GameStrings.text("work.low.buy"),
                            GameStrings.format("work.low.buyDetail", riceBall.price, riceBall.effect.stamina), badge: nil, action: exits.shop)
@@ -350,6 +357,13 @@ struct MacWorkView: View {
                 Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             }.padding(10).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 15)).contentShape(RoundedRectangle(cornerRadius: 15))
         }.buttonStyle(.plain).disabled(store.isBusy)
+    }
+    /// Overflow goes through the same explicit confirm as the bag and the top-bar popover.
+    private func eatRiceBall() {
+        guard !store.isBusy, let player = store.snapshot?.player else { return }
+        let effect = PlayerSupplyCatalog.definition(.riceBall).effect
+        let waste = effect.total - effect.applied(to: player).total
+        if waste > 0 { riceBallWaste = waste } else { store.usePlayerSupply(.riceBall) }
     }
     private var recoveryToday: some View {
         let snapshot = store.snapshot

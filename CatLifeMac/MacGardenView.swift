@@ -404,13 +404,12 @@ struct MacGardenView: View {
                     MacGardenScene(highlight: hoveredSpot)
                     ForEach(Array(OutingSpot.allCases.enumerated()), id: \.element) { index, spot in
                         spotLabel(spot, index: index, trip: trip)
-                            .position(x: MacGardenScene.position(spot).x * proxy.size.width,
-                                      y: MacGardenScene.position(spot).y * proxy.size.height)
+                            .position(MacGardenScene.labelPoint(spot, in: proxy.size))
                     }
                     if let hoveredSpot, trip.pendingEventID == nil, cardEntryID == nil {
+                        let anchor = MacGardenScene.labelPoint(hoveredSpot, in: proxy.size)
                         spotTooltip(hoveredSpot)
-                            .position(x: min(proxy.size.width - 150, max(150, MacGardenScene.position(hoveredSpot).x * proxy.size.width)),
-                                      y: max(80, MacGardenScene.position(hoveredSpot).y * proxy.size.height - 96))
+                            .position(x: min(proxy.size.width - 150, max(150, anchor.x)), y: max(80, anchor.y - 96))
                             .allowsHitTesting(false)
                     }
                     VStack { mapTopBar(trip); Spacer() }.padding(12)
@@ -1035,16 +1034,49 @@ enum MacOutingText {
     }
 }
 
-/// The garden: a painted placeholder until `outing-garden-map` is delivered.
+/// The garden: the painted `outing-garden-map`, or a drawn placeholder when it is missing.
 struct MacGardenScene: View {
     var highlight: OutingSpot?
 
+    static let artSize = CGSize(width: 2400, height: 1500)
+    static let hasArt = UIImage(named: "outing-garden-map") != nil
+
+    /// Placeholder layout, as fractions of the view.
     static func position(_ spot: OutingSpot) -> CGPoint {
         switch spot {
         case .flowerBed: CGPoint(x: 0.2, y: 0.6)
         case .treeShade: CGPoint(x: 0.52, y: 0.36)
         case .path: CGPoint(x: 0.8, y: 0.64)
         }
+    }
+    /// Where each spot is painted in the art, as fractions of the 2400×1500 image.
+    static func artCenter(_ spot: OutingSpot) -> CGPoint {
+        switch spot {
+        case .flowerBed: CGPoint(x: 0.21, y: 0.59)
+        case .treeShade: CGPoint(x: 0.55, y: 0.38)
+        case .path: CGPoint(x: 0.82, y: 0.62)
+        }
+    }
+    /// Label anchors on open grass beside each spot, so the labels never cover what they name
+    /// and stay clear of the top bar and the cat bubble in the bottom-left corner.
+    static func artLabel(_ spot: OutingSpot) -> CGPoint {
+        switch spot {
+        case .flowerBed: CGPoint(x: 0.21, y: 0.42)
+        case .treeShade: CGPoint(x: 0.57, y: 0.56)
+        case .path: CGPoint(x: 0.8, y: 0.45)
+        }
+    }
+    /// An image fraction to view coordinates, following the aspect-fill crop of the art.
+    static func artPoint(_ fraction: CGPoint, in size: CGSize) -> CGPoint {
+        let scale = max(size.width / artSize.width, size.height / artSize.height)
+        let drawn = CGSize(width: artSize.width * scale, height: artSize.height * scale)
+        return CGPoint(x: (size.width - drawn.width) / 2 + fraction.x * drawn.width,
+                       y: (size.height - drawn.height) / 2 + fraction.y * drawn.height)
+    }
+    static func labelPoint(_ spot: OutingSpot, in size: CGSize) -> CGPoint {
+        guard hasArt else { return CGPoint(x: position(spot).x * size.width, y: position(spot).y * size.height) }
+        let point = artPoint(artLabel(spot), in: size)
+        return CGPoint(x: min(size.width - 80, max(80, point.x)), y: min(size.height - 40, max(70, point.y)))
     }
     static func symbol(_ spot: OutingSpot) -> String {
         switch spot {
@@ -1066,8 +1098,25 @@ struct MacGardenScene: View {
     }
 
     var body: some View {
-        if UIImage(named: "outing-garden-map") != nil {
-            Image("outing-garden-map").resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+        if Self.hasArt {
+            TimelineView(.periodic(from: .now, by: 300)) { clock in
+                Image("outing-garden-map").resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                    .overlay {
+                        if Self.isEvening(clock.date) { Color(red: 0.98, green: 0.62, blue: 0.40).opacity(0.14).allowsHitTesting(false) }
+                    }
+                    .overlay {
+                        if let highlight {
+                            GeometryReader { proxy in
+                                let side = proxy.size.height * 0.34
+                                Circle().fill(Self.tint(highlight).opacity(0.22)).frame(width: side, height: side)
+                                    .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 3))
+                                    .position(Self.artPoint(Self.artCenter(highlight), in: proxy.size))
+                            }
+                            .allowsHitTesting(false)
+                        }
+                    }
+                    .accessibilityHidden(true)
+            }
         } else {
             TimelineView(.periodic(from: .now, by: 300)) { clock in
                 placeholder(evening: Self.isEvening(clock.date))

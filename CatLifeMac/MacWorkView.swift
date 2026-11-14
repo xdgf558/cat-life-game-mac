@@ -180,26 +180,26 @@ struct MacWorkView: View {
             let duration = max(1, work.endsAt.timeIntervalSince(work.startedAt))
             let remaining = max(0, work.endsAt.timeIntervalSince(max(context.date, store.snapshot?.meta.lastSyncAt ?? context.date)))
             let seconds = Int(ceil(remaining))
-            VStack(spacing: 18) {
+            VStack(spacing: 12) {
                 ZStack {
-                    Circle().stroke(RoomTheme.track, lineWidth: 26)
+                    Circle().stroke(RoomTheme.track, lineWidth: 16)
                     Circle().trim(from: 0, to: max(0.002, min(1, 1 - remaining / duration)))
-                        .stroke(RoomTheme.mint, style: StrokeStyle(lineWidth: 26, lineCap: .butt)).rotationEffect(.degrees(-90))
+                        .stroke(RoomTheme.mint, style: StrokeStyle(lineWidth: 16, lineCap: .butt)).rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 1), value: seconds)
-                    VStack(spacing: 8) {
-                        GameIcon(asset: WorkJobPresentation.asset(work.jobID), symbol: WorkJobPresentation.symbol(work.jobID), size: 54)
+                    VStack(spacing: 4) {
+                        GameIcon(asset: WorkJobPresentation.asset(work.jobID), symbol: WorkJobPresentation.symbol(work.jobID), size: 34)
                         Text(seconds > 0 ? MacWorkClock.text(seconds) : GameStrings.text("mac.work.v2.settling"))
-                            .font(.system(size: seconds > 0 ? 64 : 26, weight: .heavy, design: .rounded)).monospacedDigit()
+                            .font(.system(size: seconds > 0 ? 40 : 20, weight: .heavy, design: .rounded)).monospacedDigit()
                             .contentTransition(.numericText(countsDown: true)).lineLimit(1).minimumScaleFactor(0.6)
                         Text(GameStrings.format("mac.work.v2.total", WorkJobPresentation.duration(Int(duration.rounded()))))
-                            .font(.system(size: 13.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                    }.padding(40)
-                }.frame(width: 286, height: 286).padding(13)
+                            .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    }.padding(26)
+                }.frame(width: 184, height: 184).padding(6)
                     .accessibilityElement(children: .ignore).accessibilityIdentifier("macWorkCountdown")
                     .accessibilityLabel(GameStrings.text("mac.work.inProgress"))
                     .accessibilityValue(MacWorkClock.text(seconds))
                 Text(GameStrings.format("mac.work.v2.doing", WorkJobPresentation.name(work.jobID)))
-                    .font(.system(size: 26, weight: .heavy, design: .rounded)).multilineTextAlignment(.center)
+                    .font(.system(size: 21, weight: .heavy, design: .rounded)).multilineTextAlignment(.center)
                 Text(GameStrings.text("mac.work.background")).font(.system(size: 13.5, weight: .semibold))
                     .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 8) {
@@ -209,7 +209,7 @@ struct MacWorkView: View {
                         rewardChip(GameStrings.text("mac.work.v2.notifyOn"), symbol: "bell.fill", tint: RoomTheme.darkMint)
                     }
                 }
-            }.frame(maxWidth: .infinity).padding(.top, 12)
+            }.frame(maxWidth: .infinity).padding(.top, 4)
         }
     }
     private func rewardChip(_ text: String, symbol: String, tint: Color) -> some View {

@@ -26,6 +26,11 @@ struct MacProfilePage: View {
     @State private var nameDraft = ""
     @State private var nameError: String?
     @State private var showsAvatars = false
+    /// A rename save is in flight: the editor is frozen so nothing typed meanwhile is thrown away.
+    @State private var savingName = false
+    /// Bumped each time the editor opens, so a late save only closes the edit that started it.
+    @State private var renameSession = 0
+    @AccessibilityFocusState private var avatarSheetFocused: Bool
     @State private var avatarPick: String?
     @FocusState private var nameFocused: Bool
     @FocusState private var pageFocused: Bool
@@ -45,6 +50,8 @@ struct MacProfilePage: View {
                 middle.frame(maxWidth: .infinity)
                 rightColumn.frame(width: right)
             }
+            // The avatar picker is modal: the columns behind it can't be clicked or reached by VoiceOver.
+            .disabled(showsAvatars).accessibilityHidden(showsAvatars)
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .overlay { if showsAvatars { avatarSheet } }
@@ -98,7 +105,7 @@ struct MacProfilePage: View {
                 HStack {
                     TextField(GameStrings.text("playerName.placeholder"), text: $nameDraft)
                         .textFieldStyle(.plain).font(.system(size: 22, weight: .heavy, design: .rounded))
-                        .focused($nameFocused).onSubmit(saveName).accessibilityIdentifier("profileNameField")
+                        .focused($nameFocused).onSubmit(saveName).disabled(savingName).accessibilityIdentifier("profileNameField")
                     Text(GameStrings.format("playerName.count", count, limit)).font(.caption.weight(.bold))
                         .foregroundStyle(invalid ? RoomTheme.coralDeep : RoomTheme.secondary).monospacedDigit()
                 }.padding(.horizontal, 12).padding(.vertical, 8)
@@ -106,8 +113,9 @@ struct MacProfilePage: View {
                     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(invalid ? RoomTheme.coral : RoomTheme.mint, lineWidth: 2.5))
                 Button(action: saveName) {
                     HStack(spacing: 4) { Text(GameStrings.text("mac.profile.save")); Image(systemName: "return") }
-                }.buttonStyle(MintButtonStyle()).fixedSize().disabled(store.isBusy)
+                }.buttonStyle(MintButtonStyle()).fixedSize().disabled(store.isBusy || savingName)
                 Button(GameStrings.text("mac.profile.cancel")) { renaming = false }.buttonStyle(SoftButtonStyle()).fixedSize()
+                    .disabled(savingName)
             }
             Text(nameError ?? GameStrings.format("mac.profile.nameHint", limit)).font(.caption.weight(.bold))
                 .foregroundStyle(nameError == nil ? RoomTheme.secondary : RoomTheme.coralDeep)
@@ -548,12 +556,13 @@ struct MacProfilePage: View {
 
     private var avatarSheet: some View {
         ZStack {
-            Color.black.opacity(0.28).ignoresSafeArea().onTapGesture { showsAvatars = false }
+            Color.black.opacity(0.28).ignoresSafeArea().onTapGesture { showsAvatars = false }.accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
                         Label(GameStrings.text("mac.profile.changeLook"), systemImage: "arrow.triangle.2.circlepath")
                             .font(.system(size: 22, weight: .black))
+                            .accessibilityAddTraits(.isHeader).accessibilityFocused($avatarSheetFocused)
                         Text(GameStrings.text("mac.profile.lookHint")).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
                     }
                     Spacer()
@@ -579,6 +588,8 @@ struct MacProfilePage: View {
             .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 28))
             .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(.white, lineWidth: 3))
             .shadow(color: .black.opacity(0.18), radius: 20, y: 8)
+            .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal)
+            .accessibilityIdentifier("profileAvatarSheet")
         }
     }
 
@@ -605,25 +616,35 @@ struct MacProfilePage: View {
     // MARK: Actions
 
     private func startRename() {
+        guard !savingName else { return }
+        renameSession += 1
         nameDraft = profile.name ?? ""; nameError = nil; renaming = true
         DispatchQueue.main.async { nameFocused = true }
     }
 
     private func saveName() {
-        guard !store.isBusy else { return }
+        guard !store.isBusy, !savingName else { return }
         let trimmed = nameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         // An empty name returns to the default greeting, as before.
         let raw: String? = trimmed.isEmpty ? nil : nameDraft
         if let raw, PlayerNameRules.normalized(raw) == nil {
             nameError = GameStrings.text("playerName.invalid"); return
         }
+        let session = renameSession
+        savingName = true
         Task {
-            if await store.renamePlayer(to: raw) { renaming = false; nameError = nil; pageFocused = true }
-            else { nameError = GameStrings.text("playerName.saveFailed") }
+            let saved = await store.renamePlayer(to: raw)
+            savingName = false
+            guard session == renameSession, renaming else { return }
+            if saved { renaming = false; nameError = nil; pageFocused = true }
+            else { nameError = GameStrings.text("playerName.saveFailed"); nameFocused = true }
         }
     }
 
-    private func openAvatars() { avatarPick = profile.avatarID ?? PlayerCatalog.avatars.first?.id; showsAvatars = true; pageFocused = true }
+    private func openAvatars() {
+        avatarPick = profile.avatarID ?? PlayerCatalog.avatars.first?.id; showsAvatars = true; pageFocused = true
+        DispatchQueue.main.async { avatarSheetFocused = true }
+    }
 
     private func useAvatar() {
         guard let avatarPick, avatarPick != profile.avatarID else { showsAvatars = false; return }
@@ -644,7 +665,7 @@ struct MacProfilePage: View {
     /// One step back: avatar picker, rename, then wardrobe or sources, then nothing.
     private func back() {
         if showsAvatars { showsAvatars = false }
-        else if renaming { renaming = false }
+        else if renaming { if !savingName { renaming = false } }
         else if mode != .overview { mode = .overview; picked = nil }
         pageFocused = true
     }

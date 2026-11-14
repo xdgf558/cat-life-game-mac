@@ -3,14 +3,19 @@ import SwiftUI
 import CatGameCore
 
 enum MacPage: String, CaseIterable, Identifiable {
-    case home, work, shop, town, cats, settings
+    case home, work, shop, town, cats, profile, settings
     var id: String { rawValue }
     var key: String { "mac.page." + rawValue }
-    var tourTarget: MacTourTarget? {
-        switch self { case .work: .navWork; case .shop: .navShop; case .town: .navTown; default: nil }
-    }
-    var icon: String { switch self { case .home: "icon-home"; case .work: "icon-work"; case .shop: "icon-shop"; case .town: "icon-town"; case .cats: "cat-avatar"; case .settings: "" } }
-    var symbol: String { switch self { case .home: "house.fill"; case .work: "briefcase.fill"; case .shop: "storefront.fill"; case .town: "map.fill"; case .cats: "pawprint.fill"; case .settings: "gearshape.fill" } }
+    /// Since 1.5.0 work and shop are entered from the town map, so the rail only holds the modules
+    /// that are not places; the space below them is kept for future modules.
+    static let rail: [MacPage] = [.home, .town, .cats, .profile]
+    /// Shortcut shown on the rail (profile has none of its own).
+    var railCommand: MacCommand? { switch self { case .home: .home; case .town: .town; case .cats: .cats; default: nil } }
+    /// Pages that open with a place's scene banner, which already names the place.
+    var hasPlaceBanner: Bool { [.work, .shop, .cats].contains(self) }
+    var tourTarget: MacTourTarget? { self == .town ? .navTown : nil }
+    var icon: String { switch self { case .home: "icon-home"; case .work: "icon-work"; case .shop: "icon-shop"; case .town: "icon-town"; case .cats: "cat-avatar"; case .profile, .settings: "" } }
+    var symbol: String { switch self { case .home: "house.fill"; case .work: "briefcase.fill"; case .shop: "storefront.fill"; case .town: "map.fill"; case .cats: "pawprint.fill"; case .profile: "person.crop.circle.fill"; case .settings: "gearshape.fill" } }
 }
 struct MacKeyCap: View {
     let value: String
@@ -96,24 +101,27 @@ struct MacNavigationRail: View {
     let preferences: MacPreferences
     var isWorking = false
     var isNapping = false
+    /// The player's avatar art for the profile entry.
+    var avatarAsset: String = ""
     let select: (MacPage) -> Void
     let help: () -> Void
     var body: some View {
         VStack(spacing: 15) {
             Image("app-icon-preview").resizable().scaledToFit().frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 15))
                 .padding(.top, 16).accessibilityHidden(true)
-            ForEach(Array(MacPage.allCases.prefix(5).enumerated()), id: \.element.id) { index, item in
+            ForEach(MacPage.rail) { item in
                 Button { select(item) } label: {
                     VStack(spacing: 4) {
-                        GameIcon(asset: item.icon, symbol: item.symbol, size: 30)
+                        GameIcon(asset: item == .profile ? avatarAsset : item.icon, symbol: item.symbol, size: 30)
                         Text(GameStrings.text(item.key)).font(.system(size: 12, weight: .heavy, design: .rounded))
-                        MacKeyCap(value: preferences.binding(for: [.home, .work, .shop, .town, .cats][index]).label)
+                        if let command = item.railCommand { MacKeyCap(value: preferences.binding(for: command).label) }
                     }.frame(width: 74, height: 86).background(page == item ? RoomTheme.paleMint : .clear, in: RoundedRectangle(cornerRadius: 19))
                 }.buttonStyle(.plain).help(GameStrings.text(item.key)).accessibilityIdentifier("macNav_" + item.rawValue)
                     .macTourAnchor(item.tourTarget)
                     .overlay(alignment: .topTrailing) {
-                        if item == .work, isWorking { Circle().fill(RoomTheme.gold).frame(width: 8, height: 8).padding(8).accessibilityHidden(true) }
-                        if item == .town, isNapping { Image(systemName: "moon.fill").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.lilac).padding(6).accessibilityHidden(true) }
+                        // Work lives in town now, so a running job marks the town entry.
+                        if item == .town, isWorking { Circle().fill(RoomTheme.gold).frame(width: 8, height: 8).padding(8).accessibilityHidden(true) }
+                        if item == .town, isNapping, !isWorking { Image(systemName: "moon.fill").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.lilac).padding(6).accessibilityHidden(true) }
                     }
             }
             Spacer(minLength: 8)
@@ -152,6 +160,8 @@ struct MacTopBar: View {
     }
     var body: some View {
         HStack(spacing: 14) {
+            // Place pages show their name and description on the scene banner right below.
+            if !page.hasPlaceBanner {
             HStack(spacing: 10) {
                 Image(systemName: page == .home && store.isDecorating ? "sofa.fill" : page.symbol).foregroundStyle(RoomTheme.darkMint)
                 Text(page == .home && store.isDecorating ? GameStrings.text("mac.build.v2.title") : GameStrings.text(page.key)).font(.system(size: 22, weight: .heavy, design: .rounded)).lineLimit(1)
@@ -162,6 +172,7 @@ struct MacTopBar: View {
             if let subtitle {
                 Text(subtitle).font(.system(size: 14, weight: .bold, design: .rounded)).foregroundStyle(RoomTheme.secondary)
                     .lineLimit(1).minimumScaleFactor(0.8)
+            }
             }
             Spacer(minLength: 8)
             MacTourResumePill(store: store, resume: onResumeTour)

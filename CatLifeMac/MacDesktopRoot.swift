@@ -52,9 +52,11 @@ struct MacDesktopRoot: View {
             } else {
                 HStack(spacing: 0) {
                     MacNavigationRail(page: page, preferences: preferences, isWorking: store.snapshot?.player.activeWork != nil,
-                                      isNapping: store.snapshot?.player.activeNap != nil, select: select, help: { showsHelp = true })
+                                      isNapping: store.snapshot?.player.activeNap != nil,
+                                      avatarAsset: store.snapshot?.player.profile.avatarID.flatMap(PlayerCatalog.avatar(id:))?.assetName ?? "",
+                                      select: select, help: { showsHelp = true })
                     VStack(spacing: 0) {
-                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { store.activeSheet = .player },
+                        MacTopBar(store: store, page: page, onSaves: { auxiliary = .saves }, onPlayer: { select(.profile) },
                                   onResumeTour: resumeTour, exits: recoveryExits)
                         pageContent.padding(16)
                     }
@@ -215,6 +217,10 @@ struct MacDesktopRoot: View {
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
+            case .profile:
+                PlayerProfileView(store: store)
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                    .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(.white, lineWidth: 3))
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
@@ -343,7 +349,7 @@ struct MacDesktopRoot: View {
         case .town: page = .town; auxiliary = nil
         case .inventory: auxiliary = .inventory
         case .tasks: auxiliary = .tasks
-        case .player: auxiliary = .player
+        case .player: select(.profile)
         case .upgrade: auxiliary = .upgrade
         case .hospital: auxiliary = .hospital
         }

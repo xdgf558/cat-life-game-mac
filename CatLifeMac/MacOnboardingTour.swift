@@ -30,8 +30,9 @@ extension GameOnboardingStep {
     var macTarget: MacTourTarget {
         switch self {
         case .care: .careCard
-        case .work: .navWork
-        case .supplies: .navShop
+        // Work and the shop are reached through the town map since 1.5.0.
+        case .work: .navTown
+        case .supplies: .navTown
         case .tasks: .tasks
         case .town: .navTown
         }

@@ -17,6 +17,7 @@ struct MacCafeView: View {
     @State private var served: CafeItemKind?
     @State private var shownNapResult: String?
     @State private var petLine: String?
+    @State private var hoveredCat: Int?
     private enum Tab { case menu, nap }
 
     private var snapshot: GameSnapshot? { store.snapshot }
@@ -41,24 +42,21 @@ struct MacCafeView: View {
             LinearGradient(colors: [Color(red: 0.99, green: 0.93, blue: 0.86), Color(red: 0.95, green: 0.85, blue: 0.74)], startPoint: .top, endPoint: .bottom)
             // `cafe-interior` is the delivered illustration; until then the town-map café stands in.
             if UIImage(named: "cafe-interior") != nil {
-                Image("cafe-interior").resizable().scaledToFill()
+                interiorArt(napping: napping)
             } else {
                 GameIcon(asset: "town-cafe-cartoon", symbol: "cup.and.saucer.fill", size: 360, tint: RoomTheme.lilac)
                     .opacity(isOpen ? 1 : 0.55)
+                HStack(spacing: 26) {
+                    ForEach(Array(cafeCats.enumerated()), id: \.offset) { index, appearance in
+                        Button { pet(index) } label: {
+                            GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: appearance), symbol: "cat.fill", size: 62)
+                                .frame(width: 74, height: 74).background(RoomTheme.paper.opacity(0.9), in: Circle())
+                        }.buttonStyle(.plain).help(GameStrings.text("cafe.petHint"))
+                    }
+                }.frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 92)
+                hereMarker(napping: napping).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(napping ? 60 : 80)
             }
-            HStack(spacing: 26) {
-                ForEach(Array(cafeCats.enumerated()), id: \.offset) { index, appearance in
-                    Button { pet(index) } label: {
-                        GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: appearance), symbol: "cat.fill", size: 62)
-                            .frame(width: 74, height: 74).background(RoomTheme.paper.opacity(0.9), in: Circle())
-                            .overlay(alignment: .topTrailing) {
-                                if index < 2 { Text("z").font(.system(size: 16, weight: .heavy)).foregroundStyle(RoomTheme.lilac).offset(x: 4, y: -6) }
-                            }
-                    }.buttonStyle(.plain).help(GameStrings.text("cafe.petHint"))
-                }
-            }.frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 92)
-            hereMarker(napping: napping).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: napping ? .bottomLeading : .bottomTrailing)
-                .padding(napping ? 60 : 80)
             if napping { Color(red: 0.62, green: 0.52, blue: 0.84).opacity(0.18).allowsHitTesting(false) }
             if !isOpen { Color.black.opacity(0.18).allowsHitTesting(false) }
             if let petLine {
@@ -73,6 +71,42 @@ struct MacCafeView: View {
         .accessibilityElement(children: .contain)
     }
     private var cafeCats: [CatAppearance] { [.silver, .cow, .orange] }
+    /// Where things sit in `cafe-interior` (fractions of the 1672×1254 art): the three painted cats
+    /// (silver on the cat tree, black-and-white in the basket, orange on the rug), the sofa seat and a free spot on the floor.
+    private static let artSize = CGSize(width: 1672, height: 1254)
+    private static let catSpots: [CGRect] = [
+        CGRect(x: 0.616, y: 0.125, width: 0.105, height: 0.090),
+        CGRect(x: 0.470, y: 0.350, width: 0.120, height: 0.095),
+        CGRect(x: 0.390, y: 0.565, width: 0.135, height: 0.150),
+    ]
+    private static let sofaSpot = CGPoint(x: 0.80, y: 0.44)
+    private static let floorSpot = CGPoint(x: 0.66, y: 0.80)
+
+    /// The illustration filled into the scene, with invisible pet zones over the painted cats and the player
+    /// marker on the sofa while napping. Positions follow the same aspect-fill crop as the image.
+    private func interiorArt(napping: Bool) -> some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            let scale = max(size.width / Self.artSize.width, size.height / Self.artSize.height)
+            let drawn = CGSize(width: Self.artSize.width * scale, height: Self.artSize.height * scale)
+            let origin = CGPoint(x: (size.width - drawn.width) / 2, y: (size.height - drawn.height) / 2)
+            let place = { (point: CGPoint) in CGPoint(x: origin.x + point.x * drawn.width, y: origin.y + point.y * drawn.height) }
+            ZStack(alignment: .topLeading) {
+                Image("cafe-interior").resizable().frame(width: drawn.width, height: drawn.height).offset(x: origin.x, y: origin.y)
+                ForEach(Array(Self.catSpots.enumerated()), id: \.offset) { index, spot in
+                    let rect = CGRect(origin: place(spot.origin), size: CGSize(width: spot.width * drawn.width, height: spot.height * drawn.height))
+                    Button { pet(index) } label: {
+                        Ellipse().fill(Color.white.opacity(hoveredCat == index ? 0.22 : 0.001))
+                            .overlay(Ellipse().strokeBorder(.white.opacity(hoveredCat == index ? 0.9 : 0), lineWidth: 2.5))
+                            .frame(width: rect.width, height: rect.height)
+                    }.buttonStyle(.plain).onHover { hoveredCat = $0 ? index : (hoveredCat == index ? nil : hoveredCat) }
+                        .help(GameStrings.text("cafe.petHint")).accessibilityLabel(GameStrings.text("cafe.petHint"))
+                        .position(x: rect.midX, y: rect.midY)
+                }
+                hereMarker(napping: napping).position(place(napping ? Self.sofaSpot : Self.floorSpot))
+            }.frame(width: size.width, height: size.height).clipped()
+        }
+    }
     private var header: some View {
         HStack(spacing: 8) {
             Button(action: onBack) { HStack(spacing: 6) { Image(systemName: "chevron.left"); Text(GameStrings.text("cafe.back")); MacKeyCap(value: "Esc") } }

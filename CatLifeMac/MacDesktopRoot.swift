@@ -336,18 +336,19 @@ struct MacDesktopRoot: View {
         guard let pending = pendingPlayChoice else { return }
         pendingPlayChoice = nil
         Task { @MainActor in
-            // While the choices sheet is key, macOS reports the main window as inactive, so the store
-            // is briefly "in the background". Wait for it to come back (and for the sheet to finish
-            // sliding out) instead of silently dropping the choice.
+            // The room scene is paused behind the choices sheet. Once the sheet has slid out the scene
+            // resumes and needs a moment to finish whatever it suspended (eating, a stroll) and report
+            // the cat as idle again, so wait for the real gate instead of a fixed delay.
             try? await Task.sleep(for: .milliseconds(pending.choice == .quick ? 120 : 400))
-            for _ in 0..<20 where !store.isHabitInteractionActive || store.isBusy {
-                try? await Task.sleep(for: .milliseconds(100))
-            }
+            let ready: () -> Bool = { pending.choice == .quick ? store.isHabitInteractionActive && !store.isBusy : store.canOpenPlayTogether }
+            for _ in 0..<80 where !ready() { try? await Task.sleep(for: .milliseconds(100)) }
             guard pending.generation == store.saveSceneGeneration, pending.catID == store.cat?.id, !store.isDecorating else { return }
-            guard store.isHabitInteractionActive, !store.isBusy else {
+            if pending.choice == .together { _ = await store.openPlayTogether(); return }
+            guard ready() else {
+                GamePlayLog.refused(store.playTogetherBlockers, source: "quick")
                 store.showNotice(GameStrings.text("catHabits.error.busy")); return
             }
-            if pending.choice == .quick { store.play() } else { _ = await store.openPlayTogether() }
+            store.play()
         }
     }
     private func select(_ next: MacPage) {

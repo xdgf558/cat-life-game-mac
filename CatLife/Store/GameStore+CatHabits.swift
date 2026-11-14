@@ -1,5 +1,15 @@
 import Foundation
+import OSLog
 import CatGameCore
+
+/// Records why Play Together was refused, so a "busy" report can be traced to one gate.
+enum GamePlayLog {
+    private static let logger = Logger(subsystem: "com.stationcat.catlife.mac", category: "play")
+    static func refused(_ blockers: [String], source: String = "open") {
+        let line = blockers.isEmpty ? "none" : blockers.joined(separator: ",")
+        logger.notice("play refused (\(source, privacy: .public)): \(line, privacy: .public)")
+    }
+}
 
 struct PendingCatPlayEnd {
     let id = UUID()
@@ -55,7 +65,10 @@ extension GameStore {
 
     @discardableResult
     func openPlayTogether() async -> Bool {
-        guard canOpenPlayTogether, let cat else { showNotice(GameStrings.text("catHabits.error.busy")); return false }
+        guard canOpenPlayTogether, let cat else {
+            GamePlayLog.refused(playTogetherBlockers)
+            showNotice(GameStrings.text("catHabits.error.busy")); return false
+        }
         let tutorial = snapshot.map { !$0.catPlay.tutorialCompleted && ($0.catPlay.tutorialCatID == nil || $0.catPlay.tutorialCatID == cat.id) } ?? false
         if !tutorial && (snapshot?.inventory.toys ?? 0) == 0 {
             showNotice(GameStrings.text("care.needToy"))

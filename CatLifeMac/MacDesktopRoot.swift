@@ -161,12 +161,17 @@ struct MacDesktopRoot: View {
         }
         .saveRecoveryAlert(store: store, isActive: auxiliary == nil && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil && !store.isPresentingHabitGuide && !store.isPresentingHabitMemory)
     }
+    private var celebrationPresented: Bool { store.homeUpgradeCelebration != nil && auxiliary == nil && !titleVisible }
     /// The upgrade happens inside its sheet; close it so the celebration plays over the room.
+    /// The overlay sits outside `baseContent`, so it gets the in-game reduce-motion setting explicitly.
     private var celebratedContent: some View {
         presentedContent
             .overlay {
-                if let celebration = store.homeUpgradeCelebration, auxiliary == nil, !titleVisible {
+                if celebrationPresented, let celebration = store.homeUpgradeCelebration {
                     MacHomeUpgradeCelebration(store: store, celebration: celebration) { store.homeUpgradeCelebration = nil }
+                        .environment(\.locale, Locale(identifier: store.language.rawValue))
+                        .environment(\.gameReduceMotionOverride, systemReduceMotion || preferences.reduceMotion)
+                        .transaction { if preferences.reduceMotion { $0.disablesAnimations = true } }
                         .transition(.opacity)
                 }
             }
@@ -473,15 +478,19 @@ struct MacDesktopRoot: View {
             if command == .escape { store.onboarding.isPresented = false; return true }
             return false
         }
-        if command == .settings { select(.settings); return true }
         if command == .fullscreen { windowController?.toggleFullscreen(); return true }
+        if celebrationPresented {
+            // The celebration covers the room: Esc / ↩ close it, every game shortcut waits.
+            if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }
+            return true
+        }
+        if command == .settings { select(.settings); return true }
         if command == .help { showsHelp.toggle(); return true }
         if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {
             NotificationCenter.default.post(name: .macToggleRecovery, object: nil); return true
         }
         if command == .escape {
-            if store.homeUpgradeCelebration != nil, auxiliary == nil { store.homeUpgradeCelebration = nil }
-            else if store.showsPlayChoices { pendingPlayChoice = nil; store.showsPlayChoices = false }
+            if store.showsPlayChoices { pendingPlayChoice = nil; store.showsPlayChoices = false }
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }

@@ -707,7 +707,7 @@ struct MacProfilePage: View {
         .init(key: "mac.profile.mood", symbol: "face.smiling.fill", value: { $0.moodReductionPercent })
     ]
     private static func percent(_ value: Int) -> String { value > 0 ? "−\(value)%" : "—" }
-    private static func bonusText(_ value: EquipmentBonuses) -> String? {
+    static func bonusText(_ value: EquipmentBonuses) -> String? {
         let parts = stats.compactMap { stat in stat.value(value) > 0 ? GameStrings.text(stat.key) + " −\(stat.value(value))%" : nil }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }

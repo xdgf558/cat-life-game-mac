@@ -48,3 +48,19 @@ final class MacTownWalkTests: XCTestCase {
         }
     }
 }
+
+final class MacTownWalkRouteTests: XCTestCase {
+    func testHomeToShopTakesTheCentralConnectorsNotASideDetour() {
+        let route = MacTownWalk.route(from: MacTownWalk.start, to: .shop)
+        XCTAssertFalse(route.contains { abs($0.x - 0.80) < 0.001 && abs($0.y - MacTownWalk.roads[1]) < 0.001 },
+                       "The right-hand path would mean walking back to the bridge.")
+    }
+
+    func testRedirectMidBridgeStartsFromTheBridgeNotItsFarEnd() {
+        let leg = (start: CGPoint(x: 0.52, y: MacTownWalk.roads[1]), end: CGPoint(x: 0.52, y: MacTownWalk.roads[0]))
+        let middle = CGPoint(x: 0.52, y: (leg.start.y + leg.end.y) / 2)
+        let route = MacTownWalk.route(from: middle, leg: leg, to: .market)
+        XCTAssertEqual(route.first, leg.start, "Heading back south, the player turns round on the bridge.")
+        XCTAssertEqual(route.last, MacTownWalk.destination(for: .market))
+    }
+}

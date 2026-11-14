@@ -21,7 +21,10 @@ struct MacTownView: View {
     @State private var isWalking = false
     @State private var walkTask: Task<Void, Never>?
     @State private var walkEnd: CGPoint?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The leg being animated right now, so a redirect starts from where the player really is.
+    @State private var leg: (start: CGPoint, end: CGPoint, began: Date, duration: Double)?
+    /// The system setting merged with the game's own Reduce Motion switch (set by the desktop root).
+    @Environment(\.gameReduceMotionOverride) private var reduceMotion
     private var status: TownMapStatus { TownMapStatus(snapshot: store.snapshot) }
 
     var body: some View {
@@ -52,30 +55,47 @@ struct MacTownView: View {
     private func walk(to place: TownPlace) {
         selected = place
         walkTask?.cancel()
-        let route = MacTownWalk.route(from: walker, to: place)
-        guard !route.isEmpty else { return }
-        walkEnd = route[route.count - 1]
+        let position = currentPosition()
+        let route = MacTownWalk.route(from: position, leg: leg.map { ($0.start, $0.end) }, to: place)
+        // Stop the running animation exactly where the player is before planning the next legs.
+        var still = Transaction(); still.disablesAnimations = true
+        withTransaction(still) { walker = position }
+        leg = nil
+        guard let last = route.last else { finishWalk(); return }
+        walkEnd = last
         if reduceMotion {
-            walker = route[route.count - 1]; MacTownWalk.lastSpot = walker; return
+            walker = last; finishWalk(); return
         }
         // About 0.55 map-widths a second, but never longer than 2.4 seconds for the whole walk.
-        var total: CGFloat = 0, previous = walker
-        for point in route { total += MacTownWalk.distance(previous, point); previous = point }
-        let speed = max(0.55, total / 2.4)
+        let speed = max(0.55, MacTownWalk.length(from: position, route) / 2.4)
         isWalking = true
         walkTask = Task { @MainActor in
             for point in route {
                 guard !Task.isCancelled else { return }
                 let seconds = Double(MacTownWalk.distance(walker, point) / speed)
                 if abs(point.x - walker.x) > 0.004 { walkerFacesLeft = point.x < walker.x }
+                leg = (walker, point, Date(), seconds)
                 withAnimation(.linear(duration: seconds)) { walker = point }
                 try? await Task.sleep(for: .seconds(seconds))
             }
             guard !Task.isCancelled else { return }
-            isWalking = false
-            walkEnd = nil
-            MacTownWalk.lastSpot = walker
+            finishWalk()
         }
+    }
+
+    /// Where the player is drawn now: part-way along the current leg, or at rest.
+    private func currentPosition(at date: Date = Date()) -> CGPoint {
+        guard let leg else { return walker }
+        let t = leg.duration > 0 ? min(1, max(0, date.timeIntervalSince(leg.began) / leg.duration)) : 1
+        return CGPoint(x: leg.start.x + (leg.end.x - leg.start.x) * t, y: leg.start.y + (leg.end.y - leg.start.y) * t)
+    }
+
+    /// One place that ends every walk: arrived, redirected to nowhere, or skipped by Reduce Motion.
+    private func finishWalk() {
+        leg = nil
+        isWalking = false
+        walkEnd = nil
+        MacTownWalk.lastSpot = walker
     }
 
     private var map: some View {

@@ -36,8 +36,39 @@ enum MacTownWalk {
         return CGPoint(x: min(0.97, x + standOffset), y: roads[row(of: place)])
     }
 
-    /// Waypoints from `from` (a previous destination or the start) to `place`, excluding `from`.
+    /// The shortest road route from `from` (a destination, waypoint or the start) to `place`, excluding `from`.
+    /// Every combination of connectors is tried, so a two-road change never detours via a side path.
     static func route(from: CGPoint, to place: TownPlace) -> [CGPoint] {
+        let lane = startLane(from)
+        let changes = abs(row(of: place) - lane)
+        var options: [[Int]] = [[]]
+        var step = lane
+        for _ in 0..<changes {
+            let down = row(of: place) > step
+            let count = connectors[down ? step : step - 1].count
+            options = options.flatMap { prefix in (0..<count).map { prefix + [$0] } }
+            step += down ? 1 : -1
+        }
+        return options.map { build(from: from, to: place, links: $0) }
+            .min { length(from: from, $0) < length(from: from, $1) } ?? []
+    }
+
+    /// Redirecting mid-leg: carry on to the leg's end or turn back to its start, whichever is shorter overall.
+    static func route(from position: CGPoint, leg: (start: CGPoint, end: CGPoint)?, to place: TownPlace) -> [CGPoint] {
+        guard let leg else { return route(from: position, to: place) }
+        return [leg.start, leg.end].map { [$0] + route(from: $0, to: place) }
+            .min { length(from: position, $0) < length(from: position, $1) } ?? []
+    }
+
+    static func length(from: CGPoint, _ points: [CGPoint]) -> CGFloat {
+        var total: CGFloat = 0, previous = from
+        for point in points { total += distance(previous, point); previous = point }
+        return total
+    }
+
+    private static func startLane(_ point: CGPoint) -> Int { point.y > roads[2] + 0.02 ? 2 : nearestRoad(to: point.y) }
+
+    private static func build(from: CGPoint, to place: TownPlace, links: [Int]) -> [CGPoint] {
         var points: [CGPoint] = []
         var here = from
         func go(_ point: CGPoint) {
@@ -45,37 +76,32 @@ enum MacTownWalk {
             points.append(point); here = point
         }
         // Step back onto a road first.
-        var lane = nearestRoad(to: here.y)
+        var lane = startLane(here)
         if here.y > roads[2] + 0.02 {
-            // On a bottom spur: walk back to the spur line, then up to the road.
-            go(CGPoint(x: here.x + standOffset * 0.8, y: here.y))
-            go(CGPoint(x: here.x, y: roads[2])); lane = 2
+            // On a bottom spur: back to that spur's line, then up to the road.
+            let spurX = spurLines.min { abs($0 - here.x) < abs($1 - here.x) } ?? here.x
+            go(CGPoint(x: spurX, y: here.y))
+            go(CGPoint(x: spurX, y: roads[2]))
         } else {
             go(CGPoint(x: here.x, y: roads[lane]))
         }
-        let target = row(of: place)
-        let goal = destination(for: place).x
-        while lane != target {
-            let down = target > lane
-            let pair = down ? connectors[lane] : connectors[lane - 1]
-            // The connector that makes the shortest walk: here → its near end, far end → the goal.
-            func cost(_ link: (top: CGFloat, bottom: CGFloat)) -> CGFloat {
-                abs((down ? link.top : link.bottom) - here.x) + abs((down ? link.bottom : link.top) - goal)
-            }
-            guard let link = pair.min(by: { cost($0) < cost($1) }) else { break }
+        for choice in links {
+            let down = row(of: place) > lane
+            let link = connectors[down ? lane : lane - 1][choice]
             go(CGPoint(x: down ? link.top : link.bottom, y: roads[lane]))
             lane += down ? 1 : -1
             go(CGPoint(x: down ? link.bottom : link.top, y: roads[lane]))
         }
-        let end = destination(for: place)
         if isOnSpur(place) {
             let spurX = MacTownViewport69.position(place).x
             go(CGPoint(x: spurX, y: roads[2]))
             go(CGPoint(x: spurX, y: spurDepth))
         }
-        go(end)
+        go(destination(for: place))
         return points
     }
+
+    private static var spurLines: [CGFloat] { TownPlace.mapPlaces.filter(isOnSpur).map { MacTownViewport69.position($0).x } }
 
     static func nearestRoad(to y: CGFloat) -> Int {
         roads.indices.min { abs(roads[$0] - y) < abs(roads[$1] - y) } ?? 2

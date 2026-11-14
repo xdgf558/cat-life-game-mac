@@ -229,6 +229,9 @@ struct MacDesktopRoot: View {
                     work: { select(.work) }, bag: { auxiliary = .bag },
                     shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves }),
                     isNested: $profileNested)
+                    // A fresh page per save, so an imported save never inherits a rename draft or open wardrobe.
+                    .id(store.saveSceneGeneration)
+                    .onChange(of: store.saveSceneGeneration) { _, _ in profileNested = false }
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }

@@ -199,8 +199,8 @@ struct MacOnboardingTour: View {
                                       preferences.binding(for: .clean).label, preferences.binding(for: .play).label)
         case (.care, 3):
             return GameStrings.format(key, preferences.binding(for: .viewLeft).label, preferences.binding(for: .viewRight).label)
-        case (.work, 1): return GameStrings.format(key, preferences.binding(for: .work).label)
-        case (.supplies, 1): return GameStrings.format(key, preferences.binding(for: .shop).label)
+        case (.work, 1): return GameStrings.format(key, preferences.binding(for: .town).label)
+        case (.supplies, 1): return GameStrings.format(key, preferences.binding(for: .town).label)
         case (.supplies, 2): return GameStrings.format(key, preferences.binding(for: .decorate).label)
         case (.town, 1): return GameStrings.format(key, preferences.binding(for: .town).label)
         default: return GameStrings.text(key)

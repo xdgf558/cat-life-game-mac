@@ -7,6 +7,7 @@ struct MacWorkView: View {
     var onHome: () -> Void = {}
     var preferences: MacPreferences? = nil
     var exits = MacRecoveryExits()
+    var onTown: (() -> Void)? = nil
     @State private var selectedID = WorkCatalog.all[0].id
     @State private var confirmsCancellation = false
     @State private var canceling = false
@@ -28,10 +29,13 @@ struct MacWorkView: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            jobs.frame(width: 280)
-            detail.frame(maxWidth: .infinity, maxHeight: .infinity)
-            summary.frame(width: 285)
+        VStack(spacing: 14) {
+            MacPlaceBanner(store: store, place: .work, height: 132, onTown: onTown) { bannerStats }
+            HStack(alignment: .top, spacing: 16) {
+                jobs.frame(width: 280)
+                detail.frame(maxWidth: .infinity, maxHeight: .infinity)
+                summary.frame(width: 285)
+            }
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded))
         .foregroundStyle(RoomTheme.ink)
@@ -130,8 +134,13 @@ struct MacWorkView: View {
                     working(active)
                 } else {
                     VStack(alignment: .leading, spacing: 18) {
-                        jobHero
-                        Text(WorkJobPresentation.name(displayed.id)).font(.system(size: 28, weight: .heavy))
+                        HStack(spacing: 12) {
+                            GameIcon(asset: WorkJobPresentation.asset(displayed.id), symbol: WorkJobPresentation.symbol(displayed.id), size: 46)
+                                .frame(width: 60, height: 60)
+                                .background(RoomTheme.sky.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
+                                .accessibilityHidden(true)
+                            Text(WorkJobPresentation.name(displayed.id)).font(.system(size: 28, weight: .heavy))
+                        }
                         Text(GameStrings.text("jobs.\(displayed.id).detail")).foregroundStyle(RoomTheme.secondary)
                         metrics
                         if staminaShort > 0 { lowStamina } else { preview }
@@ -143,10 +152,26 @@ struct MacWorkView: View {
         }.macContentCard69(padding: 22)
     }
 
-    private var jobHero: some View {
-        GameIcon(asset: WorkJobPresentation.asset(displayed.id), symbol: WorkJobPresentation.symbol(displayed.id), size: 156)
-            .frame(maxWidth: .infinity).frame(height: 220)
-            .background(RoomTheme.sky.opacity(0.16), in: RoundedRectangle(cornerRadius: 24))
+    /// Today's work at a glance on the scene banner; while working, a live countdown leads.
+    private var bannerStats: some View {
+        HStack(spacing: 6) {
+            if let active {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    let remaining = max(0, active.endsAt.timeIntervalSince(max(context.date, store.snapshot?.meta.lastSyncAt ?? context.date)))
+                    let seconds = Int(ceil(remaining))
+                    MacBannerChip(text: seconds > 0 ? GameStrings.format("place.work.remaining", MacWorkClock.text(seconds))
+                                                    : GameStrings.text("mac.work.v2.settling"),
+                                  symbol: "timer", tint: RoomTheme.darkMint)
+                }
+            }
+            MacBannerChip(text: GameStrings.format("place.work.todayCount", store.snapshot?.tasks.dailyWorkCount ?? 0),
+                          symbol: "briefcase.fill", tint: RoomTheme.secondary)
+            MacBannerChip(text: GameStrings.format("place.work.todayIncome", store.snapshot?.tasks.dailyWorkGold ?? 0),
+                          symbol: "dollarsign.circle.fill", tint: RoomTheme.gold)
+            let stamina = store.snapshot?.player.stamina ?? 0
+            MacBannerChip(text: GameStrings.format("place.work.stamina", stamina), symbol: "bolt.fill",
+                          tint: stamina < (quote?.staminaCost ?? selected.staminaCost) ? RoomTheme.coralDeep : RoomTheme.darkMint)
+        }.accessibilityElement(children: .contain).accessibilityIdentifier("macWorkBannerStats")
     }
 
     private func working(_ work: ActiveWork) -> some View {
@@ -256,16 +281,6 @@ struct MacWorkView: View {
     private var summary: some View {
         ScrollView {
             VStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 15) {
-                    Label(GameStrings.text("mac.work.v2.today"), systemImage: "calendar.badge.checkmark").font(.headline)
-                    HStack(spacing: 8) {
-                        metric("mac.work.v2.count", "\(store.snapshot?.tasks.dailyWorkCount ?? 0)", "briefcase.fill", RoomTheme.secondary)
-                        metric("mac.work.v2.income", "+\(store.snapshot?.tasks.dailyWorkGold ?? 0)", "dollarsign.circle.fill", RoomTheme.gold)
-                        metric("mac.work.experience", "+\(store.snapshot?.tasks.dailyWorkExp ?? 0)", "star.fill", RoomTheme.lilac)
-                    }
-                    Text(GameStrings.format("mac.work.v2.lifetime", store.snapshot?.player.completedWorkCount ?? 0))
-                        .font(.caption).foregroundStyle(RoomTheme.secondary)
-                }.macContentCard69()
                 recoveryToday
                 Button { showsRest = true } label: {
                     Label(GameStrings.text("work.rest.open"), systemImage: store.snapshot?.player.activeSleep == nil ? "moon.stars.fill" : "sun.max.fill")

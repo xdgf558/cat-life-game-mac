@@ -39,13 +39,20 @@ struct PlayerProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(path.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .name: playerNamePage
-                case .avatars: avatarPicker
-                case .wardrobe: wardrobePage
-                case .bonuses: bonusesPage
-                case .equipment(let slot): equipmentPicker(slot)
+                Group {
+                    switch route {
+                    case .name: playerNamePage
+                    case .avatars: avatarPicker
+                    case .wardrobe: wardrobePage
+                    case .bonuses: bonusesPage
+                    case .equipment(let slot): equipmentPicker(slot)
+                    }
                 }
+                #if os(macOS)
+                // Sheets on macOS have no navigation bar, so the toolbar back buttons never show;
+                // every sub-page gets an in-content back bar instead.
+                .safeAreaInset(edge: .top, spacing: 0) { macBackBar }
+                #endif
             }
 
         }
@@ -553,6 +560,25 @@ struct PlayerProfileView: View {
         .navigationBarTitleDisplayMode(.inline).navigationBarBackButtonHidden()
         .toolbar { backButton }
     }
+
+    #if os(macOS)
+    private var macBackBar: some View {
+        HStack {
+            Button(action: popSection) {
+                Label(GameStrings.text("common.back"), systemImage: "chevron.left")
+                    .font(.system(size: 14, weight: .heavy)).padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(RoomTheme.paleMint, in: Capsule()).contentShape(Capsule())
+            }.buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint)
+                .disabled(isSavingPlayerName).accessibilityIdentifier("profileMacBackButton")
+            Spacer()
+        }.padding(.horizontal, 20).padding(.vertical, 10).background(RoomTheme.cream)
+    }
+    private func popSection() {
+        guard !isSavingPlayerName, !path.isEmpty else { return }
+        playerNameFieldFocused = false
+        path.removeLast()
+    }
+    #endif
 
     private var backButton: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {

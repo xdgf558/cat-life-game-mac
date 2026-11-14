@@ -202,9 +202,12 @@ struct MacDesktopRoot: View {
                         onCats: { select(.cats) }, onRest: { restRequest = $0 }, onContext: context, onFixedStructure: fixedStructure,
                         onBag: { auxiliary = .bag })
                 } else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
-            case .work: MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits)
-            case .shop: MacShopView(store: store, onHome: { page = .home }, preferences: preferences)
-            case .cats: MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
+            case .work:
+                MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits, onTown: { select(.town) })
+            case .shop:
+                MacShopView(store: store, onHome: { page = .home }, preferences: preferences, onTown: { select(.town) })
+            case .cats:
+                placePage(.adoption) { MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences) }
             case .town:
                 if showsCafe {
                     MacCafeView(store: store, onBack: { showsCafe = false; store.playNavigationSound() }, onWork: { select(.work) },
@@ -216,6 +219,13 @@ struct MacDesktopRoot: View {
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
             }
+        }
+    }
+    /// A town place's page: its scene banner on top, the existing page below.
+    private func placePage<Content: View>(_ place: TownPlace, @ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 14) {
+            MacPlaceBanner(store: store, place: place, height: 132, onTown: { select(.town) })
+            content()
         }
     }
     private static func makePreferences() -> MacPreferences {
@@ -544,6 +554,9 @@ struct MacDesktopRoot: View {
         VStack(spacing: 0) {
             HStack { Text(GameStrings.text(item.key)).font(.title3.bold()); Spacer(); Button(GameStrings.text("common.done")) { auxiliary = nil }.keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress) }.padding(16)
             Divider()
+            if let place = item.place {
+                MacPlaceBanner(store: store, place: place, height: 120).padding(.horizontal, 16).padding(.top, 12)
+            }
             Group {
                 switch item {
                 case .tasks: TaskDestinationView(store: store)
@@ -597,6 +610,16 @@ private enum MacAuxiliary: String, Identifiable {
     case tasks, inventory, upgrade, hospital, neighbors, neighborDetail, market, board, saves, player, catProfile, bag, rest
     var id: String { rawValue }
     var usesActiveSheet: Bool { [.tasks, .inventory, .upgrade, .hospital, .player].contains(self) }
+    /// Town places opened as sheets show that place's scene banner.
+    var place: TownPlace? {
+        switch self {
+        case .hospital: .hospital
+        case .neighbors, .neighborDetail: .street
+        case .market: .market
+        case .board: .board
+        default: nil
+        }
+    }
     var key: String { switch self {
         case .tasks: "tasks.title"; case .inventory: "inventory.title"; case .upgrade: "homeUpgrade.title"; case .hospital: "hospital.title"
         case .neighbors, .neighborDetail: "community.title"; case .market: "market.title"; case .board: "townEvents.title"; case .saves: "saveTransfer.title"

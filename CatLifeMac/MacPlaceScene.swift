@@ -36,11 +36,14 @@ struct MacPlaceBanner: View {
                            startPoint: .leading, endPoint: .trailing)
                 .allowsHitTesting(false)
             HStack(alignment: .center, spacing: 14) {
-                GameIcon(asset: place.asset, symbol: place.symbol, size: 62, tint: place.tint)
-                    .frame(width: 78, height: 78)
-                    .background(RoomTheme.paper.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
-                    .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white, lineWidth: 3))
-                    .accessibilityHidden(true)
+                // With the scene art in place the illustration already shows the building.
+                if !MacPlaceSceneArt.isDelivered(place) {
+                    GameIcon(asset: place.asset, symbol: place.symbol, size: 62, tint: place.tint)
+                        .frame(width: 78, height: 78)
+                        .background(RoomTheme.paper.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
+                        .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white, lineWidth: 3))
+                        .accessibilityHidden(true)
+                }
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
                         Text(GameStrings.text(place.titleKey)).font(.system(size: 24, weight: .heavy, design: .rounded))

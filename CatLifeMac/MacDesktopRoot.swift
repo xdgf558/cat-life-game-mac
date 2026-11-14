@@ -9,6 +9,8 @@ struct MacDesktopRoot: View {
     @State private var store = GameStore()
     @State private var preferences = Self.makePreferences()
     @State private var page = MacPage.home
+    /// The profile page has a wardrobe, sources, rename or look picker open; Esc steps back there first.
+    @State private var profileNested = false
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
@@ -223,9 +225,10 @@ struct MacDesktopRoot: View {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
             case .profile:
-                PlayerProfileView(store: store)
-                    .clipShape(RoundedRectangle(cornerRadius: 26))
-                    .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(.white, lineWidth: 3))
+                MacProfilePage(store: store, exits: MacProfileExits(
+                    work: { select(.work) }, bag: { auxiliary = .bag },
+                    shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves }),
+                    isNested: $profileNested)
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
@@ -440,6 +443,7 @@ struct MacDesktopRoot: View {
             else if store.supplyPicker != nil { if !store.isBusy { store.supplyPicker = nil } }
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
+            else if page == .profile && profileNested { NotificationCenter.default.post(name: .macProfileEscape, object: nil) }
             else if !titleVisible { titleVisible = true }
             return true
         }

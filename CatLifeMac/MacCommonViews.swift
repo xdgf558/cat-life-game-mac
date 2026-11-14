@@ -155,6 +155,7 @@ struct MacTopBar: View {
         case .shop: return GameStrings.text("mac.top.v2.shop")
         case .town: return GameStrings.text("mac.top.v2.town")
         case .cats: return GameStrings.text("mac.top.v2.cats")
+        case .profile: return GameStrings.text("mac.top.profile")
         default: return nil
         }
     }

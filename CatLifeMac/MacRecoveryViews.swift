@@ -302,7 +302,8 @@ struct MacBagView: View {
             }.frame(maxWidth: .infinity)
             ScrollView { MacSupplyUseCard(store: store, kind: selected, exits: exits) }.frame(width: 300)
         }
-        .padding(18).foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+        .padding(18).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
         .accessibilityIdentifier("macBag")
     }
     private func category(_ key: String, symbol: String, selected: Bool, isNew: Bool, action: @escaping () -> Void) -> some View {

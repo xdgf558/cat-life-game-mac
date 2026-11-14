@@ -106,7 +106,12 @@ struct MacDesktopRoot: View {
         }
     }
     private var presentedContent: some View {
-        statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in auxiliaryView(item).frame(minWidth: 600, idealWidth: 780, minHeight: 600, idealHeight: 760) }
+        statusContent.sheet(item: $auxiliary, onDismiss: clearAuxiliary) { item in
+            // The bag has three columns (categories, items, the use card) and needs a wider sheet;
+            // narrower, its content overflowed and was clipped on both sides.
+            auxiliaryView(item).frame(minWidth: item == .bag ? 940 : 600, idealWidth: item == .bag ? 980 : 780,
+                                      minHeight: 600, idealHeight: 760)
+        }
         .sheet(isPresented: $showsHelp) { MacShortcutsHelpView(preferences: preferences).frame(width: 800, height: 660) }
         .sheet(isPresented: $store.showsPlayChoices, onDismiss: completePlayChoice) {
             VStack(spacing: 0) {

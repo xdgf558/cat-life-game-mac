@@ -12,8 +12,6 @@ struct ExchangeConfirmationView: View {
     let cancel: () -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var eligible: Bool { ExchangeCatalog.eligibility(of: offer, in: snapshot) == nil }
-    private var friendship: Int { snapshot.community.relationship(for: offer.neighborID).friendship }
-    private var afterFriendship: Int { ExchangePresentation.friendshipAfterTrade(friendship) }
     private var remaining: Int { snapshot.community.exchangeCount(for: offer.neighborID).remainingToday }
 
     var body: some View {
@@ -34,7 +32,7 @@ struct ExchangeConfirmationView: View {
                     Divider().overlay(RoomTheme.track)
                     items(offer.outputs, receiving: true)
                 }.padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 24)
-                friendshipPreview
+                remainingPreview
                 if !eligible {
                     Text(ExchangePresentation.status(offer, snapshot: snapshot))
                         .font(.subheadline.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
@@ -100,21 +98,16 @@ struct ExchangeConfirmationView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private var friendshipPreview: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ViewThatFits(in: .horizontal) {
-                HStack { friendshipLabel; Spacer(minLength: 8); remainingLabel }
-                VStack(alignment: .leading, spacing: 6) { friendshipLabel; remainingLabel }
-            }
-            ExchangeFriendshipBar(friendship: friendship, preview: afterFriendship)
+    /// The market trades goods only; friendship is earned by visits, gifts and the notice board.
+    private var remainingPreview: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            remainingLabel
+            Text(GameStrings.text("market.noFriendship130")).font(.caption).foregroundStyle(RoomTheme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(13).background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 18))
+        .padding(13).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 2))
-    }
-    private var friendshipLabel: some View {
-        Label(GameStrings.format("market.friendshipPreview", friendship, afterFriendship), systemImage: "heart.fill")
-            .font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-            .accessibilityIdentifier("marketFriendshipPreview").accessibilityValue("\(friendship):\(afterFriendship)")
     }
     private var remainingLabel: some View {
         Text(GameStrings.format("market.remainingPreview", remaining, max(0, remaining - 1)))

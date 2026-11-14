@@ -8,7 +8,7 @@ struct MacTownView: View {
     let onEnter: (TownPlace) -> Void
     var preferences: MacPreferences? = nil
     var onNeighbor: ((String) -> Void)? = nil
-    @State private var selected: TownPlace = .board
+    @State private var selected: TownPlace = .plaza
     @State private var layer: TownLayer = .all
     @State private var scale: CGFloat = 1
     @State private var offset: CGSize = .zero
@@ -82,7 +82,7 @@ struct MacTownView: View {
     private func mapContents(size: CGSize) -> some View {
         ZStack {
             mapGround
-            ForEach(TownPlace.allCases) { place in
+            ForEach(TownPlace.mapPlaces) { place in
                 let point = MacTownViewport69.position(place)
                 marker(place, size: min(size.width * 0.15, size.height * (place.isEmpty ? 0.12 : 0.165)))
                     .position(x: point.x * size.width, y: point.y * size.height)
@@ -369,8 +369,8 @@ enum MacTownViewport69 {
         case .work: CGPoint(x: 0.24, y: 0.12)
         case .cafe: CGPoint(x: 0.52, y: 0.125)
         case .shop: CGPoint(x: 0.79, y: 0.12)
-        case .board: CGPoint(x: 0.24, y: 0.44)
-        case .plaza: CGPoint(x: 0.52, y: 0.43)
+        case .board, .plaza: CGPoint(x: 0.52, y: 0.43)
+        case .lot3: CGPoint(x: 0.24, y: 0.46)
         case .market: CGPoint(x: 0.8, y: 0.445)
         case .street: CGPoint(x: 0.16, y: 0.7)
         case .home: CGPoint(x: 0.52, y: 0.7)

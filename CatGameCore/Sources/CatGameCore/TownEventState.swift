@@ -12,7 +12,9 @@ public struct TownEventReceipt: Codable, Equatable, Identifiable, Sendable {
     public let rewards: TownEventRewards
     public var id: String { dayKey }
     public var responseKey: String {
-        TownEventCatalog.event(id: eventID)?.choices.first { $0.id == choiceID }?.responseKey ?? "townEvents.letter.archived"
+        guard let event = TownEventCatalog.event(id: eventID) else { return "townEvents.letter.archived" }
+        if let choice = event.choices.first(where: { $0.id == choiceID }) { return choice.responseKey }
+        return event.retiredChoiceIDs.contains(choiceID) ? "townEvents.event.\(eventID).\(choiceID).reply" : "townEvents.letter.archived"
     }
 
     public init(dayKey: String, eventID: String, choiceID: String, neighborID: String, completedAt: Date,

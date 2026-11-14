@@ -159,7 +159,7 @@ struct ExchangeMarketView: View {
             }
             VStack(alignment: .leading, spacing: 5) {
                 Text(GameStrings.text("market.subtitle")).font(.subheadline.weight(.heavy))
-                Text(GameStrings.format("market.dailyHint", ExchangeCatalog.dailyLimit, ExchangeCatalog.friendship))
+                Text(GameStrings.format("market.dailyHint130", ExchangeCatalog.dailyLimit))
                     .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             }.fixedSize(horizontal: false, vertical: true)
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 24)

@@ -188,9 +188,6 @@ enum ExchangePresentation {
     static func stockID(_ item: ExchangeItem) -> String {
         switch item { case .supply(let kind): kind.rawValue; case .gift(let id): id }
     }
-    static func friendshipAfterTrade(_ friendship: Int) -> Int {
-        min(100, friendship + ExchangeCatalog.friendship)
-    }
     static func countAfterTrade(_ item: ExchangeItem, offer: ExchangeOffer, inventory: InventoryState) -> Int {
         let spent = offer.inputs.filter { $0.item == item }.reduce(0) { $0 + $1.quantity }
         let received = offer.outputs.filter { $0.item == item }.reduce(0) { $0 + $1.quantity }

@@ -9,7 +9,7 @@ struct TownEventTests {
     func ready(eventID: String? = nil) -> GameSnapshot {
         var state = GameSnapshot.fresh(now: now)
         state.inventory.food = 20; state.inventory.litter = 20; state.inventory.toys = 20
-        state.inventory.gifts = ["flower": 10, "drink": 10, "dessert": 10]
+        state.inventory.gifts = ["flower": 10, "drink": 10, "dessert": 10, "cat_snack": 10]
         if let eventID { state.community.events.eventID = eventID }
         return state
     }
@@ -36,7 +36,9 @@ struct TownEventTests {
             "Published milestone IDs and their thresholds must not be repurposed.")
         for event in TownEventCatalog.all {
             #expect(CommunityCatalog.neighbor(id: event.neighborID) != nil)
-            #expect(event.choices.map(\.id) == ["help", "supply"])
+            #expect(event.choices.count == 2 && event.choices[0].id == "help")
+            #expect(event.choices[1].giftID != nil && event.choices[1].supplyCost == nil,
+                    "The notice board takes stamina or a gift; supplies belong to the market.")
             for choice in event.choices {
                 var state = ready(eventID: event.id)
                 let before = state
@@ -111,12 +113,12 @@ struct TownEventTests {
     @Test func missingMaterialsInsufficientStaminaAndBusyWorkNeverSpendOrComplete() throws {
         for reason in 0..<4 {
             var state = ready(eventID: "mira_tidy")
-            if reason == 0 { state.inventory.litter = 0 }
+            if reason == 0 { state.inventory.gifts["cat_snack"] = 0 }
             if reason == 1 { state.player.stamina = 0 }
             if reason == 2 { #expect(GameEngine.startWork(&state, now: now).succeeded) }
             if reason == 3 { #expect(GameEngine.startSleep(&state, now: now).succeeded) }
             let original = state
-            let result = choose(&state, choice: reason == 0 ? "supply" : "help")
+            let result = choose(&state, choice: reason == 0 ? "gift" : "help")
             #expect(result.failure == [ActionFailure.townEventSuppliesRequired, .townEventStaminaRequired,
                                       .townEventBusy, .townEventBusy][reason])
             #expect(state == original)
@@ -127,15 +129,26 @@ struct TownEventTests {
         var state = ready(eventID: "grace_welcome")
         state.community.relationships["neighbor_grace"]?.friendship = 18
         let before = state
-        #expect(choose(&state, choice: "supply").succeeded)
+        #expect(choose(&state, choice: "gift").succeeded)
         let receipt = try #require(state.community.events.todayReceipt)
         #expect(receipt.stageBefore == 1 && receipt.stageAfter == 2)
-        #expect(receipt.rewards == .init(gold: 20, food: 1, litter: 1))
-        #expect(state.inventory.food == before.inventory.food,
-                "One food was given and a different food was awarded by the stage reward.")
-        #expect(state.inventory.litter == before.inventory.litter + 1)
+        #expect(receipt.rewards == .init(gold: 20, food: 1, premiumLitter: 1))
+        #expect(state.inventory.giftCount("flower") == before.inventory.giftCount("flower") - 1)
+        #expect(state.inventory.food == before.inventory.food + 1, "The stage reward adds one food.")
+        #expect(state.inventory.premiumLitter == before.inventory.premiumLitter + 1)
         let saved = try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: state)).snapshot
         #expect(saved.community.events == state.community.events)
+    }
+
+    @Test func retiredSupplyChoicesKeepTheirLettersButCannotBeChosen() throws {
+        var state = ready(eventID: "mira_tidy")
+        let before = state
+        #expect(choose(&state, choice: "supply").failure == .townEventMissing)
+        #expect(state == before)
+        let letter = TownEventReceipt(dayKey: try #require(state.community.events.dayKey), eventID: "mira_tidy",
+            choiceID: "supply", neighborID: "neighbor_mira", completedAt: now, friendshipGained: 6,
+            stageBefore: 1, stageAfter: 1, rewards: .init(food: 1))
+        #expect(letter.responseKey == "townEvents.event.mira_tidy.supply.reply")
     }
 
     @Test func fullStockAndWalletReportOnlyActualAwardsWithoutBlockingTheStory() throws {

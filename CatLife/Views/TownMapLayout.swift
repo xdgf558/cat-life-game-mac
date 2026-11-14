@@ -4,7 +4,7 @@ import CatGameCore
 /// Map coordinates are presentation only; they never enter a game save.
 enum TownMapLayout {
     static let size = CGSize(width: 390, height: 1820)
-    static let readingOrder: [TownPlace] = [.work, .shop, .plaza, .board, .market, .street,
+    static let readingOrder: [TownPlace] = [.work, .shop, .plaza, .lot3, .market, .street,
                                            .home, .hospital, .adoption, .cafe, .lot1, .lot2]
     static func frame(for place: TownPlace) -> CGRect {
         let values: (CGFloat, CGFloat, CGFloat)
@@ -12,7 +12,7 @@ enum TownMapLayout {
         case .work: values = (14, 196, 156)
         case .shop: values = (220, 200, 156)
         case .plaza: values = (106, 500, 178)
-        case .board: values = (4, 714, 134)
+        case .board, .lot3: values = (4, 714, 134)
         case .market: values = (234, 714, 152)
         case .street: values = (4, 910, 164)
         case .hospital: values = (234, 910, 152)

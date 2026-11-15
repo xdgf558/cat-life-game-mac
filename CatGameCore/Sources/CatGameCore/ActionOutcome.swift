@@ -84,6 +84,25 @@ public enum ActionFailure: String, Equatable, Sendable {
     case workProgressLimit = "work.progressLimit"
     case workSleeping = "work.sleeping"
     case workStaminaRequired = "work.staminaRequired"
+    case workOuting = "work.outing"
+    case outingActive = "outing.error.active"
+    case outingMissing = "outing.error.missing"
+    case outingDailyLimit = "outing.error.dailyLimit"
+    case outingWorking = "outing.error.working"
+    case outingSleeping = "outing.error.sleeping"
+    case outingNapping = "outing.error.napping"
+    case outingCatSick = "outing.blocker.sick"
+    case outingCatHungry = "outing.blocker.hungry"
+    case outingCatTired = "outing.blocker.tired"
+    case outingCatBusy = "outing.blocker.playing"
+    case outingStaminaRequired = "outing.error.stamina"
+    case outingNoFootprints = "outing.error.noFootprints"
+    case outingEventPending = "outing.error.eventPending"
+    case outingEventMissing = "outing.error.eventMissing"
+    case outingDuplicateMissing = "outing.error.duplicateMissing"
+    case outingKeepsakeMissing = "outing.error.keepsakeMissing"
+    case outingShelfMissing = "outing.error.shelfMissing"
+    case outingShelfFull = "outing.error.shelfFull"
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
@@ -129,6 +148,13 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case foodPurchased = "shop.foodPurchased"
     case litterPurchased = "shop.litterPurchased"
     case toyPurchased = "shop.toyPurchased"
+    case outingStarted = "outing.started"
+    case outingExplored = "outing.explored"
+    case outingEventChosen = "outing.eventChosen"
+    case outingEnded = "outing.ended"
+    case outingAcknowledged = "outing.acknowledged"
+    case outingDuplicateResolved = "outing.duplicateResolved"
+    case outingShelfUpdated = "outing.shelfUpdated"
 
     public var kind: ActionKind {
         switch self {
@@ -140,6 +166,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
              .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted,
               .townEventCompleted, .townMilestoneClaimed: return .none
         case .habitPlayOpened, .habitPlayUpdated, .habitPlayEnded, .habitCornerSelected, .workCancelled: return .none
+        case .outingStarted, .outingExplored, .outingEventChosen, .outingEnded, .outingAcknowledged,
+             .outingDuplicateResolved, .outingShelfUpdated: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

@@ -24,7 +24,8 @@ struct MacBuildView: View {
         (store.sceneSnapshot?.inventory.furniture ?? []).filter { item in
             guard placedIDs.contains(item.id) || storedIDs.contains(item.id) else { return false }
             let wall = FurnitureCatalog.metadata(for: item.kind).isWall
-            return (filter == "all" || filter == "bag" && storedIDs.contains(item.id) || filter == "wall" && wall || filter == "floor" && !wall)
+            return (filter == "all" || filter == "bag" && storedIDs.contains(item.id) || filter == "wall" && wall || filter == "floor" && !wall
+                    || filter == "outing" && item.kind.isOutingDecor)
                 && (query.isEmpty || GameStrings.furnitureName(item).localizedCaseInsensitiveContains(query))
         }.sorted { a, b in
             if storedIDs.contains(a.id) != storedIDs.contains(b.id) { return storedIDs.contains(a.id) }
@@ -94,7 +95,7 @@ struct MacBuildView: View {
                     .focused($searchFocused).accessibilityIdentifier("macBuildSearch")
                 Text(preferences.binding(for: .search).label).font(.caption.monospaced()).foregroundStyle(RoomTheme.secondary)
             }.padding(10).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
-            MacSegmented(selection: $filter, options: ["all", "floor", "wall", "bag"].map { ($0, GameStrings.text("mac.build.filter." + $0)) })
+            MacSegmented(selection: $filter, options: ["all", "floor", "wall", "bag", "outing"].map { ($0, GameStrings.text("mac.build.filter." + $0)) })
                 .accessibilityLabel(GameStrings.text("mac.build.filter"))
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {

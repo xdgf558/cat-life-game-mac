@@ -81,7 +81,8 @@ public struct CatHealthState: Codable, Equatable, Sendable {
 }
 
 enum CatHealthEngine {
-    static func synchronize(_ cat: inout CatState, now: Date) {
+    /// `restBonus`: placed outing decor's extra rest energy (%), granted when a rest finishes at a checkpoint.
+    static func synchronize(_ cat: inout CatState, now: Date, restBonus: Int = 0) {
         guard var health = cat.healthState else {
             // Existing saves begin here, never at their pre-upgrade last-played date.
             cat.healthState = CatHealthState(now: now)
@@ -100,7 +101,7 @@ enum CatHealthEngine {
         // Advance needs at fixed checkpoints, including rest credits, before assessing risk.
         for step in 1...count {
             cat.healthState = health
-            GameEngine.settleCatNeeds(&cat, now: cursor.addingTimeInterval(Double(step) * interval))
+            GameEngine.settleCatNeeds(&cat, now: cursor.addingTimeInterval(Double(step) * interval), restBonus: restBonus)
             health = cat.healthState ?? health
             if health.illness != nil {
                 if cat.health > CatHealthCatalog.minimumIllnessHealth {

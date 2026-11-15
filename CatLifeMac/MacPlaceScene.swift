@@ -11,6 +11,9 @@ import CatGameCore
 enum MacPlaceSceneArt {
     static func asset(for place: TownPlace) -> String { "place-\(place.rawValue)-scene" }
     static func isDelivered(_ place: TownPlace) -> Bool { UIImage(named: asset(for: place)) != nil }
+    /// Which height of the art stays in view when a wide window crops it. Most scenes are painted
+    /// edge to edge; the garden sits low under open sky, so its crop leans down to keep the ground.
+    static func focusY(_ place: TownPlace) -> CGFloat { place == .garden ? 0.58 : 0.5 }
 }
 
 @MainActor
@@ -89,8 +92,22 @@ struct MacPlaceBanner<Extra: View>: View {
 
     @ViewBuilder private var backdrop: some View {
         if MacPlaceSceneArt.isDelivered(place) {
-            Image(MacPlaceSceneArt.asset(for: place)).resizable().scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+            let focus = MacPlaceSceneArt.focusY(place)
+            if focus == 0.5 {
+                Image(MacPlaceSceneArt.asset(for: place)).resizable().scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+            } else {
+                GeometryReader { proxy in
+                    let art = UIImage(named: MacPlaceSceneArt.asset(for: place))?.size ?? CGSize(width: 3200, height: 640)
+                    let scale = max(proxy.size.width / max(art.width, 1), proxy.size.height / max(art.height, 1))
+                    let drawn = CGSize(width: art.width * scale, height: art.height * scale)
+                    let top = min(0, max(proxy.size.height - drawn.height, proxy.size.height / 2 - focus * drawn.height))
+                    Image(MacPlaceSceneArt.asset(for: place)).resizable()
+                        .frame(width: drawn.width, height: drawn.height)
+                        .offset(x: (proxy.size.width - drawn.width) / 2, y: top)
+                }
+                .clipped()
+            }
         } else {
             placeholder
         }

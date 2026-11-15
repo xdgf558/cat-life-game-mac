@@ -8,101 +8,151 @@ enum ExchangePalette {
     static let readyBorder = Color(red: 0.812, green: 0.902, blue: 0.851)
 }
 
+/// One neighbor's stall: a slim header with today's trades left, then one compact row per offer.
+/// The daily limit is per neighbor, so it lives on the stall rather than on every offer.
 @MainActor
-struct ExchangeOfferCard: View {
+struct ExchangeStallCard: View {
+    let neighbor: NeighborDefinition
+    let offers: [ExchangeOffer]
+    let snapshot: GameSnapshot
+    let disabled: Bool
+    let select: (ExchangeOffer) -> Void
+    private var remaining: Int { snapshot.community.exchangeCount(for: neighbor.id).remainingToday }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            ForEach(offers) { offer in
+                Rectangle().fill(RoomTheme.track.opacity(0.8)).frame(height: 1.5).accessibilityHidden(true)
+                ExchangeOfferRow(offer: offer, snapshot: snapshot, disabled: disabled) { select(offer) }
+            }
+        }
+        .background(RoomTheme.paper)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white, lineWidth: 2))
+        .compositingGroup().shadow(color: RoomTheme.ink.opacity(0.08), radius: 0, y: 3)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("marketStall_\(neighbor.id)")
+    }
+
+    private var header: some View {
+        HStack(spacing: 8) {
+            CommunityPortrait(neighbor: neighbor, size: 28)
+            Text(GameStrings.format("market.withNeighbor", GameStrings.text(neighbor.nameKey)))
+                .font(.system(size: 13.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.85)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 6)
+            HStack(spacing: 4) {
+                Text(GameStrings.text("market.today"))
+                ForEach(0..<ExchangeCatalog.dailyLimit, id: \.self) { index in
+                    Circle().fill(index < remaining ? RoomTheme.mint : RoomTheme.track).frame(width: 7, height: 7)
+                }
+                Text("\(remaining)/\(ExchangeCatalog.dailyLimit)").monospacedDigit()
+            }
+            .font(.system(size: 11, weight: .heavy)).foregroundStyle(remaining > 0 ? RoomTheme.darkMint : RoomTheme.secondary)
+            .fixedSize()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(GameStrings.format("market.remaining", remaining, ExchangeCatalog.dailyLimit))
+            .accessibilityIdentifier("marketStallRemaining_\(neighbor.id)")
+        }
+        .padding(.horizontal, 12).padding(.vertical, 7)
+        .background(CommunityPalette.background(neighbor).opacity(0.5))
+    }
+}
+
+/// One trade on a single line: status, name, what you give → what you get, and the next step.
+/// Locked offers stay slim and muted; narrow widths or large text fall back to a stacked layout.
+@MainActor
+struct ExchangeOfferRow: View {
     let offer: ExchangeOffer
     let snapshot: GameSnapshot
     let disabled: Bool
     let select: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    private var neighbor: NeighborDefinition? { CommunityCatalog.neighbor(id: offer.neighborID) }
     private var failure: ActionFailure? { ExchangeCatalog.eligibility(of: offer, in: snapshot) }
-    private var remaining: Int { snapshot.community.exchangeCount(for: offer.neighborID).remainingToday }
-    private var muted: Bool { failure == .exchangeStageRequired || failure == .exchangeDailyLimit }
+    private var locked: Bool { failure == .exchangeStageRequired }
+    private var muted: Bool { locked || failure == .exchangeDailyLimit }
     private var statusTint: Color {
         failure == nil ? RoomTheme.darkMint : failure == .exchangeMaterialsRequired || failure == .shopInventoryFull
             ? ExchangePalette.goldInk : RoomTheme.secondary
     }
+    private var statusSymbol: String {
+        failure == nil ? "checkmark.circle.fill" : locked ? "lock.fill"
+            : failure == .exchangeDailyLimit ? "moon.fill" : "exclamationmark.circle.fill"
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            if dynamicTypeSize.isAccessibilitySize { VStack(alignment: .leading, spacing: 8) { title; status } }
-            else { HStack(alignment: .top, spacing: 8) { title; Spacer(minLength: 0); status } }
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(spacing: 8) { items(offer.inputs, receiving: false); arrow("arrow.down"); items(offer.outputs, receiving: true) }
-            } else {
-                HStack(spacing: 7) { items(offer.inputs, receiving: false); arrow("arrow.right"); items(offer.outputs, receiving: true) }
-            }
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) { dailyCount; Spacer(minLength: 0); action }
-                VStack(alignment: .leading, spacing: 10) { dailyCount; action }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) { title(lineLimit: 1); Spacer(minLength: 6); trade(named: true); action(lineLimit: 1) }
+            HStack(spacing: 10) { title(lineLimit: 1); Spacer(minLength: 6); trade(named: false); action(lineLimit: 1) }
+            VStack(alignment: .leading, spacing: 8) {
+                title(lineLimit: nil)
+                ViewThatFits(in: .horizontal) {
+                    trade(named: true)
+                    trade(named: false)
+                }
+                action(lineLimit: nil)
             }
         }
-        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: 24).fill(RoomTheme.paper)
-                .shadow(color: RoomTheme.ink.opacity(0.10), radius: 0, y: 4)
-        }
-        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(failure == nil ? ExchangePalette.readyBorder : .white, lineWidth: 2))
-        .opacity(muted ? 0.72 : 1).accessibilityElement(children: .contain)
+        .padding(.horizontal, 12).padding(.vertical, locked ? 6 : 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(failure == nil ? RoomTheme.paleMint.opacity(0.45) : .clear)
+        .opacity(muted ? 0.74 : 1)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("marketCard_\(offer.id)")
     }
 
-    private var title: some View {
-        HStack(alignment: .top, spacing: 8) {
-            if let neighbor { CommunityPortrait(neighbor: neighbor, size: 36) }
-            VStack(alignment: .leading, spacing: 4) {
-                Text(GameStrings.text(offer.nameKey)).font(.subheadline.weight(.heavy))
-                if let neighbor {
-                    Text(GameStrings.format("market.offerSubtitle", GameStrings.text(neighbor.nameKey),
-                        offer.requiredStage == 1 ? GameStrings.text("market.basicOffer")
-                            : GameStrings.format("market.requiresStage", GameStrings.text(ExchangePresentation.requiredStage(offer).nameKey))))
-                        .font(.caption2.weight(.bold)).foregroundStyle(CommunityPalette.tint(neighbor))
-                }
-            }.fixedSize(horizontal: false, vertical: true)
+    private func title(lineLimit: Int?) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: statusSymbol).font(.system(size: locked ? 11 : 13, weight: .heavy))
+                .foregroundStyle(statusTint).frame(width: 18).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(GameStrings.text(offer.nameKey)).font(.system(size: locked ? 12.5 : 13.5, weight: .heavy))
+                    .foregroundStyle(locked ? RoomTheme.secondary : RoomTheme.ink)
+                Text(ExchangePresentation.status(offer, snapshot: snapshot)).font(.system(size: 10.5, weight: .heavy))
+                    .foregroundStyle(statusTint).accessibilityIdentifier("marketStatus_\(offer.id)")
+            }
+            .lineLimit(lineLimit).fixedSize(horizontal: false, vertical: true)
         }
     }
-    private var status: some View {
-        Label(ExchangePresentation.status(offer, snapshot: snapshot), systemImage: failure == nil ? "checkmark.circle.fill"
-              : failure == .exchangeStageRequired ? "lock.fill" : failure == .exchangeDailyLimit ? "moon.fill" : "exclamationmark.circle.fill")
-            .font(.caption2.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(statusTint).padding(.horizontal, 9).padding(.vertical, 6)
-            .background(failure == nil ? RoomTheme.paleMint : muted ? RoomTheme.track : ExchangePalette.goldBorder.opacity(0.5), in: Capsule())
-            .accessibilityIdentifier("marketStatus_\(offer.id)")
+
+    private func trade(named: Bool) -> some View {
+        HStack(spacing: 5) {
+            ForEach(Array(offer.inputs.enumerated()), id: \.offset) { _, stack in chip(stack, receiving: false, named: named) }
+            Image(systemName: "arrow.right").font(.system(size: 9, weight: .black)).foregroundStyle(.white)
+                .frame(width: 18, height: 18).background(RoomTheme.mint, in: Circle()).accessibilityHidden(true)
+            ForEach(Array(offer.outputs.enumerated()), id: \.offset) { _, stack in chip(stack, receiving: true, named: named) }
+        }
+        .fixedSize()
     }
-    private func items(_ stacks: [ExchangeStack], receiving: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(GameStrings.text(receiving ? "market.receiveShort" : "market.giveShort"))
-                .font(.caption2.weight(.heavy)).foregroundStyle(receiving ? ExchangePalette.goldInk : RoomTheme.secondary)
-            ForEach(Array(stacks.enumerated()), id: \.offset) { _, stack in
-                ExchangeItemRow(stack: stack, owned: receiving ? nil : stack.item.count(in: snapshot.inventory))
+
+    private func chip(_ stack: ExchangeStack, receiving: Bool, named: Bool) -> some View {
+        let owned = receiving ? nil : stack.item.count(in: snapshot.inventory)
+        let quantity = ExchangePresentation.quantity(stack)
+        return HStack(spacing: 4) {
+            ExchangeItemIcon(item: stack.item, size: locked ? 18 : 22)
+            Text(named ? quantity : "×\(stack.quantity)").font(.system(size: 11.5, weight: .heavy)).lineLimit(1)
+                .accessibilityLabel(GameStrings.text(receiving ? "market.receiveShort" : "market.giveShort") + " " + quantity)
+            if let owned, !locked {
+                Text(GameStrings.format("market.stockShort", owned)).font(.system(size: 9.5, weight: .heavy)).lineLimit(1)
+                    .foregroundStyle(owned >= stack.quantity ? RoomTheme.secondary : .white)
+                    .padding(.horizontal, 5).padding(.vertical, 2)
+                    .background(owned >= stack.quantity ? RoomTheme.track : RoomTheme.coralDeep, in: Capsule())
+                    .accessibilityIdentifier("marketInputStock_\(ExchangePresentation.stockID(stack.item))")
+                    .accessibilityValue("\(owned)")
             }
-        }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-            .background(receiving ? ExchangePalette.receive : RoomTheme.cream, in: RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(receiving ? ExchangePalette.goldBorder : .clear, lineWidth: 2))
+        }
+        .padding(.leading, 4).padding(.trailing, 8).padding(.vertical, 3)
+        .background(receiving ? ExchangePalette.receive : RoomTheme.cream, in: Capsule())
+        .overlay(Capsule().strokeBorder(receiving ? ExchangePalette.goldBorder : .clear, lineWidth: 1.5))
+        .help(quantity)
+        .accessibilityElement(children: .contain)
     }
-    private func arrow(_ symbol: String) -> some View {
-        Image(systemName: symbol).font(.subheadline.weight(.heavy)).foregroundStyle(.white)
-            .frame(width: 30, height: 30).background(RoomTheme.mint, in: Circle())
-            .overlay(Circle().strokeBorder(.white, lineWidth: 2)).accessibilityHidden(true)
-    }
-    private var dailyCount: some View {
-        HStack(spacing: 4) {
-            Text(GameStrings.text("market.today"))
-            ForEach(0..<ExchangeCatalog.dailyLimit, id: \.self) { index in
-                Circle().fill(index < remaining ? RoomTheme.mint : RoomTheme.track).frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
-            }
-            Text("\(remaining)/\(ExchangeCatalog.dailyLimit)").monospacedDigit()
-        }.font(.caption2.weight(.heavy)).foregroundStyle(RoomTheme.secondary)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(GameStrings.format("market.remaining", remaining, ExchangeCatalog.dailyLimit))
-    }
-    private var action: some View {
+
+    private func action(lineLimit: Int?) -> some View {
         Button(ExchangePresentation.actionTitle(offer, snapshot: snapshot), action: select)
-            .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+            .font(.system(size: 11.5, weight: .heavy)).lineLimit(lineLimit)
+            .fixedSize(horizontal: lineLimit != nil, vertical: true)
             .buttonStyle(ExchangeActionStyle(primary: failure == nil,
-                tint: failure == .exchangeStageRequired ? RoomTheme.friendshipDeep : ExchangePalette.goldInk))
+                tint: locked ? RoomTheme.friendshipDeep : ExchangePalette.goldInk, compact: true))
             .disabled(disabled || failure == .exchangeDailyLimit || failure == .exchangeMissing)
             .accessibilityIdentifier("marketOffer_\(offer.id)")
     }
@@ -111,15 +161,19 @@ struct ExchangeOfferCard: View {
 struct ExchangeActionStyle: ButtonStyle {
     var primary = false
     var tint = ExchangePalette.goldInk
+    /// Market rows use a short pill so a whole stall fits on screen.
+    var compact = false
     @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 44)
+        let radius: CGFloat = compact ? 13 : 18
+        configuration.label.padding(.horizontal, compact ? 11 : 12).padding(.vertical, compact ? 6 : 10)
+            .frame(minHeight: compact ? 30 : 44)
             .foregroundStyle(primary ? .white : tint)
             .background {
-                RoundedRectangle(cornerRadius: 18).fill(primary ? RoomTheme.mint : RoomTheme.paper)
-                    .shadow(color: primary ? RoomTheme.darkMint : .clear, radius: 0, y: configuration.isPressed ? 1 : 3)
+                RoundedRectangle(cornerRadius: radius).fill(primary ? RoomTheme.mint : RoomTheme.paper)
+                    .shadow(color: primary ? RoomTheme.darkMint : .clear, radius: 0, y: configuration.isPressed ? 1 : compact ? 2 : 3)
             }
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(primary ? RoomTheme.mint.opacity(0.45) : tint.opacity(0.3), lineWidth: 2))
+            .overlay(RoundedRectangle(cornerRadius: radius).strokeBorder(primary ? RoomTheme.mint.opacity(0.45) : tint.opacity(0.3), lineWidth: compact ? 1.5 : 2))
             .opacity(isEnabled ? 1 : 0.55)
     }
 }
@@ -135,24 +189,6 @@ struct ExchangeItemIcon: View {
                         .offset(x: 3, y: -3)
                 }
             }.accessibilityHidden(true)
-    }
-}
-
-struct ExchangeItemRow: View {
-    let stack: ExchangeStack
-    var owned: Int? = nil
-    var body: some View {
-        HStack(spacing: 6) {
-            ExchangeItemIcon(item: stack.item)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(ExchangePresentation.quantity(stack)).font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
-                if let owned {
-                    Text(GameStrings.format("market.stockShort", owned)).font(.caption2.weight(.bold))
-                        .foregroundStyle(owned >= stack.quantity ? RoomTheme.secondary : RoomTheme.coralDeep)
-                        .accessibilityIdentifier("marketInputStock_\(ExchangePresentation.stockID(stack.item))").accessibilityValue("\(owned)")
-                }
-            }
-        }.accessibilityElement(children: .contain)
     }
 }
 

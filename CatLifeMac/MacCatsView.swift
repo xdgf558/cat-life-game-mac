@@ -202,11 +202,14 @@ struct MacCatsView: View {
 
     private func detail(_ entry: AlbumEntry) -> some View {
         let all = entries, index = all.firstIndex { $0.id == entry.id } ?? 0
-        return VStack(spacing: 12) {
+        return VStack(spacing: 8) {
             HStack(spacing: 8) {
                 Button { isNested = false } label: {
-                    Label(GameStrings.text("mac.album.back"), systemImage: "chevron.left").font(.system(size: 13, weight: .heavy))
-                }.buttonStyle(SoftButtonStyle()).fixedSize().help(keyLabel(.escape))
+                    Label(GameStrings.text("mac.album.back"), systemImage: "chevron.left").font(.system(size: 12, weight: .heavy))
+                        .foregroundStyle(RoomTheme.darkMint).padding(.horizontal, 11).frame(height: 26)
+                        .background(RoomTheme.paper, in: Capsule()).overlay(Capsule().strokeBorder(RoomTheme.mint.opacity(0.3), lineWidth: 1.5))
+                        .contentShape(Capsule())
+                }.buttonStyle(.plain).fixedSize().help(keyLabel(.escape))
                     .accessibilityIdentifier("macAlbumBack")
                 Spacer()
                 Text(GameStrings.format("mac.album.position", index + 1, all.count))
@@ -261,50 +264,48 @@ struct MacCatsView: View {
 
     // MARK: Owned cat
 
-    /// Identity strip on top, then a 2 × 2 grid (growth · bond, habits · memories) in one scroll
-    /// instead of three columns that each scrolled on their own.
+    /// 2.53: everything on one screen. A slim identity card, then growth · bond and habits · memories as a
+    /// compact 2 × 2 grid. The scroll view only matters on very short windows.
     private func ownedDetail(_ cat: CatState) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             identity(cat)
             ScrollView {
-                Grid(horizontalSpacing: 12, verticalSpacing: 12) {
+                Grid(horizontalSpacing: 10, verticalSpacing: 10) {
                     GridRow { growthCard(cat); bondCard(cat) }
                     GridRow { habits(cat); memories(cat) }
-                }.padding(.bottom, 6)
-            }
+                }.padding(.bottom, 4)
+            }.scrollBounceBehavior(.basedOnSize)
         }
     }
 
     private func identity(_ cat: CatState) -> some View {
-        HStack(spacing: 14) {
-            CatCollectionPortrait(appearance: cat.appearance, size: 72)
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(GameStrings.catName(cat)).font(.system(size: 24, weight: .heavy)).lineLimit(1)
+        HStack(spacing: 12) {
+            CatCollectionPortrait(appearance: cat.appearance, size: 54)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 7) {
+                    Text(GameStrings.catName(cat)).font(.system(size: 20, weight: .heavy)).lineLimit(1)
                         .accessibilityIdentifier("macCatName")
                     Button { renameCat = cat } label: {
-                        Image(systemName: "pencil").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
-                            .frame(width: 26, height: 26).background(RoomTheme.paleMint.opacity(0.75), in: Circle())
+                        Image(systemName: "pencil").font(.system(size: 10, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                            .frame(width: 22, height: 22).background(RoomTheme.paleMint.opacity(0.75), in: Circle())
                     }
                     .buttonStyle(.plain).disabled(saving || store.isBusy).help(GameStrings.text("catName.edit"))
                     .accessibilityLabel(GameStrings.text("catName.edit")).accessibilityIdentifier("macRenameCat")
+                    HStack(spacing: 4) { badges(cat) }.padding(.leading, 2)
                 }
-                HStack(spacing: 5) { badges(cat) }
                 if let definition = CatHabitCatalog.definition(for: cat.id) {
                     Label(GameStrings.text("catHabits.style.\(definition.style.rawValue)"), systemImage: "quote.opening")
-                        .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
+                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
-            VStack(alignment: .trailing, spacing: 5) {
-                Button { bringHome(cat) } label: {
-                    Label(GameStrings.text("catGrowth.goHome") + "  " + keyLabel(.confirm), systemImage: "house.fill")
-                        .font(.system(size: 14, weight: .heavy))
-                }.buttonStyle(MintButtonStyle()).fixedSize()
-                    .disabled(saving || store.isBusy).accessibilityIdentifier("macBringCatHome")
-                Text(GameStrings.text("catGrowth.goHomeHint")).font(.system(size: 10.5, weight: .semibold))
-                    .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.trailing).lineLimit(2)
-            }.frame(width: 210, alignment: .trailing)
-        }.macContentCard69(padding: 14)
+            Button { bringHome(cat) } label: {
+                Label(GameStrings.text("catGrowth.goHome") + "  " + keyLabel(.confirm), systemImage: "house.fill")
+                    .font(.system(size: 13, weight: .heavy))
+            }.buttonStyle(MintButtonStyle()).fixedSize()
+                .help(GameStrings.text("catGrowth.goHomeHint"))
+                .disabled(saving || store.isBusy).accessibilityIdentifier("macBringCatHome")
+                .accessibilityHint(GameStrings.text("catGrowth.goHomeHint"))
+        }.macContentCard69(padding: 12)
     }
 
     @ViewBuilder private func badges(_ cat: CatState) -> some View {
@@ -317,42 +318,69 @@ struct MacCatsView: View {
     }
 
     private func badge(_ text: String, tint: Color) -> some View {
-        Text(text).font(.system(size: 11, weight: .bold)).foregroundStyle(tint).padding(.horizontal, 8).padding(.vertical, 3)
+        Text(text).font(.system(size: 10.5, weight: .bold)).foregroundStyle(tint).padding(.horizontal, 7).padding(.vertical, 2)
             .background(tint.opacity(0.1), in: Capsule()).lineLimit(1).fixedSize()
     }
 
     private func cardTitle(_ text: String, symbol: String) -> some View {
-        Label(text, systemImage: symbol).font(.system(size: 14, weight: .heavy))
+        Label(text, systemImage: symbol).font(.system(size: 13, weight: .heavy)).lineLimit(1)
     }
 
     private func gridCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10, content: content)
+        VStack(alignment: .leading, spacing: 8, content: content)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .macContentCard69(padding: 14)
+            .macContentCard69(padding: 12)
     }
 
     private func growthCard(_ cat: CatState) -> some View {
         gridCard {
-            HStack {
+            HStack(spacing: 6) {
                 cardTitle(GameStrings.text("catGrowth.growth"), symbol: "leaf.fill")
-                Spacer(minLength: 0)
-                Image(systemName: "info.circle").font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                Spacer(minLength: 4)
+                if let growth = cat.growthState {
+                    Text(CatGrowthPresentation.age(growth.ageDays(at: date)))
+                        .font(.system(size: 15, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
+                        .accessibilityIdentifier("macCatAge")
+                }
+                Image(systemName: "info.circle").font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                     .help(GameStrings.format("catGrowth.clockHint", CatGrowthCatalog.ageMultiplier))
                     .accessibilityLabel(GameStrings.format("catGrowth.clockHint", CatGrowthCatalog.ageMultiplier))
             }
             if let growth = cat.growthState {
-                Text(CatGrowthPresentation.age(growth.ageDays(at: date)))
-                    .font(.system(size: 24, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("macCatAge")
-                CatGrowthTimeline(age: growth.ageDays(at: date), stage: growth.stage(at: date))
-                Text(CatGrowthPresentation.nextGrowth(growth, at: date)).font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(RoomTheme.darkMint).fixedSize(horizontal: false, vertical: true)
-                    .padding(9).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoomTheme.mint.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                growthTrack(age: growth.ageDays(at: date), stage: growth.stage(at: date))
+                Text(CatGrowthPresentation.nextGrowth(growth, at: date)).font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(RoomTheme.darkMint).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
-    /// Bond progress plus the "time together" record that used to be its own card.
+    /// The three stages on one thin track: a small node per stage with its name and starting day underneath.
+    private func growthTrack(age: Int, stage: CatGrowthStage) -> some View {
+        GeometryReader { geometry in
+            let axis = CatGrowthTimelineGeometry(width: geometry.size.width)
+            ZStack(alignment: .topLeading) {
+                Capsule().fill(RoomTheme.track).frame(width: axis.length, height: 4).offset(x: axis.startX, y: 9.5)
+                Capsule().fill(RoomTheme.mint).frame(width: max(0, axis.x(forAge: age) - axis.startX), height: 4)
+                    .offset(x: axis.startX, y: 9.5)
+                ForEach(CatGrowthStage.allCases, id: \.self) { item in
+                    let reached = age >= item.minimumAgeDays
+                    VStack(spacing: 3) {
+                        Image(systemName: item == .kitten ? "drop.fill" : item == .junior ? "pawprint.fill" : "crown.fill")
+                            .font(.system(size: 9.5, weight: .bold)).foregroundStyle(reached ? .white : RoomTheme.secondary)
+                            .frame(width: 23, height: 23).background(reached ? RoomTheme.mint : RoomTheme.paper, in: Circle())
+                            .overlay(Circle().strokeBorder(stage == item ? RoomTheme.gold : RoomTheme.track, lineWidth: 2))
+                        Text(GameStrings.text("catGrowth.stage.\(item.rawValue)") + " · \(item.minimumAgeDays)")
+                            .font(.system(size: 9.5, weight: .heavy)).lineLimit(1)
+                            .foregroundStyle(stage == item ? RoomTheme.darkMint : RoomTheme.secondary)
+                    }
+                    .fixedSize().position(x: axis.x(forAge: item.minimumAgeDays), y: 19)
+                }
+            }
+        }
+        .frame(height: 40).accessibilityHidden(true)
+    }
+
+    /// Bond progress plus the "time together" record, as one line at the bottom.
     private func bondCard(_ cat: CatState) -> some View {
         gridCard {
             HStack {
@@ -363,35 +391,34 @@ struct MacCatsView: View {
             HStack(spacing: 4) {
                 ForEach(CatBondStage.allCases, id: \.self) { stage in bondStep(stage, intimacy: cat.intimacy) }
             }
-            Text(CatGrowthPresentation.nextBond(cat.intimacy)).font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.friendshipDeep)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(9).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 12))
+            Text(CatGrowthPresentation.nextBond(cat.intimacy)).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.friendshipDeep)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let growth = cat.growthState {
-                Divider().padding(.vertical, 2)
-                HStack(alignment: .firstTextBaseline) {
-                    Label(GameStrings.text("catGrowth.memory"), systemImage: "calendar").font(.system(size: 12.5, weight: .heavy))
+                HStack(spacing: 5) {
+                    Image(systemName: "calendar").font(.system(size: 10.5, weight: .bold))
+                    Text(GameStrings.text("catGrowth.joined") + " · "
+                         + (growth.adoptedAt.map(CatGrowthPresentation.date) ?? GameStrings.text("catGrowth.joinedEarlier")))
+                        .lineLimit(1).minimumScaleFactor(0.8)
                     Spacer(minLength: 6)
                     Text(GameStrings.format("mac.cats.days", growth.companionshipDays(at: date)))
-                        .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                        .foregroundStyle(RoomTheme.darkMint).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Text(GameStrings.text("catGrowth.joined") + " · "
-                     + (growth.adoptedAt.map(CatGrowthPresentation.date) ?? GameStrings.text("catGrowth.joinedEarlier")))
-                    .font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
-                    .help(GameStrings.text(growth.isLegacyRecord ? "catGrowth.legacyHint" : "catGrowth.newHint"))
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                .padding(.top, 2)
+                .help(GameStrings.text(growth.isLegacyRecord ? "catGrowth.legacyHint" : "catGrowth.newHint"))
             }
         }
     }
 
     private func bondStep(_ stage: CatBondStage, intimacy: Int) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             GeometryReader { geometry in
                 Capsule().fill(RoomTheme.friendshipPaper).overlay(alignment: .leading) {
                     Capsule().fill(RoomTheme.friendship).frame(width: geometry.size.width * CGFloat(min(25, max(0, intimacy - stage.minimumIntimacy))) / 25)
                 }
-            }.frame(height: 7).accessibilityHidden(true)
+            }.frame(height: 6).accessibilityHidden(true)
             Text(GameStrings.text("catGrowth.bond.\(stage.rawValue)"))
-                .font(.system(size: 10, weight: .bold)).multilineTextAlignment(.center).lineLimit(1).minimumScaleFactor(0.75)
+                .font(.system(size: 9.5, weight: .bold)).multilineTextAlignment(.center).lineLimit(1).minimumScaleFactor(0.75)
                 .foregroundStyle(CatBondStage.stage(for: intimacy) == stage ? RoomTheme.friendshipDeep : RoomTheme.secondary)
         }.frame(maxWidth: .infinity)
     }
@@ -412,23 +439,25 @@ struct MacCatsView: View {
     }
 
     private func habitRow(_ key: String, value: String, count: Int, confirmed: Bool, symbol: String, tint: Color) -> some View {
-        HStack(spacing: 9) {
-            Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(tint)
-                .frame(width: 30, height: 30).background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 9))
+        HStack(spacing: 8) {
+            Image(systemName: symbol).font(.system(size: 12, weight: .semibold)).foregroundStyle(tint)
+                .frame(width: 26, height: 26).background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 8))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 1) {
-                Text(GameStrings.text(key)).font(.system(size: 10.5, weight: .bold)).foregroundStyle(tint)
-                Text(GameStrings.text(value)).font(.system(size: 13, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                HStack(spacing: 6) {
+                    Text(GameStrings.text(key)).font(.system(size: 10, weight: .bold)).foregroundStyle(tint).fixedSize()
+                    Text(GameStrings.text(value)).font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)
+                }
                 Text(confirmed ? GameStrings.text("habit68.clues.confirmed") : GameStrings.format("catHabits.clues", count))
-                    .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.8)
+                    .font(.system(size: 10, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
             }.frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 3) {
                 ForEach(0..<CatHabitCatalog.cluesToConfirm, id: \.self) { i in
-                    Circle().fill(i < count ? tint : RoomTheme.track).frame(width: 8, height: 8)
+                    Circle().fill(i < count ? tint : RoomTheme.track).frame(width: 7, height: 7)
                 }
             }.accessibilityHidden(true)
-        }.padding(8).frame(maxWidth: .infinity, alignment: .leading)
-            .background(tint.opacity(0.07), in: RoundedRectangle(cornerRadius: 13))
+        }.padding(.horizontal, 7).padding(.vertical, 5).frame(maxWidth: .infinity, alignment: .leading)
+            .background(tint.opacity(0.07), in: RoundedRectangle(cornerRadius: 11))
             .accessibilityElement(children: .combine)
     }
 
@@ -437,13 +466,19 @@ struct MacCatsView: View {
            let item = store.snapshot?.inventory.furniture.first(where: { $0.id == id }),
            let placement = store.snapshot?.home.furniture.first(where: { $0.itemID == id }) {
             Button { visitCorner(cat, placement: placement) } label: {
-                Label(GameStrings.format("habit68.corner", GameStrings.furnitureName(item), GameStrings.text("homeFloor.\(placement.floor.rawValue)")), systemImage: "flag.fill")
-                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.friendshipDeep)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy || saving)
+                HStack(spacing: 5) {
+                    Label(GameStrings.format("habit68.corner", GameStrings.furnitureName(item), GameStrings.text("homeFloor.\(placement.floor.rawValue)")), systemImage: "flag.fill")
+                        .lineLimit(1).minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right").font(.system(size: 9, weight: .heavy))
+                }
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.friendshipDeep)
+                .contentShape(Rectangle())
+            }.buttonStyle(.plain).disabled(store.isBusy || saving)
                 .accessibilityIdentifier("macVisitCorner")
         } else {
-            Label(GameStrings.text("habit68.corner.empty"), systemImage: "flag.fill").font(.caption).foregroundStyle(RoomTheme.secondary)
+            Label(GameStrings.text("habit68.corner.empty"), systemImage: "flag.fill").font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.8)
         }
         if let receipt = cat.habits.lastRestObservation,
            cat.habits.cornerFurnitureID != receipt.furnitureID,
@@ -451,14 +486,14 @@ struct MacCatsView: View {
             Button(GameStrings.text("catHabits.chooseCorner")) {
                 saving = true
                 Task { _ = await store.chooseHabitCorner(catID: cat.id, observationID: receipt.id); saving = false }
-            }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy || saving)
+            }.buttonStyle(SoftButtonStyle()).controlSize(.small).disabled(store.isBusy || saving)
         }
     }
 
     private func memories(_ cat: CatState) -> some View {
         gridCard {
             cardTitle(GameStrings.format("habit68.memories.count", cat.habits.memories.count, CatMemoryKind.allCases.count), symbol: "photo.fill")
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 2), spacing: 6) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
                 ForEach(CatMemoryKind.allCases, id: \.self) { kind in memoryTile(HabitMemorySlot68(kind: kind, cat: cat)) }
             }
             pinnedGuide(cat)
@@ -468,35 +503,35 @@ struct MacCatsView: View {
     private func memoryTile(_ slot: HabitMemorySlot68) -> some View {
         let tint = HabitMemorySlot68.tint(for: slot.kind), empty = slot.memory == nil
         return Button { memory = slot.memory } label: {
-            HStack(spacing: 7) {
+            HStack(spacing: 5) {
                 Image(systemName: empty ? "questionmark" : HabitMemorySlot68.symbol(for: slot.kind))
-                    .font(.system(size: 12, weight: .heavy)).foregroundStyle(empty ? RoomTheme.track : tint)
-                    .frame(width: 26, height: 26)
-                    .background(empty ? RoomTheme.track.opacity(0.25) : tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 8))
-                Text(slot.title).font(.system(size: 11.5, weight: .bold)).foregroundStyle(empty ? RoomTheme.secondary : RoomTheme.ink)
-                    .lineLimit(1).minimumScaleFactor(0.7)
+                    .font(.system(size: 10, weight: .heavy)).foregroundStyle(empty ? RoomTheme.track : tint)
+                    .frame(width: 20, height: 20)
+                    .background(empty ? RoomTheme.track.opacity(0.25) : tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 6))
+                Text(slot.title).font(.system(size: 10.5, weight: .bold)).foregroundStyle(empty ? RoomTheme.secondary : RoomTheme.ink)
+                    .lineLimit(1).minimumScaleFactor(0.65)
                 Spacer(minLength: 0)
-            }.padding(5).frame(maxWidth: .infinity)
-                .background(empty ? .clear : .white, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(empty ? RoomTheme.track : .clear,
-                    style: StrokeStyle(lineWidth: 1.5, dash: empty ? [4, 3] : [])))
-                .contentShape(RoundedRectangle(cornerRadius: 10))
+            }.padding(4).frame(maxWidth: .infinity)
+                .background(empty ? .clear : .white, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(empty ? RoomTheme.track : .clear,
+                    style: StrokeStyle(lineWidth: 1.2, dash: empty ? [4, 3] : [])))
+                .contentShape(RoundedRectangle(cornerRadius: 8))
         }.buttonStyle(.plain).disabled(empty).accessibilityIdentifier("macMemory_\(slot.kind.rawValue)")
-            .accessibilityLabel(slot.title)
+            .accessibilityLabel(slot.title).help(slot.title)
     }
 
     private func pinnedGuide(_ cat: CatState) -> some View {
         Button { showsGuide = true } label: {
-            HStack(spacing: 9) {
-                Image(systemName: "pin.fill").font(.system(size: 12)).foregroundStyle(RoomTheme.sky)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(GameStrings.text("habit67.pinTitle")).font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
-                    Text(cat.habits.pinnedMemory.map { GameStrings.text(CompanionshipPresentation.guideKey(for: $0)) }
-                         ?? GameStrings.text("habit68.guide.none")).font(.system(size: 12, weight: .heavy)).lineLimit(2)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
-            }.padding(9).background(RoomTheme.sky.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-                .contentShape(RoundedRectangle(cornerRadius: 12))
+            HStack(spacing: 7) {
+                Image(systemName: "pin.fill").font(.system(size: 10.5)).foregroundStyle(RoomTheme.sky)
+                Text(GameStrings.text("habit67.pinTitle")).font(.system(size: 10, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize()
+                Text(cat.habits.pinnedMemory.map { GameStrings.text(CompanionshipPresentation.guideKey(for: $0)) }
+                     ?? GameStrings.text("habit68.guide.none")).font(.system(size: 11.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "chevron.right").font(.system(size: 9.5, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+            }.padding(.horizontal, 8).padding(.vertical, 6).background(RoomTheme.sky.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                .contentShape(RoundedRectangle(cornerRadius: 10))
         }.buttonStyle(.plain).disabled(store.isBusy).accessibilityIdentifier("macCatGuide")
     }
 

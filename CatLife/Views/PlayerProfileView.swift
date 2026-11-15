@@ -234,10 +234,9 @@ struct PlayerProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(GameStrings.text("common.done")) { isShowingAttributes = false }
-                        .foregroundStyle(RoomTheme.darkMint)
+                    SheetDoneButton { isShowingAttributes = false }
                         .accessibilityIdentifier("profileAttributesCloseButton")
-                }
+                }.sheetDoneBackground()
             }
         }
         .safeAreaInset(edge: .bottom) { SaveStatusBanner(store: store) }

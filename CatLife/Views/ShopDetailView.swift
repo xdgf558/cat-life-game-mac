@@ -103,9 +103,8 @@ struct ShopDetailView: View {
                     .foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("shopDetailBackButton")
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button(GameStrings.text("common.done")) { store.activeSheet = nil }
-                    .foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("closeSheetButton")
-            }
+                SheetDoneButton { store.activeSheet = nil }.accessibilityIdentifier("closeSheetButton")
+            }.sheetDoneBackground()
         }
     }
 

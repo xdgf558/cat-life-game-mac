@@ -130,6 +130,60 @@ struct MintButtonStyle: ButtonStyle {
     }
 }
 
+/// Cream pill with a mint badge that closes a sheet, in place of the grey system Done capsule.
+/// Callers keep their own keyboard shortcut, disabled state and accessibility identifier.
+struct SheetDoneButton: View {
+    var titleKey = "common.done"
+    var symbol = "checkmark"
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: symbol).font(.system(size: 9, weight: .black))
+                    .foregroundStyle(.white).frame(width: 18, height: 18)
+                    .background(RoomTheme.mint, in: Circle()).accessibilityHidden(true)
+                Text(GameStrings.text(titleKey)).font(.system(size: 13.5, weight: .heavy, design: .rounded))
+            }
+        }
+        .buttonStyle(SheetDoneButtonStyle())
+        .accessibilityLabel(GameStrings.text(titleKey))
+    }
+}
+
+struct SheetDoneButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { SheetDonePill(configuration: configuration) }
+}
+
+private struct SheetDonePill: View {
+    let configuration: ButtonStyleConfiguration
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var hovering = false
+    var body: some View {
+        let lit = hovering && isEnabled
+        configuration.label
+            .foregroundStyle(RoomTheme.darkMint)
+            .padding(.leading, 7).padding(.trailing, 14).padding(.vertical, 6).frame(minHeight: 32)
+            .background(lit ? RoomTheme.paleMint : RoomTheme.paper, in: Capsule())
+            .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+            .compositingGroup()
+            .shadow(color: RoomTheme.darkMint.opacity(isEnabled ? 0.3 : 0.08), radius: 0, y: configuration.isPressed ? 1 : 3)
+            .offset(y: configuration.isPressed ? 2 : (lit ? -1 : 0))
+            .opacity(isEnabled ? 1 : 0.5)
+            .contentShape(Capsule())
+            .onHover { hovering = $0 }
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: lit)
+    }
+}
+
+extension ToolbarContent {
+    /// macOS 26 wraps toolbar items in glass; the cream pill draws its own background.
+    @ToolbarContentBuilder func sheetDoneBackground() -> some ToolbarContent {
+        if #available(macOS 26.0, iOS 26.0, *) { sharedBackgroundVisibility(.hidden) } else { self }
+    }
+}
+
 struct SoftButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

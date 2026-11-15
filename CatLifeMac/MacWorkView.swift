@@ -55,10 +55,10 @@ struct MacWorkView: View {
                 WorkRestView(store: store)
                     .safeAreaInset(edge: .top, spacing: 0) { SaveStatusBanner(store: store) }
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
-                        Button(GameStrings.text("common.done")) { showsRest = false }
+                        SheetDoneButton { showsRest = false }
                             .keyboardShortcut(.cancelAction).disabled(store.isBusy)
                             .accessibilityIdentifier("macWorkRestClose")
-                    } }
+                    }.sheetDoneBackground() }
             }.frame(width: 600, height: 640)
                 .interactiveDismissDisabled(store.isBusy)
                 .accessibilityElement(children: .contain)

@@ -341,9 +341,8 @@ struct CatCollectionView: View {
     private func go(_ destination: HomeSheet) { close(); store.inspectedCatID = nil; store.activeSheet = destination }
     private var doneButton: some ToolbarContent {
         ToolbarItem(placement: .confirmationAction) {
-            Button(GameStrings.text("common.done"), action: close).foregroundStyle(RoomTheme.darkMint)
-                .disabled(isSaving).accessibilityIdentifier("closeSheetButton")
-        }
+            SheetDoneButton(action: close).disabled(isSaving).accessibilityIdentifier("closeSheetButton")
+        }.sheetDoneBackground()
     }
     private func backButton(_ identifier: String) -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {

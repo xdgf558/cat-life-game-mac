@@ -82,6 +82,8 @@ extension GameStrings {
         "mac.hover.cat": "点击查看档案 · 双击近看 · 右键更多",
         "mac.hover.furniture": "点击互动 · 右键布置",
         "mac.hover.floor": "拖动平移 · 滚轮缩放",
+        "releases.114.title": "设置页更简洁",
+        "releases.114.body": "设置里的“存档与 Steam”改名为“存档与备份”，并去掉了还没上线的 Steam 说明。进度照旧保存在这台 Mac 上，可以在“存档管理”里导入、导出和恢复。",
         "releases.113.title": "小谜题换上正式图",
         "releases.113.body": "花园小谜题里的花苗、落叶、橡果、石子、水洼、垫脚石、灌木、纪念物、太阳和猫垫子都换成了正式画的图标，四个谜题的标题也有了自己的小图。格子的底色跟着调了一下，叶子、灌木和水洼在格子上更容易看清。",
         "releases.112.title": "花园里的小谜题",
@@ -169,7 +171,7 @@ extension GameStrings {
         "releases.70.title": "布置与打工细节",
         "releases.70.body": "布置时按格显示位置，挂件不再挡住窗户；打工页新增今天的次数、收入和经验；可在声音设置里选择切到后台时继续播放。",
         "releases.69.title": "原生 Mac 核心版",
-        "releases.69.body": "新增原生 Mac 桌面界面、鼠标与键盘操作、窗口与显示设置；复用现有玩法和素材，Mac 进度独立保存在本机，Steam 接入后续提供。",
+        "releases.69.body": "新增原生 Mac 桌面界面、鼠标与键盘操作、窗口与显示设置；复用现有玩法和素材，Mac 进度独立保存在本机。",
     ]
     static let macShellTraditional: [String: String] = [
         "mac.quit.timeout": "儲存仍未完成",
@@ -252,6 +254,8 @@ extension GameStrings {
         "mac.hover.cat": "點擊查看檔案 · 按兩下近看 · 右鍵更多",
         "mac.hover.furniture": "點擊互動 · 右鍵佈置",
         "mac.hover.floor": "拖曳平移 · 滾輪縮放",
+        "releases.114.title": "設定頁更簡潔",
+        "releases.114.body": "設定裡的「存檔與 Steam」改名為「存檔與備份」，並拿掉了還沒上線的 Steam 說明。進度照舊儲存在這台 Mac 上，可以在「存檔管理」裡匯入、匯出和恢復。",
         "releases.113.title": "小謎題換上正式圖",
         "releases.113.body": "花園小謎題裡的花苗、落葉、橡果、石子、水窪、墊腳石、灌木、紀念物、太陽和貓墊子都換成了正式畫的圖示，四個謎題的標題也有了自己的小圖。格子的底色跟著調了一下，葉子、灌木和水窪在格子上更容易看清。",
         "releases.112.title": "花園裡的小謎題",
@@ -339,7 +343,7 @@ extension GameStrings {
         "releases.70.title": "布置與打工細節",
         "releases.70.body": "布置時按格顯示位置，掛件不再擋住窗戶；打工頁新增今天的次數、收入和經驗；可在聲音設定裡選擇切到背景時繼續播放。",
         "releases.69.title": "原生 Mac 核心版",
-        "releases.69.body": "新增原生 Mac 桌面介面、滑鼠與鍵盤操作、視窗與顯示設定；共用既有玩法與素材，Mac 進度獨立儲存在本機，Steam 接入後續提供。",
+        "releases.69.body": "新增原生 Mac 桌面介面、滑鼠與鍵盤操作、視窗與顯示設定；共用既有玩法與素材，Mac 進度獨立儲存在本機。",
     ]
     static let macShellEnglish: [String: String] = [
         "mac.quit.timeout": "Saving has not finished",
@@ -422,6 +426,8 @@ extension GameStrings {
         "mac.hover.cat": "Click for profile · Double-click for close-up · Right-click for more",
         "mac.hover.furniture": "Click to interact · Right-click to arrange",
         "mac.hover.floor": "Drag to pan · Scroll to zoom",
+        "releases.114.title": "A tidier Settings page",
+        "releases.114.body": "Settings now says Saves & Backups instead of Saves & Steam, and the note about Steam, which isn't available yet, is gone. Progress is still saved on this Mac; use Save management to import, export or restore it.",
         "releases.113.title": "Puzzle art arrives",
         "releases.113.body": "The garden puzzles now use finished artwork for the seedlings, leaves, acorns, pebbles, puddles, stepping stones, bushes, keepsake, sun and cat cushion, and each puzzle has its own title icon. Cell colours were adjusted so leaves, bushes and puddles stand out on the board.",
         "releases.112.title": "Little puzzles in the garden",
@@ -509,6 +515,6 @@ extension GameStrings {
         "releases.70.title": "Arranging and work details",
         "releases.70.body": "Arranging shows positions in grid cells and wall pieces no longer cover windows. The work page adds today’s shifts, income and experience, and a sound setting can keep audio playing in the background.",
         "releases.69.title": "Native Mac edition",
-        "releases.69.body": "Adds native Mac layouts, mouse and keyboard controls, and window/display settings. Existing gameplay and artwork are shared; Mac progress is stored locally. Steam integration will follow.",
+        "releases.69.body": "Adds native Mac layouts, mouse and keyboard controls, and window/display settings. Existing gameplay and artwork are shared; Mac progress is stored locally.",
     ]
 }

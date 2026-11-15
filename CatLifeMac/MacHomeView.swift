@@ -15,6 +15,8 @@ struct MacHomeView: View {
     let onContext: (MacRoomContextAction) -> Void
     let onFixedStructure: (MacRoomStructure) -> Void
     var onBag: () -> Void = {}
+    /// 2.15: the decor bonus card opens the album's home bonus page.
+    var onDecorBonus: () -> Void = {}
     @State private var need = CatNeedPresentation()
     @State private var cameraRevision = 0
     @State private var recent: [MacHomeLogEntry] = []
@@ -294,11 +296,14 @@ struct MacHomeView: View {
     /// 2.14: what the outing decor placed at home is giving right now. Shown once any outing decor is found.
     private func decorBonus(_ snapshot: GameSnapshot) -> some View {
         let active = OutingBonuses.active(in: snapshot)
-        return MacPanel {
+        let count = GameStrings.format("mac.home.bonus.count", active.count, OutingCatalog.maximumActiveDecor)
+        var spoken = [GameStrings.text("mac.home.bonus.title"), count]
+        if active.isEmpty { spoken.append(GameStrings.text("mac.home.bonus.empty")) }
+        return Button(action: onDecorBonus) { MacPanel {
             HStack {
                 Label(GameStrings.text("mac.home.bonus.title"), systemImage: "sparkles").font(.system(size: 16, weight: .heavy, design: .rounded))
                 Spacer()
-                Text(GameStrings.format("mac.home.bonus.count", active.count, OutingCatalog.maximumActiveDecor))
+                HStack(spacing: 4) { Text(count); Image(systemName: "chevron.right") }
                     .font(.system(size: 12.5, weight: .heavy)).foregroundStyle(active.isEmpty ? RoomTheme.secondary : RoomTheme.darkMint)
             }
             if active.isEmpty {
@@ -327,8 +332,15 @@ struct MacHomeView: View {
                     .accessibilityLabel([name, quality, value].joined(separator: "，"))
                 }
             }
-        }
-        .accessibilityElement(children: .contain)
+        }.contentShape(RoundedRectangle(cornerRadius: 22)) }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel((spoken + active.compactMap { bonus in
+            OutingCatalog.decor(id: bonus.decorID).map { [GameStrings.text($0.nameKey), GameStrings.text(bonus.quality.titleKey),
+                GameStrings.format("outing.attribute.\(bonus.attribute.rawValue).value", bonus.value)].joined(separator: "，") }
+        }).joined(separator: "。"))
+        .accessibilityHint(GameStrings.text("mac.home.bonus.open"))
         .accessibilityIdentifier("macHomeDecorBonus")
     }
     private func metric(_ key: String, icon: String, value: Int, color: Color) -> some View {

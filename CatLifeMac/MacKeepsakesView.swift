@@ -10,6 +10,8 @@ struct MacKeepsakesView: View {
     /// Enter arrange mode with this furniture item selected.
     let arrange: (String) -> Void
     var openGarden: () -> Void = {}
+    /// Start on the home bonus page (opened from the home page's decor bonus card).
+    var opensBonus = false
 
     private enum Section: String, CaseIterable { case keepsakes, decor, bonus }
     @State private var section: Section = .keepsakes
@@ -42,6 +44,7 @@ struct MacKeepsakesView: View {
         .font(.system(size: 13.5, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .accessibilityElement(children: .contain).accessibilityIdentifier("macKeepsakesPage")
         .onAppear {
+            if opensBonus { section = .bonus }
             selectedKeepsake = selectedKeepsake ?? OutingCatalog.keepsakes.first { outing.keepsakes[$0.id] != nil }?.id
             selectedDecor = selectedDecor ?? OutingCatalog.decor.first { outing.decor[$0.id] != nil }?.id
             // A duplicate brought home waits for its compare the first time the album opens.

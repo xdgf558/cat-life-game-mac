@@ -671,25 +671,26 @@ struct MacDesktopRoot: View {
         return alert.runModal() == .alertFirstButtonReturn
     }
     #endif
+    private var auxiliaryDone: some View {
+        SheetDoneButton { auxiliary = nil }
+            .keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress)
+            .accessibilityIdentifier("macAuxiliaryDone")
+    }
     @ViewBuilder private func auxiliaryView(_ item: MacAuxiliary) -> some View {
         VStack(spacing: 0) {
             if item.bannerOnly, let place = item.place {
                 // The scene banner names the place, so no title row repeats it; Done sits on the banner.
                 MacPlaceBanner(store: store, place: place, height: 96)
-                    .overlay(alignment: .topTrailing) {
-                        Button { auxiliary = nil } label: {
-                            Text(GameStrings.text("common.done")).font(.system(size: 12.5, weight: .heavy))
-                                .padding(.horizontal, 14).padding(.vertical, 7)
-                                .background(RoomTheme.paper.opacity(0.95), in: Capsule())
-                        }
-                        .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint).padding(12)
-                        .keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress)
-                        .accessibilityIdentifier("macAuxiliaryDone")
-                    }
+                    .overlay(alignment: .topTrailing) { auxiliaryDone.padding(12) }
                     .padding(.horizontal, 16).padding(.top, 14)
             } else {
-                HStack { Text(GameStrings.text(item.key)).font(.title3.bold()); Spacer(); Button(GameStrings.text("common.done")) { auxiliary = nil }.keyboardShortcut(.cancelAction).disabled(store.isBusy || store.saveTransferInProgress) }.padding(16)
-                Divider()
+                HStack {
+                    Text(GameStrings.text(item.key)).font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .foregroundStyle(RoomTheme.ink).accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    auxiliaryDone
+                }.padding(.horizontal, 18).padding(.vertical, 12).background(RoomTheme.paper)
+                Rectangle().fill(RoomTheme.track).frame(height: 2).accessibilityHidden(true)
                 if let place = item.place {
                     MacPlaceBanner(store: store, place: place, height: 120).padding(.horizontal, 16).padding(.top, 12)
                 }

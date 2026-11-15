@@ -45,8 +45,8 @@ struct HabitGuidePicker68: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(GameStrings.text("common.close")) { dismiss() }.disabled(saving)
-                }
+                    SheetDoneButton(titleKey: "common.close", symbol: "xmark") { dismiss() }.keyboardShortcut(.cancelAction).disabled(saving)
+                }.sheetDoneBackground()
             }
         }
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)

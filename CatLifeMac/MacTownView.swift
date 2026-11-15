@@ -42,8 +42,8 @@ struct MacTownView: View {
                 NavigationStack {
                     NeighborDetailView(store: store, neighborID: neighbor.id)
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button(GameStrings.text("common.close")) { inspectedNeighbor = nil }
-                        } }
+                            SheetDoneButton(titleKey: "common.close", symbol: "xmark") { inspectedNeighbor = nil }.keyboardShortcut(.cancelAction)
+                        }.sheetDoneBackground() }
                 }.frame(width: 640, height: 620)
             }
             .onChange(of: store.saveSceneGeneration) { _, _ in inspectedNeighbor = nil }

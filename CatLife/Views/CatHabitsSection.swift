@@ -346,7 +346,9 @@ private struct HabitMemoryDetail68: View {
                 }.multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true).padding(24)
             }
             .background(RoomTheme.cream)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(GameStrings.text("common.close")) { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                SheetDoneButton(titleKey: "common.close", symbol: "xmark") { dismiss() }.keyboardShortcut(.cancelAction)
+            }.sheetDoneBackground() }
         }
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).presentationBackground(RoomTheme.cream)
         .sheet(isPresented: $showingGuide) { HabitGuidePicker68(store: store, cat: cat, initialSelection: memory.kind) }

@@ -39,6 +39,8 @@ struct MacDesktopRoot: View {
     @State private var gardenTakesNumbers = false
     @State private var gardenPuzzleKeys = false
     @State private var catsTab = "cats"
+    /// 2.15: set when the home decor bonus card opens the album, so it starts on the bonus page.
+    @State private var albumOpensBonus = false
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
 
@@ -254,7 +256,8 @@ struct MacDesktopRoot: View {
                     MacHomeView(store: store, scene: scene, preferences: preferences, isActive: active,
                         onTasks: { store.activeSheet = .tasks }, onInventory: { store.activeSheet = .inventory },
                         onCats: { select(.cats) }, onRest: { restRequest = $0 }, onContext: context, onFixedStructure: fixedStructure,
-                        onBag: { auxiliary = .bag })
+                        onBag: { auxiliary = .bag },
+                        onDecorBonus: { albumOpensBonus = true; catsTab = "album"; select(.cats) })
                 } else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
             case .work:
                 MacWorkView(store: store, onHome: { select(.home) }, preferences: preferences, exits: recoveryExits, onTown: { select(.town) })
@@ -268,7 +271,8 @@ struct MacDesktopRoot: View {
                             .fixedSize().accessibilityIdentifier("macCatsTabs")
                     }
                     if catsTab == "album" {
-                        MacKeepsakesView(store: store, arrange: arrangeOutingItem, openGarden: { openGarden(catID: nil) })
+                        MacKeepsakesView(store: store, arrange: arrangeOutingItem, openGarden: { openGarden(catID: nil) }, opensBonus: albumOpensBonus)
+                            .onDisappear { albumOpensBonus = false }
                     } else {
                         MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
                     }

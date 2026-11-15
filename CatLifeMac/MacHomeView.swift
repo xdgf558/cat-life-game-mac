@@ -15,6 +15,8 @@ struct MacHomeView: View {
     let onContext: (MacRoomContextAction) -> Void
     let onFixedStructure: (MacRoomStructure) -> Void
     var onBag: () -> Void = {}
+    /// 2.15: the decor bonus card opens the album's home bonus page.
+    var onDecorBonus: () -> Void = {}
     @State private var need = CatNeedPresentation()
     @State private var cameraRevision = 0
     @State private var recent: [MacHomeLogEntry] = []
@@ -35,6 +37,7 @@ struct MacHomeView: View {
                         VStack(spacing: 14) {
                             catCard.macTourAnchor(.careCard).id(MacTourTarget.careCard)
                             tasks.macTourAnchor(.tasks).id(MacTourTarget.tasks)
+                            if let snapshot = store.snapshot, !snapshot.outing.decor.isEmpty { decorBonus(snapshot) }
                             if let cat = store.cat, let memory = cat.habits.pinnedMemory { PinnedHabitPrompt(store: store, cat: cat, memory: memory) }
                             homeLog
                         }
@@ -289,6 +292,56 @@ struct MacHomeView: View {
                 }
             }
         }
+    }
+    /// 2.14: what the outing decor placed at home is giving right now. Shown once any outing decor is found.
+    private func decorBonus(_ snapshot: GameSnapshot) -> some View {
+        let active = OutingBonuses.active(in: snapshot)
+        let count = GameStrings.format("mac.home.bonus.count", active.count, OutingCatalog.maximumActiveDecor)
+        var spoken = [GameStrings.text("mac.home.bonus.title"), count]
+        if active.isEmpty { spoken.append(GameStrings.text("mac.home.bonus.empty")) }
+        return Button(action: onDecorBonus) { MacPanel {
+            HStack {
+                Label(GameStrings.text("mac.home.bonus.title"), systemImage: "sparkles").font(.system(size: 16, weight: .heavy, design: .rounded))
+                Spacer()
+                HStack(spacing: 4) { Text(count); Image(systemName: "chevron.right") }
+                    .font(.system(size: 12.5, weight: .heavy)).foregroundStyle(active.isEmpty ? RoomTheme.secondary : RoomTheme.darkMint)
+            }
+            if active.isEmpty {
+                Text(GameStrings.text("mac.home.bonus.empty")).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ForEach(active) { bonus in
+                if let item = OutingCatalog.decor(id: bonus.decorID) {
+                    let tint = MacOutingText.qualityTint(bonus.quality)
+                    let name = GameStrings.text(item.nameKey)
+                    let value = GameStrings.format("outing.attribute.\(bonus.attribute.rawValue).value", bonus.value)
+                    let quality = GameStrings.text(bonus.quality.titleKey)
+                    HStack(spacing: 10) {
+                        GameIcon(asset: FurnitureCatalog.metadata(for: item.kind).assetName, symbol: item.symbol, size: 26, tint: tint)
+                            .frame(width: 36, height: 36).background(tint.opacity(0.15), in: Circle())
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(value).font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                                .lineLimit(1).minimumScaleFactor(0.8)
+                            Text(name).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
+                        }
+                        Spacer(minLength: 6)
+                        Text(quality).font(.system(size: 10.5, weight: .heavy)).foregroundStyle(.white)
+                            .padding(.horizontal, 7).padding(.vertical, 3).background(tint, in: Capsule())
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel([name, quality, value].joined(separator: "，"))
+                }
+            }
+        }.contentShape(RoundedRectangle(cornerRadius: 22)) }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel((spoken + active.compactMap { bonus in
+            OutingCatalog.decor(id: bonus.decorID).map { [GameStrings.text($0.nameKey), GameStrings.text(bonus.quality.titleKey),
+                GameStrings.format("outing.attribute.\(bonus.attribute.rawValue).value", bonus.value)].joined(separator: "，") }
+        }).joined(separator: "。"))
+        .accessibilityHint(GameStrings.text("mac.home.bonus.open"))
+        .accessibilityIdentifier("macHomeDecorBonus")
     }
     private func metric(_ key: String, icon: String, value: Int, color: Color) -> some View {
         HStack(spacing: 9) {

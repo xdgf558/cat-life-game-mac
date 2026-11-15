@@ -6,6 +6,8 @@ struct MacCatsView: View {
     let store: GameStore
     var onHome: () -> Void = {}
     var preferences: MacPreferences? = nil
+    /// True while a card is open; the desktop root sends Escape here to close it.
+    @Binding var isNested: Bool
     @State private var selectedID: String?
     @State private var renameCat: CatState?
     @State private var memory: CatMemory?
@@ -20,13 +22,37 @@ struct MacCatsView: View {
     private var offer: CatAdoptionOffer? { offers.first { $0.id == selectedID } }
     private var date: Date { store.snapshot?.meta.lastSyncAt ?? store.now }
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            directory.frame(width: 250)
-            if let cat = selected {
-                ownedDetail(cat).frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let offer { adoption(offer).frame(maxWidth: .infinity, maxHeight: .infinity) }
+    /// 2.52: one slot in the album. Every breed has a fixed numbered card; kittens born at home follow.
+    private enum AlbumEntry: Identifiable {
+        case owned(CatState), offer(CatAdoptionOffer), station
+        var id: String {
+            switch self { case .owned(let cat): cat.id; case .offer(let offer): offer.id; case .station: CatCatalog.stationCatID }
         }
+    }
+
+    /// Fixed order: the first cat, the adoptable breeds, the Station Cat, then any other cat living here.
+    private var entries: [AlbumEntry] {
+        func slot(_ id: String) -> CatState? { cats.first { $0.id == id } }
+        var list: [AlbumEntry] = []
+        if let first = slot(CatCatalog.initialCatID) { list.append(.owned(first)) }
+        for offer in CatCatalog.adoptionOffers { list.append(slot(offer.id).map(AlbumEntry.owned) ?? .offer(offer)) }
+        list.append(slot(CatCatalog.stationCatID).map(AlbumEntry.owned) ?? .station)
+        let listed = Set(list.map(\.id))
+        list += cats.filter { !listed.contains($0.id) }.map(AlbumEntry.owned)
+        return list
+    }
+    private var focusedID: String? { selectedID ?? store.cat?.id }
+    private var stationMet: Bool { (store.snapshot?.stationCat.timesCaught ?? 0) > 0 }
+
+    var body: some View {
+        Group {
+            if isNested, let entry = entries.first(where: { $0.id == focusedID }) {
+                detail(entry).transition(.opacity.combined(with: .scale(scale: 0.98)))
+            } else {
+                album.transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.18), value: isNested)
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("macCatsPage")
@@ -40,7 +66,8 @@ struct MacCatsView: View {
         } message: {
             Text(GameStrings.format("cat.adoptionConfirmBody", offer?.price ?? 0))
         }
-        .onAppear { isVisible = true }
+        .onAppear { isVisible = true; isNested = false }
+        .onReceive(NotificationCenter.default.publisher(for: .macCatsEscape)) { _ in isNested = false }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("MacContentCommand"))) { note in
             guard isVisible, renameCat == nil, memory == nil, !showsGuide, !confirmsAdoption,
                   let raw = note.object as? String, let command = MacCommand(rawValue: raw) else { return }
@@ -48,90 +75,188 @@ struct MacCatsView: View {
             case .listUp: moveSelection(-1)
             case .listDown: moveSelection(1)
             case .confirm:
-                if let cat = selected { bringHome(cat) }
+                if !isNested { if focusedID != nil { isNested = true } }
+                else if let cat = selected { bringHome(cat) }
                 else if let offer, let snapshot = store.snapshot, !saving, !store.isBusy,
                         CatAdoptionView.conditionsMet(offer, in: snapshot) == 3 { confirmsAdoption = true }
             default: break
             }
         }
-        .onDisappear { isVisible = false }
-        .onChange(of: cats.map(\.id)) { _, ids in
-            // A cat that left (the Station Cat running back to the garden) falls back to the companion.
-            if let id = selectedID, !ids.contains(id), !offers.contains(where: { $0.id == id }) { selectedID = nil }
+        .onDisappear { isVisible = false; isNested = false }
+        .onChange(of: store.saveSceneGeneration) { _, _ in
+            selectedID = nil; memory = nil; renameCat = nil; showsGuide = false; confirmsAdoption = false; isNested = false
         }
-        .onChange(of: store.saveSceneGeneration) { _, _ in selectedID = nil; memory = nil; renameCat = nil; showsGuide = false; confirmsAdoption = false }
     }
 
-    private var directory: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(GameStrings.format("mac.cats.ownedCount", cats.count)).font(.system(size: 14, weight: .heavy))
+    // MARK: Album
+
+    private var album: some View {
+        let all = entries
+        let collected = all.filter { if case .owned = $0 { true } else { false } }.count
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Label(GameStrings.format("mac.album.collected", collected, all.count), systemImage: "books.vertical.fill")
+                    .font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                HStack(spacing: 4) {
+                    ForEach(all) { entry in
+                        Capsule().fill(isOwned(entry) ? RoomTheme.mint : RoomTheme.track).frame(width: 18, height: 6)
+                    }
+                }.accessibilityHidden(true)
+                Spacer(minLength: 8)
+                Label(GameStrings.text((store.snapshot?.home.roomLevel ?? 1) >= 4 ? "mac.cats.sharedUnlocked" : "mac.cats.sharedLocked"), systemImage: "house.fill")
+                    .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
+                    .padding(.horizontal, 9).padding(.vertical, 4).background(RoomTheme.mint.opacity(0.1), in: Capsule())
+                Text(GameStrings.text("mac.album.tapHint")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    .lineLimit(1)
+            }
             ScrollView {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(cats) { cat in ownedRow(cat) }
-                    Label(GameStrings.text((store.snapshot?.home.roomLevel ?? 1) >= 4 ? "mac.cats.sharedUnlocked" : "mac.cats.sharedLocked"), systemImage: "house.fill")
-                        .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
-                        .padding(.horizontal, 10).padding(.vertical, 8).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoomTheme.mint.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                    if !offers.isEmpty {
-                        Text(GameStrings.format("mac.cats.availableCount", offers.count)).font(.system(size: 11.5, weight: .heavy))
-                            .foregroundStyle(RoomTheme.secondary).padding(.top, 6)
-                        ForEach(offers) { offer in offerRow(offer) }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 14)], spacing: 14) {
+                    ForEach(Array(all.enumerated()), id: \.element.id) { index, entry in card(entry, number: index + 1) }
+                }
+                .padding(.horizontal, 2).padding(.vertical, 4)
+            }
+        }
+        .macContentCard69(padding: 16).frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func isOwned(_ entry: AlbumEntry) -> Bool { if case .owned = entry { true } else { false } }
+
+    private func offerReady(_ offer: CatAdoptionOffer) -> Bool {
+        store.snapshot.map { CatAdoptionView.conditionsMet(offer, in: $0) == 3 } ?? false
+    }
+
+    /// A collector's card: number, art on the breed's colour, name and one line. Details open on click.
+    private func card(_ entry: AlbumEntry, number: Int) -> some View {
+        let appearance: CatAppearance, name: String, line: String, lineTint: Color, stamp: (String, Color)?
+        var dim = false, silhouette = false
+        switch entry {
+        case .owned(let cat):
+            appearance = cat.appearance; name = GameStrings.catName(cat)
+            let companion = store.cat?.id == cat.id
+            line = companion ? GameStrings.text("mac.album.companion") : GameStrings.text("hospital.coat.\(cat.appearance.rawValue)")
+            lineTint = companion ? RoomTheme.darkMint : RoomTheme.secondary
+            stamp = companion ? ("heart.fill", RoomTheme.coral) : ("checkmark.seal.fill", RoomTheme.mint)
+        case .offer(let offer):
+            let ready = offerReady(offer)
+            appearance = offer.appearance; name = GameStrings.catAdoptionName(offer); dim = !ready
+            line = ready ? GameStrings.format("mac.album.readyPrice", offer.price)
+                : GameStrings.format("mac.album.locked", offer.requiredPlayerLevel, offer.requiredRoomLevel)
+            lineTint = ready ? RoomTheme.darkMint : RoomTheme.secondary
+            stamp = ready ? ("sparkles", RoomTheme.gold) : ("lock.fill", RoomTheme.secondary.opacity(0.6))
+        case .station:
+            appearance = .station; silhouette = !stationMet; dim = stationMet
+            name = GameStrings.text(stationMet ? "cat.stationName" : "mac.album.unknown")
+            line = GameStrings.text(stationMet ? "mac.album.stationAway" : "mac.album.stationRumor")
+            lineTint = RoomTheme.secondary
+            stamp = ("questionmark", RoomTheme.lilac)
+        }
+        let focused = focusedID == entry.id
+        return Button {
+            selectedID = entry.id; isNested = true
+        } label: {
+            VStack(spacing: 0) {
+                ZStack {
+                    LinearGradient(colors: [CatCollectionPalette.background(appearance), RoomTheme.paper],
+                                   startPoint: .top, endPoint: .bottom)
+                    GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: appearance), symbol: "cat.fill", size: 96)
+                        .frame(width: 108, height: 108)
+                        .colorMultiply(silhouette ? .black : .white).opacity(silhouette ? 0.55 : 1)
+                        .saturation(dim ? 0 : 1).opacity(dim ? 0.55 : 1)
+                        .padding(.top, 10)
+                }
+                .frame(height: 124).clipped()
+                .overlay(alignment: .topLeading) {
+                    Text("No." + String(format: "%02d", number)).font(.system(size: 10, weight: .heavy)).monospacedDigit()
+                        .foregroundStyle(RoomTheme.secondary).padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(.white.opacity(0.85), in: Capsule()).padding(8)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if let stamp {
+                        Image(systemName: stamp.0).font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
+                            .frame(width: 22, height: 22).background(stamp.1, in: Circle())
+                            .overlay(Circle().strokeBorder(.white, lineWidth: 2)).padding(8)
                     }
                 }
+                VStack(spacing: 2) {
+                    Text(name).font(.system(size: 14, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)
+                    Text(line).font(.system(size: 10.5, weight: .bold)).foregroundStyle(lineTint).lineLimit(1).minimumScaleFactor(0.7)
+                }
+                .padding(.horizontal, 8).padding(.vertical, 8).frame(maxWidth: .infinity)
+                .background(RoomTheme.paper)
             }
-            HStack(spacing: 6) {
-                Button { moveSelection(-1) } label: { Text(keyLabel(.listUp)) }
-                    .accessibilityLabel(GameStrings.text("mac.content.previous"))
-                Button { moveSelection(1) } label: { Text(keyLabel(.listDown)) }
-                    .accessibilityLabel(GameStrings.text("mac.content.next"))
-                Text(GameStrings.text("mac.cats.choose")).font(.caption).foregroundStyle(RoomTheme.secondary)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(focused ? RoomTheme.mint
+                : isOwned(entry) ? CatCollectionPalette.tint(appearance).opacity(0.35) : .white,
+                style: StrokeStyle(lineWidth: focused ? 3 : 2, dash: isOwned(entry) || focused ? [] : [5, 4])))
+            .compositingGroup()
+            .shadow(color: RoomTheme.ink.opacity(isOwned(entry) ? 0.1 : 0.05), radius: 0, y: 3)
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(name).accessibilityValue(line)
+        .accessibilityAddTraits(focused ? .isSelected : [])
+        .accessibilityIdentifier(isOwned(entry) ? "macCat_\(entry.id)" : entry.id == CatCatalog.stationCatID ? "macStationCard" : "macAdoption_\(entry.id)")
+    }
+
+    // MARK: Detail
+
+    private func detail(_ entry: AlbumEntry) -> some View {
+        let all = entries, index = all.firstIndex { $0.id == entry.id } ?? 0
+        return VStack(spacing: 12) {
+            HStack(spacing: 8) {
+                Button { isNested = false } label: {
+                    Label(GameStrings.text("mac.album.back"), systemImage: "chevron.left").font(.system(size: 13, weight: .heavy))
+                }.buttonStyle(SoftButtonStyle()).fixedSize().help(keyLabel(.escape))
+                    .accessibilityIdentifier("macAlbumBack")
+                Spacer()
+                Text(GameStrings.format("mac.album.position", index + 1, all.count))
+                    .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).monospacedDigit()
+                Button { moveSelection(-1) } label: { Label(keyLabel(.listUp), systemImage: "chevron.left") }
+                    .disabled(index == 0).accessibilityLabel(GameStrings.text("mac.content.previous"))
+                Button { moveSelection(1) } label: { Label(keyLabel(.listDown), systemImage: "chevron.right") }
+                    .disabled(index == all.count - 1).accessibilityLabel(GameStrings.text("mac.content.next"))
             }.controlSize(.small)
-        }.macContentCard69(padding: 12).frame(maxHeight: .infinity)
+            switch entry {
+            case .owned(let cat): ownedDetail(cat).frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .offer(let offer): adoption(offer).frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .station: stationDetail.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
     }
 
-    private func ownedRow(_ cat: CatState) -> some View {
-        let active = store.cat?.id == cat.id
-        return Button { selectedID = cat.id } label: {
-            HStack(spacing: 9) {
-                CatCollectionPortrait(appearance: cat.appearance, size: 42)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Text(GameStrings.catName(cat)).font(.system(size: 14, weight: .heavy)).lineLimit(1)
-                        if active { Image(systemName: "heart.fill").font(.system(size: 11)).foregroundStyle(RoomTheme.mint) }
-                    }
-                    Text(CatProfileView.status(for: cat)).font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
-                    if active {
-                        Text(GameStrings.text("mac.cats.companion") + " · " + GameStrings.text("homeFloor.\(store.visibleHomeFloor.rawValue)"))
-                            .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }.padding(7).frame(maxWidth: .infinity, alignment: .leading)
-                .background(selected?.id == cat.id ? RoomTheme.paleMint.opacity(0.4) : .clear, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(selected?.id == cat.id ? RoomTheme.mint : .clear, lineWidth: 2))
-                .contentShape(RoundedRectangle(cornerRadius: 14))
-        }.buttonStyle(.plain).accessibilityIdentifier("macCat_\(cat.id)")
-            .accessibilityAddTraits(selected?.id == cat.id ? .isSelected : [])
-    }
-
-    private func offerRow(_ offer: CatAdoptionOffer) -> some View {
-        let available = store.snapshot.map { CatAdoptionView.conditionsMet(offer, in: $0) == 3 } ?? false
-        return Button { selectedID = offer.id } label: {
-            HStack(spacing: 9) {
-                CatCollectionPortrait(appearance: offer.appearance, size: 42, faded: !available)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(GameStrings.catAdoptionName(offer)).font(.system(size: 14, weight: .heavy)).lineLimit(1)
-                    Text(available ? GameStrings.format("cat.adoptionPrice", offer.price)
-                         : GameStrings.format("cat.adoptionSummary", offer.requiredPlayerLevel, offer.requiredRoomLevel, offer.price))
-                        .font(.system(size: 11, weight: .semibold)).foregroundStyle(available ? RoomTheme.darkMint : RoomTheme.secondary)
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: available ? "heart.circle.fill" : "lock.fill").font(.system(size: 13))
-                    .foregroundStyle(available ? RoomTheme.mint : RoomTheme.secondary.opacity(0.7))
-            }.padding(7).frame(maxWidth: .infinity, alignment: .leading)
-                .background(selectedID == offer.id ? RoomTheme.paleMint.opacity(0.4) : .clear, in: RoundedRectangle(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(selectedID == offer.id ? RoomTheme.mint : .clear, lineWidth: 2))
-                .contentShape(RoundedRectangle(cornerRadius: 14))
-        }.buttonStyle(.plain).accessibilityIdentifier("macAdoption_\(offer.id)")
+    /// The Station Cat before it lives here: a rumour until first caught, then where to find it again.
+    private var stationDetail: some View {
+        let hours = Int(StationCatRules.runAwayAfter / 3600)
+        return HStack(spacing: 32) {
+            GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: .station), symbol: "cat.fill", size: 160)
+                .frame(width: 180, height: 180)
+                .colorMultiply(stationMet ? .white : .black).opacity(stationMet ? 0.7 : 0.55)
+                .background(CatCollectionPalette.background(.station), in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(GameStrings.text(stationMet ? "cat.stationName" : "mac.album.unknown")).font(.system(size: 30, weight: .heavy))
+                Text(GameStrings.text(stationMet ? "stationCat.card.body" : "mac.album.stationRumorBody"))
+                    .font(.system(size: 13.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(GameStrings.format("stationCat.perk.wage", StationCatRules.wageMultiplier), systemImage: "dollarsign.circle.fill")
+                        .foregroundStyle(RoomTheme.darkMint)
+                    Label(GameStrings.format("stationCat.perk.hunger", hours), systemImage: "fork.knife")
+                        .foregroundStyle(RoomTheme.coralDeep)
+                }.font(.system(size: 12.5, weight: .bold))
+                Label(GameStrings.text("mac.album.stationHowTo"), systemImage: "leaf.fill")
+                    .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                    .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoomTheme.mint.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                if stationMet, let times = store.snapshot?.stationCat.timesCaught {
+                    Text(GameStrings.format("mac.album.stationCaught", times)).font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(RoomTheme.secondary)
+                }
+            }.frame(maxWidth: 460, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .macContentCard69(padding: 24)
+        .accessibilityIdentifier("macStationDetail")
     }
 
     // MARK: Owned cat
@@ -466,9 +591,9 @@ struct MacCatsView: View {
     private func keyLabel(_ command: MacCommand) -> String { (preferences?.binding(for: command) ?? command.defaultBinding).label }
 
     private func moveSelection(_ delta: Int) {
-        let ids = cats.map(\.id) + offers.map(\.id)
+        let ids = entries.map(\.id)
         guard !ids.isEmpty else { return }
-        let index = ids.firstIndex(of: selectedID ?? store.cat?.id ?? "") ?? 0
+        let index = ids.firstIndex(of: focusedID ?? "") ?? 0
         selectedID = ids[min(ids.count - 1, max(0, index + delta))]
     }
 }
@@ -517,3 +642,5 @@ private struct MacCatNameEditor69: View {
         }
     }
 }
+
+extension Notification.Name { static let macCatsEscape = Notification.Name("MacCatsEscape") }

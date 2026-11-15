@@ -1,6 +1,6 @@
 import Foundation
 
-/// 3.0: 车站猫. It never comes from adoption: it turns up rarely on a garden outing, comes home if the
+/// 2.5: 车站猫. It never comes from adoption: it turns up rarely on a garden outing, comes home if the
 /// player lures it with cat grass, doubles every shift's wage while it lives here, and runs back
 /// to the garden if it stays hungry too long. Catching it again starts over as a new friend.
 public struct StationCatState: Codable, Equatable, Sendable {

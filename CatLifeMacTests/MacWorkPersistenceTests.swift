@@ -44,7 +44,7 @@ final class MacWorkPersistenceTests: XCTestCase {
                 XCTAssertTrue(dictionary.values.allSatisfy { !$0.isEmpty })
             }
         }
-        XCTAssertEqual(AppVersion.current.version, "3.0")
+        XCTAssertEqual(AppVersion.current.version, "2.5")
         XCTAssertEqual(AppVersion.current.build, "120")
         XCTAssertEqual(AppRelease.recent.map(\.build), [120, 119, 118])
     }

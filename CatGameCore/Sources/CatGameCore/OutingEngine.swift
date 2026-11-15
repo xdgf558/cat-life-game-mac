@@ -124,7 +124,7 @@ extension GameEngine {
         let favored = OutingHabit.style(spot.favoredStyle).isKnown(for: candidate.cats[index])
         let pool = OutingCatalog.events.filter { ($0.spot == nil || $0.spot == spot) && !trip.seenEventIDs.contains($0.id) }
         if StationCatRules.appears(on: trip, in: candidate) {
-            // 3.0: the Station Cat, rolled on its own stream so every other outcome stays the same.
+            // 2.5: the Station Cat, rolled on its own stream so every other outcome stays the same.
             trip.pendingStationCat = spot
             trip.log.append(.init(id: entryID, spot: spot, kind: .stationCat, lootID: nil, eventID: StationCatRules.logEventID,
                                   optionID: nil, reactionKey: "stationCat.log.seen", catMood: 0, bond: 0, friendship: 0,

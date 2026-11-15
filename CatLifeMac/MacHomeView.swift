@@ -297,7 +297,7 @@ struct MacHomeView: View {
         }
     }
     /// 2.14: what the outing decor placed at home is giving right now. Shown once any outing decor is found.
-    /// 3.0: the Station Cat's double wage, its hunger countdown, or the note that it ran back to the garden.
+    /// 2.5: the Station Cat's double wage, its hunger countdown, or the note that it ran back to the garden.
     @ViewBuilder private func stationPanel(_ snapshot: GameSnapshot) -> some View {
         let owned = StationCatRules.owns(snapshot)
         let leavesAt = snapshot.stationCat.runsAwayAt

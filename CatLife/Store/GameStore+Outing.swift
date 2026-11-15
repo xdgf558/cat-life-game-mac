@@ -56,7 +56,7 @@ extension GameStore {
         await performOuting { GameEngine.setKeepsakeOnShelf(&$0, keepsakeID: keepsakeID, onShelf: onShelf, now: $1) }
     }
 
-    /// 3.0: spend one cat grass on the Station Cat waiting on the map.
+    /// 2.5: spend one cat grass on the Station Cat waiting on the map.
     @discardableResult
     func lureStationCat() async -> Bool {
         await performOuting { GameEngine.lureStationCat(&$0, now: $1) }

@@ -2,7 +2,7 @@ import Foundation
 
 public enum SupplyKind: String, Codable, CaseIterable, Hashable, Sendable {
     case food, litter, toy, premiumFood, premiumLitter
-    /// 3.0: lures the Station Cat in the garden; not a care supply.
+    /// 2.5: lures the Station Cat in the garden; not a care supply.
     case catGrass
 }
 

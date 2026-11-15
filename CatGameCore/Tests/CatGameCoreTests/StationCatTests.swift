@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import CatGameCore
 
-@Suite("Station Cat (3.0)")
+@Suite("Station Cat (2.5)")
 struct StationCatTests {
     private let now = Date(timeIntervalSince1970: 1_793_600_000)
 

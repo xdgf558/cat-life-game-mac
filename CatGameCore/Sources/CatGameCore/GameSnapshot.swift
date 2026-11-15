@@ -17,7 +17,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var catPlay: CatPlayState
     /// 2.0: cat outings, the keepsake album and garden decor.
     public var outing: OutingState
-    /// 3.0: the Station Cat's hunger clock and run-away notice.
+    /// 2.5: the Station Cat's hunger clock and run-away notice.
     public var stationCat: StationCatState = StationCatState()
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
@@ -369,7 +369,7 @@ public struct InventoryState: Codable, Equatable, Sendable {
     public var litter: Int
     public var premiumFood: Int
     public var premiumLitter: Int
-    /// 3.0: cat grass for the Station Cat.
+    /// 2.5: cat grass for the Station Cat.
     public var catGrass: Int
     /// Remaining play uses. One purchased wand supplies six uses.
     public var toys: Int

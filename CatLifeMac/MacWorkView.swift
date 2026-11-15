@@ -320,7 +320,7 @@ struct MacWorkView: View {
     }
 
     /// Stamina still missing for the selected, unlocked job (0 when it can be afforded or is locked).
-    /// 3.0: the wage a shift started now would pay (doubled while the Station Cat lives here).
+    /// 2.5: the wage a shift started now would pay (doubled while the Station Cat lives here).
     private func wage(_ job: WorkJob) -> Int {
         store.snapshot.map { StationCatRules.wage(job.goldReward, in: $0) } ?? job.goldReward
     }

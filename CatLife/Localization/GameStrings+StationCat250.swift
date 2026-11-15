@@ -1,8 +1,8 @@
 import Foundation
 
-/// 3.0 车站猫: met in the garden, lured with cat grass, doubles wages, runs off if left hungry.
+/// 2.5 车站猫: met in the garden, lured with cat grass, doubles wages, runs off if left hungry.
 extension GameStrings {
-    static let stationCat300Chinese: [String: String] = [
+    static let stationCat250Chinese: [String: String] = [
         "cat.stationName": "车站猫",
         "cat.stationDescription": "戴着耳机的黑白猫，只在猫町花园里偶尔出现。",
         "hospital.coat.station": "耳机燕尾服猫",
@@ -40,7 +40,7 @@ extension GameStrings {
         "stationCat.error.grass": "没有猫草，去商店买一株吧。",
         "stationCat.error.pending": "先决定要不要把车站猫带回家。"
     ]
-    static let stationCat300Traditional: [String: String] = [
+    static let stationCat250Traditional: [String: String] = [
         "cat.stationName": "車站貓",
         "cat.stationDescription": "戴著耳機的黑白貓，只在貓町花園裡偶爾出現。",
         "hospital.coat.station": "耳機燕尾服貓",
@@ -78,7 +78,7 @@ extension GameStrings {
         "stationCat.error.grass": "沒有貓草，去商店買一株吧。",
         "stationCat.error.pending": "先決定要不要把車站貓帶回家。"
     ]
-    static let stationCat300English: [String: String] = [
+    static let stationCat250English: [String: String] = [
         "cat.stationName": "Station Cat",
         "cat.stationDescription": "A black-and-white cat in headphones who only shows up in the Cat Town garden now and then.",
         "hospital.coat.station": "Tuxedo in headphones",

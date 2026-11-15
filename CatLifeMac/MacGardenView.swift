@@ -204,7 +204,7 @@ struct MacGardenView: View {
         if let trip, trip.footprintsLeft == 0, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.pendingStationCat == nil { end() }
     }
 
-    /// 3.0: one cat grass brings the Station Cat home; the result card says what it does now.
+    /// 2.5: one cat grass brings the Station Cat home; the result card says what it does now.
     private func lureStation() {
         guard !working, (state?.inventory.catGrass ?? 0) > 0 else { return }
         working = true
@@ -707,7 +707,7 @@ struct MacGardenView: View {
         .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal).accessibilityIdentifier("outingEventCard")
     }
 
-    // MARK: Station Cat (3.0)
+    // MARK: Station Cat (2.5)
 
     private var stationPortrait: some View {
         Image(CatArtwork.asset("cat-avatar", appearance: .station)).resizable().scaledToFit()

@@ -125,7 +125,7 @@ struct MacBagOthersView: View {
     private func tileRow(_ kinds: [SupplyKind]) -> some View {
         HStack(spacing: 10) {
             ForEach(kinds, id: \.self) { supplyTile($0) }
-            // Keep premium tiles the same width as the four daily ones (3.0 added cat grass).
+            // Keep premium tiles the same width as the four daily ones (2.5 added cat grass).
             ForEach(0..<max(0, 4 - kinds.count), id: \.self) { _ in Color.clear.frame(maxWidth: .infinity, maxHeight: 1) }
         }
     }

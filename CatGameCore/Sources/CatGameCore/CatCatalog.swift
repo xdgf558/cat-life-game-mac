@@ -2,7 +2,7 @@ import Foundation
 
 public enum CatAppearance: String, Codable, CaseIterable, Sendable {
     case orange, cow, blue, siamese, silver
-    /// 3.0: 车站猫, met only in the garden.
+    /// 2.5: 车站猫, met only in the garden.
     case station
 }
 
@@ -21,7 +21,7 @@ public enum CatCatalog {
     public static let blueCatID = "cat_003"
     public static let siameseCatID = "cat_004"
     public static let silverCatID = "cat_005"
-    /// 3.0: never adopted; caught in the garden with cat grass (see StationCat.swift).
+    /// 2.5: never adopted; caught in the garden with cat grass (see StationCat.swift).
     public static let stationCatID = "cat_station"
     public static let stationCatName = "车站猫"
     public static let adoptionOffers: [CatAdoptionOffer] = [

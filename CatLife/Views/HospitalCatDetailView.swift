@@ -276,7 +276,7 @@ struct HospitalCatDetailView: View {
                 showsRecovery = true
                 isSaving = false
                 store.playFeedback(.treatDone)
-                store.playFeedback(.catPurr)
+                store.playFeedback(.catPurr, catID: catID)
             }
         }
     }

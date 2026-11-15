@@ -275,13 +275,17 @@ final class GameStore {
     var isMusicPlaying: Bool { audio.musicPlaying }
     func previewMusic() { audio.toggleMusicPreview() }
     func endMusicPreview() { audio.endMusicPreview() }
-    func previewCatVoice() { audio.play(.catCoax, userInitiated: true) }
+    /// 2.20: the voice this cat (or the companion) meows with.
+    func catVoice(_ catID: String? = nil) -> CatVoice {
+        CatVoice.voice(for: catID.flatMap { id in snapshot?.cats.first { $0.id == id } } ?? cat, at: Date())
+    }
+    func previewCatVoice() { audio.play(.catCoax, userInitiated: true, voice: catVoice()) }
     func previewSoundEffect() { audio.play(.coins, userInitiated: true) }
-    func playFeedback(_ sound: GameSoundEffect) { audio.play(sound, userInitiated: true) }
+    func playFeedback(_ sound: GameSoundEffect, catID: String? = nil) { audio.play(sound, userInitiated: true, voice: catVoice(catID)) }
     func playSceneSound(_ sound: GameSoundEffect) {
         audio.play(sound)
-        if sound == .feed { audio.play(.catHappy) }
-        if sound == .play { audio.play(.catCoax) }
+        if sound == .feed { audio.play(.catHappy, voice: catVoice()) }
+        if sound == .play { audio.play(.catCoax, voice: catVoice()) }
     }
 
     #if DEBUG
@@ -553,7 +557,7 @@ final class GameStore {
             companionMemories.record(from: context.original, to: context.candidate, generation: saveSceneGeneration)
         }
         if canPlayProgress, let sound = GameProgressFeedback.sound(from: context.original, to: context.candidate) {
-            audio.play(sound)
+            audio.play(sound, voice: CatVoice.voice(for: context.candidate.activeCat, at: Date()))
         }
         if let receipt = context.candidate.player.lastWorkResult,
            receipt.id != context.original.player.lastWorkResult?.id {
@@ -1343,7 +1347,7 @@ final class GameStore {
         let inspected = catID.flatMap { id in snapshot?.cats.first { $0.id == id } } ?? cat
         let voice: GameSoundEffect = inspected?.healthState?.illness != nil ? .catUnwell
             : ((inspected?.satiety ?? 100) < 50 ? .catHungry : .catHappy)
-        audio.play(voice, userInitiated: true)
+        audio.play(voice, userInitiated: true, voice: CatVoice.voice(for: inspected, at: Date()))
         inspectedMemoryCatID = nil
         inspectedCatShowsGrowth = showGrowth
         inspectedCatID = inspected?.id

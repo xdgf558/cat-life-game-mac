@@ -30,7 +30,7 @@ final class GameAudioController: NSObject {
     @ObservationIgnored private var loadedTrack: GameMusicTrack?
     @ObservationIgnored private var fadingMusic: AVAudioPlayer?
     @ObservationIgnored private var fadeTask: Task<Void, Never>?
-    @ObservationIgnored private var effects: [GameSoundEffect: [AVAudioPlayer]] = [:]
+    @ObservationIgnored private var effects: [EffectKey: [AVAudioPlayer]] = [:]
     @ObservationIgnored private var lastPlayed: [GameSoundEffect: TimeInterval] = [:]
     @ObservationIgnored private var ready = false
     @ObservationIgnored private var currentHour = 12
@@ -48,7 +48,14 @@ final class GameAudioController: NSObject {
 
     private struct PendingEffect {
         let effect: GameSoundEffect
+        let voice: CatVoice
         let requestedAt: TimeInterval
+    }
+
+    /// One small player pool per sound and, for cat sounds, per voice.
+    private struct EffectKey: Hashable {
+        let effect: GameSoundEffect
+        let voice: CatVoice
     }
 
     override init() {
@@ -79,8 +86,8 @@ final class GameAudioController: NSObject {
         isForeground = foreground
         self.ready = ready
         if becameActive { routePaused = false }
-        for (effect, players) in effects {
-            let volume = GameAudioPolicy.effectVolume(effect, settings: settings)
+        for (key, players) in effects {
+            let volume = GameAudioPolicy.effectVolume(key.effect, settings: settings)
             for player in players {
                 player.volume = volume
                 if volume == 0 { player.stop(); player.currentTime = 0 }
@@ -105,7 +112,8 @@ final class GameAudioController: NSObject {
         reconcileMusic()
     }
 
-    func play(_ effect: GameSoundEffect, userInitiated: Bool = false) {
+    func play(_ effect: GameSoundEffect, userInitiated: Bool = false, voice: CatVoice = .standard) {
+        let voice = effect.isCatVoice ? voice : .standard
         guard ready, isForeground else { return }
         if userInitiated { noteUserInteraction() }
         guard !routePaused, !interrupted || recoveringInterruption else { return }
@@ -136,32 +144,38 @@ final class GameAudioController: NSObject {
                 guard let index = GameAudioPolicy.replacementIndex(for: effect, active: pendingEffects.map(\.effect)) else { return }
                 pendingEffects.remove(at: index)
             }
-            pendingEffects.append(PendingEffect(effect: effect, requestedAt: now))
+            pendingEffects.append(PendingEffect(effect: effect, voice: voice, requestedAt: now))
             requestSessionActivation(recoveringInterruption: recoveringInterruption)
             return
         }
-        playPreparedEffect(effect)
+        playPreparedEffect(effect, voice: voice)
     }
 
     private func minimumGap(for effect: GameSoundEffect) -> TimeInterval {
         effect.isCatVoice ? 4 : 0.12
     }
 
-    private func playPreparedEffect(_ effect: GameSoundEffect) {
+    private func playPreparedEffect(_ effect: GameSoundEffect, voice: CatVoice) {
         guard ready, isForeground, sessionActive, !interrupted, !routePaused,
               GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
         let now = ProcessInfo.processInfo.systemUptime
         guard now - (lastPlayed[effect] ?? -100) >= minimumGap(for: effect),
               !effect.isCatVoice || now - lastCatPlayed >= 4 else { return }
-        if effects[effect] == nil { effects[effect] = (0..<2).compactMap { _ in makePlayer(effect.fileName) } }
-        let active = effects.flatMap { effect, players in
-            players.filter(\.isPlaying).map { (effect: effect, player: $0) }
+        let key = EffectKey(effect: effect, voice: voice)
+        if effects[key] == nil {
+            // A missing voice file falls back to the original clip rather than going silent.
+            let name = voice.fileName(for: effect)
+            let players = (0..<2).compactMap { _ in makePlayer(name) }
+            effects[key] = players.isEmpty && voice != .standard ? (0..<2).compactMap { _ in makePlayer(effect.fileName) } : players
+        }
+        let active = effects.flatMap { key, players in
+            players.filter(\.isPlaying).map { (effect: key.effect, player: $0) }
         }
         if active.count >= GameAudioPolicy.simultaneousEffects {
             guard let index = GameAudioPolicy.replacementIndex(for: effect, active: active.map(\.effect)) else { return }
             active[index].player.stop()
         }
-        guard let player = effects[effect]?.first(where: { !$0.isPlaying }) else { return }
+        guard let player = effects[key]?.first(where: { !$0.isPlaying }) else { return }
         player.currentTime = 0
         player.volume = GameAudioPolicy.effectVolume(effect, settings: settings)
         if player.play() {
@@ -332,7 +346,7 @@ final class GameAudioController: NSObject {
         let queued = pendingEffects
         pendingEffects.removeAll()
         for request in queued where ProcessInfo.processInfo.systemUptime - request.requestedAt <= 0.5 {
-            playPreparedEffect(request.effect)
+            playPreparedEffect(request.effect, voice: request.voice)
         }
     }
 

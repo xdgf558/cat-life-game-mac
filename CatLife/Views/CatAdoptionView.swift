@@ -230,7 +230,7 @@ struct CatAdoptionView: View {
             guard succeeded else { return }
             confirming = false
             adoptedHere = true
-            if isVisible { store.playFeedback(.claim); store.playFeedback(.catCoax) }
+            if isVisible { store.playFeedback(.claim); store.playFeedback(.catCoax, catID: catID) }
         }
     }
     private func bringHome() {

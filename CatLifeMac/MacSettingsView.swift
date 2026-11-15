@@ -148,7 +148,18 @@ struct MacSettingsView: View {
             audioRow("audio.music", enabled: $audioDraft.musicEnabled, volume: $audioDraft.musicVolume, preview: store.previewMusic)
             audioRow("audio.effects", enabled: $audioDraft.effectsEnabled, volume: $audioDraft.effectsVolume, preview: store.previewSoundEffect)
             audioRow("audio.cat", enabled: $audioDraft.catEnabled, volume: $audioDraft.catVolume, preview: store.previewCatVoice)
+            row("audio.musicChoice", detail: "audio.musicChoiceDetail") {
+                Menu {
+                    Button { audioDraft.musicChoice = nil } label: { choiceLabel("audio.musicChoice.scene", picked: audioDraft.musicChoice == nil) }
+                    Divider()
+                    ForEach(GameMusicTrack.pickable, id: \.self) { track in
+                        Button { audioDraft.musicChoice = track.rawValue } label: { choiceLabel(track.nameKey, picked: audioDraft.musicChoice == track.rawValue) }
+                    }
+                } label: { Text(GameStrings.text(pickedMusicKey)).frame(minWidth: 165) }
+                .fixedSize().disabled(!audioDraft.musicEnabled).accessibilityIdentifier("macMusicChoice")
+            }
             toggleRow("audio.sceneMusic", detail: "audio.sceneMusicDetail", value: $audioDraft.sceneMusic, id: "macSceneMusic")
+                .disabled(pickedMusicKey != "audio.musicChoice.scene")
             toggleRow("audio.nightQuiet", detail: "audio.nightQuietDetail", value: $audioDraft.nightQuiet, id: "macQuietHours")
             toggleRow("mac.settings.backgroundAudio", detail: "mac.settings.backgroundAudioHint", value: $preferences.backgroundAudio, id: "macBackgroundAudio")
             HStack {
@@ -161,6 +172,15 @@ struct MacSettingsView: View {
             .font(.system(size: 12, weight: .bold)).padding(.top, 18)
         }
         .disabled(store.isDecorating || store.saveTransferInProgress)
+    }
+    /// The picked song's name, or "follow the scene" (also for a name this build does not know).
+    private var pickedMusicKey: String {
+        guard let track = audioDraft.musicChoice.flatMap(GameMusicTrack.init(rawValue:)), GameMusicTrack.pickable.contains(track)
+        else { return "audio.musicChoice.scene" }
+        return track.nameKey
+    }
+    @ViewBuilder private func choiceLabel(_ key: String, picked: Bool) -> some View {
+        if picked { Label(GameStrings.text(key), systemImage: "checkmark") } else { Text(GameStrings.text(key)) }
     }
     private func audioRow(_ key: String, enabled: Binding<Bool>, volume: Binding<Double>, preview: @escaping () -> Void) -> some View {
         row(key) {

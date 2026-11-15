@@ -533,9 +533,12 @@ struct MacOutingPuzzleCard: View {
                 ForEach(0..<n, id: \.self) { r in
                     Group {
                         if r == b.sourceRow {
-                            GameIcon(asset: "puzzle-sun", symbol: "sun.max.fill", size: 32, tint: RoomTheme.gold)
-                                .accessibilityLabel(GameStrings.text("outing.puzzle.a11y.sun"))
-                        } else { Color.clear }
+                            // GameIcon hides itself from VoiceOver, so a container of its own carries the label.
+                            ZStack { GameIcon(asset: "puzzle-sun", symbol: "sun.max.fill", size: 32, tint: RoomTheme.gold) }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(GameStrings.format("outing.puzzle.a11y.sun", b.sourceRow + 1))
+                                .accessibilityIdentifier("outingPuzzleSun")
+                        } else { Color.clear.accessibilityHidden(true) }
                     }
                     .frame(width: 30, height: side)
                 }
@@ -561,10 +564,12 @@ struct MacOutingPuzzleCard: View {
 
     private func sunbeamCell(_ cell: Int, b: OutingSunbeamBoard, side: CGFloat, lit: Bool) -> some View {
         let mirror = play.mirrors[cell]
-        let content: String = if cell == b.target { GameStrings.text("outing.puzzle.a11y.cushion") }
+        let base: String = if cell == b.target { GameStrings.text("outing.puzzle.a11y.cushion") }
             else if b.blocks.contains(cell) { GameStrings.text("outing.puzzle.a11y.bush") }
             else if let mirror { GameStrings.text("outing.puzzle.a11y.mirror.\(mirror)") }
             else { GameStrings.text("outing.puzzle.a11y.path") }
+        // The light enters at a random row; say so on that row's first cell as well.
+        let content = cell == b.sourceRow * b.size ? base + " · " + GameStrings.format("outing.puzzle.a11y.sun", b.sourceRow + 1) : base
         return Button {
             cursor = cell
             if mirror != nil { apply(.turn(cell: cell)) } else { focused = true }

@@ -533,6 +533,11 @@ struct MacDesktopRoot: View {
             if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }
             return true
         }
+        // An open garden puzzle reads its own keys (letters such as R, numbers, arrows, ↩) before any
+        // game shortcut, however they are bound; only Esc, Settings and Help stay global.
+        let puzzleOwnsKeys = gardenPuzzleKeys && page == .town && showsGarden && !titleVisible && auxiliary == nil && !showsHelp
+            && !store.isDecorating
+        if puzzleOwnsKeys, ![MacCommand.escape, .settings, .help].contains(command) { return false }
         if command == .settings { select(.settings); return true }
         if command == .help { showsHelp.toggle(); return true }
         if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {
@@ -555,8 +560,6 @@ struct MacDesktopRoot: View {
         guard !titleVisible, auxiliary == nil, !showsHelp, !store.isShowingPlayTogether, !store.showsPlayChoices, store.supplyPicker == nil else { return false }
         let scope: MacShortcutScope = store.isDecorating ? .arrangement : page == .home ? .home : page == .town ? .town : page == .shop ? .shop : .list
         if page == .town && showsGarden && !store.isDecorating {
-            // An open puzzle reads its own keys (numbers, letters, arrows, ↩); Esc was handled above.
-            if gardenPuzzleKeys { return false }
             // In the garden 1/2/3 pick a spot or an answer, and ↩ continues.
             if gardenTakesNumbers, let index = [MacCommand.home, .work, .shop].firstIndex(of: command) {
                 NotificationCenter.default.post(name: .macGardenKey, object: index); return true

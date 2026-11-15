@@ -1,44 +1,41 @@
 import SwiftUI
 import CatGameCore
 
-struct HospitalHeader: View {
-    let title: String
-    let back: String
+/// One slim row above the hospital pages: an optional back pill, a short heading and the wallet.
+/// The sheet's scene banner already carries the place name, so this row does not repeat it.
+struct HospitalHeader<Heading: View>: View {
+    var back: String? = nil
     let gold: Int
     var isSaving = false
     var backID = "hospitalBackButton"
-    let action: () -> Void
+    var action: (() -> Void)? = nil
+    @ViewBuilder let heading: Heading
 
     var body: some View {
-        HStack(spacing: 9) {
-            Button(action: action) {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left").font(.system(size: 12, weight: .heavy))
-                    Text(GameStrings.text(back)).font(.system(size: 12, weight: .heavy))
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                }
-                .padding(.horizontal, 12).frame(minHeight: 44).gameCard(cornerRadius: 24)
-            }.buttonStyle(.plain).disabled(isSaving).opacity(isSaving ? 0.4 : 1)
-                .accessibilityIdentifier(backID)
-            Label(GameStrings.text(title), systemImage: "cross.case.fill")
-                .font(.system(size: 17, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.65)
-                .padding(.horizontal, 12).frame(minHeight: 46)
-                .background {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(LinearGradient(colors: [.white, RoomTheme.paleCoral.opacity(0.6)],
-                                             startPoint: .top, endPoint: .bottom))
-                        .shadow(color: RoomTheme.coral, radius: 0, y: 4)
-                }
-                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(RoomTheme.coralBorder, lineWidth: 3))
-                .accessibilityAddTraits(.isHeader).accessibilityIdentifier("hospitalPageTitle")
+        HStack(spacing: 8) {
+            if let back, let action {
+                Button(action: action) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left").font(.system(size: 11, weight: .heavy))
+                        Text(GameStrings.text(back)).font(.system(size: 12, weight: .heavy))
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .padding(.horizontal, 11).frame(minHeight: 30).gameCard(cornerRadius: 15)
+                }.buttonStyle(.plain).disabled(isSaving).opacity(isSaving ? 0.4 : 1)
+                    .accessibilityIdentifier(backID)
+            }
+            heading
             Spacer(minLength: 0)
             Label("\(gold)", systemImage: "dollarsign.circle.fill")
-                .font(.system(size: 14, weight: .heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.65)
-                .padding(.horizontal, 10).frame(minHeight: 36).gameCard(cornerRadius: 22)
+                .font(.system(size: 13, weight: .heavy)).monospacedDigit().lineLimit(1)
+                .foregroundStyle(RoomTheme.ink)
+                .padding(.horizontal, 10).frame(minHeight: 30).gameCard(cornerRadius: 15)
+                .accessibilityElement(children: .ignore)
                 .accessibilityLabel(GameStrings.text("resource.gold")).accessibilityValue("\(gold)")
                 .accessibilityIdentifier("hospitalWallet")
         }
-        .foregroundStyle(RoomTheme.ink).padding(.horizontal, 14).padding(.top, 8).padding(.bottom, 12)
+        .foregroundStyle(RoomTheme.ink).padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 6)
+        .frame(maxWidth: 720).frame(maxWidth: .infinity)
         .background(RoomTheme.cream)
     }
 }

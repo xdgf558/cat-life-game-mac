@@ -299,4 +299,16 @@ struct GameSettingsTests {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return folder
     }
+
+    @Test func pickedMusicSurvivesASaveAndOldSavesFollowTheScene() throws {
+        var settings = AudioSettings()
+        #expect(settings.musicChoice == nil)
+        settings.musicChoice = "promenade"
+        let reloaded = try JSONDecoder().decode(AudioSettings.self, from: JSONEncoder().encode(settings))
+        #expect(reloaded.musicChoice == "promenade")
+        let old = try JSONDecoder().decode(AudioSettings.self, from: Data(#"{"musicEnabled":true,"musicVolume":0.4}"#.utf8))
+        #expect(old.musicChoice == nil && old.musicVolume == 0.4)
+        let odd = try JSONDecoder().decode(AudioSettings.self, from: Data(#"{"musicChoice":42}"#.utf8))
+        #expect(odd.musicChoice == nil)
+    }
 }

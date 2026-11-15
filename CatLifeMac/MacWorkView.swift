@@ -117,7 +117,7 @@ struct MacWorkView: View {
                         .font(.system(size: 10.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 if unlocked {
-                    Text("+\(job.goldReward)").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.gold).monospacedDigit()
+                    Text("+\(wage(job))").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.gold).monospacedDigit()
                 } else {
                     Label("Lv\(job.unlockLevel)", systemImage: "lock.fill").font(.system(size: 10.5, weight: .heavy))
                         .foregroundStyle(RoomTheme.secondary).labelStyle(.titleAndIcon)
@@ -227,7 +227,7 @@ struct MacWorkView: View {
             metric("mac.work.duration", WorkJobPresentation.duration(quote?.durationSeconds ?? displayed.durationMinutes * 60), "timer", RoomTheme.secondary)
             metric("player.stamina", "−\(quote?.staminaCost ?? displayed.staminaCost)", "bolt.fill", RoomTheme.darkMint)
             metric("player.mood", "−\(quote?.moodCost ?? displayed.moodCost)", "face.smiling.fill", RoomTheme.friendshipDeep)
-            metric("mac.work.gold", "+\(active?.goldReward ?? displayed.goldReward)", "dollarsign.circle.fill", RoomTheme.gold)
+            metric("mac.work.gold", "+\(active?.goldReward ?? wage(displayed))", "dollarsign.circle.fill", RoomTheme.gold)
             metric("mac.work.experience", "+\(active?.expReward ?? displayed.expReward)", "star.fill", RoomTheme.lilac)
         }
     }
@@ -248,8 +248,13 @@ struct MacWorkView: View {
             HStack {
                 Label("\(store.snapshot?.player.stamina ?? 0) → \(max(0, (store.snapshot?.player.stamina ?? 0) - (quote?.staminaCost ?? selected.staminaCost)))", systemImage: "bolt.fill")
                 Spacer()
-                Label(GameStrings.format("mac.work.rewardUpTo", selected.goldReward), systemImage: "dollarsign.circle.fill")
+                Label(GameStrings.format("mac.work.rewardUpTo", wage(selected)), systemImage: "dollarsign.circle.fill")
             }.font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+            if let snapshot = store.snapshot, StationCatRules.owns(snapshot) {
+                Label(GameStrings.format("stationCat.work.bonus", StationCatRules.wageMultiplier), systemImage: "headphones")
+                    .font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.gold)
+                    .accessibilityIdentifier("macWorkStationBonus")
+            }
             Text(GameStrings.text("mac.work.background")).font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -315,6 +320,11 @@ struct MacWorkView: View {
     }
 
     /// Stamina still missing for the selected, unlocked job (0 when it can be afforded or is locked).
+    /// 2.5: the wage a shift started now would pay (doubled while the Station Cat lives here).
+    private func wage(_ job: WorkJob) -> Int {
+        store.snapshot.map { StationCatRules.wage(job.goldReward, in: $0) } ?? job.goldReward
+    }
+
     private var staminaShort: Int {
         guard let player = store.snapshot?.player, active == nil, player.level >= selected.unlockLevel else { return 0 }
         return max(0, (quote?.staminaCost ?? selected.staminaCost) - player.stamina)

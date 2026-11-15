@@ -78,7 +78,8 @@ enum GameActionNotice {
             case .cafeNapEnded: return GameStrings.format(success.rawValue, outcome.amount)
             case .layoutSaved: return GameStrings.text("layout.saved")
             case .outingStarted, .outingExplored, .outingEventChosen, .outingEnded, .outingAcknowledged,
-                 .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped:
+                 .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped,
+                 .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen:
                 return GameStrings.text(success.rawValue)
             }
         }
@@ -101,7 +102,8 @@ enum GameActionNotice {
               .outingNapping, .outingCatSick, .outingCatHungry, .outingCatTired, .outingCatBusy, .outingStaminaRequired,
               .outingNoFootprints, .outingEventPending, .outingEventMissing, .outingDuplicateMissing,
               .outingKeepsakeMissing, .outingShelfMissing, .outingShelfFull,
-              .outingPuzzlePending, .outingPuzzleMissing, .outingPuzzleInvalid:
+              .outingPuzzlePending, .outingPuzzleMissing, .outingPuzzleInvalid,
+              .stationCatMissing, .stationCatGrassRequired, .stationCatPending:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit, .recoveryWouldWaste:

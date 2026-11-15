@@ -381,7 +381,8 @@ public enum GameEngine {
         candidate.player.mood = cap(candidate.player.mood - quote.moodCost)
         candidate.player.activeWork = ActiveWork(jobID: job.id, startedAt: timestamp,
                                             endsAt: timestamp.addingTimeInterval(Double(quote.durationSeconds)),
-                                            goldReward: job.goldReward, expReward: job.expReward, quote: quote)
+                                            goldReward: StationCatRules.wage(job.goldReward, in: candidate),
+                                            expReward: job.expReward, quote: quote)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(success: .workStarted)
@@ -422,8 +423,12 @@ public enum GameEngine {
                 cat.growthState = .legacy(appearance: cat.appearance, now: timestamp, isPregnant: cat.isPregnant)
             }
             // Placed garden decor: a finished rest gives a little more energy, at the rest's end.
+            let hungerBefore = (satiety: cat.satiety, tracker: cat.decayTracker.satiety)
             CatHealthEngine.synchronize(&cat, now: timestamp, restBonus: energyBonus)
             settleCatNeeds(&cat, now: timestamp, restBonus: energyBonus)
+            if cat.id == CatCatalog.stationCatID {
+                StationCatRules.trackHunger(&state.stationCat, cat: cat, before: hungerBefore, at: timestamp)
+            }
             if let legacy = cat.habits.legacyRestSessionID, cat.activeRest?.id != legacy {
                 cat.habits.legacyRestSessionID = nil
             }
@@ -455,6 +460,7 @@ public enum GameEngine {
         // A trip belongs to its day: the first sync of a new day settles it.
         if let trip = state.outing.trip, trip.dayKey != state.tasks.dailyDayKey { settleOuting(&state, reason: .newDay, at: timestamp) }
         accrueHomeBonuses(&state, at: timestamp)
+        stationCatRunsAwayIfDue(&state, at: timestamp)
         if let work = state.player.activeWork, let progress = workProgress {
             let levelBefore = state.player.level
             // The wallet has a storage cap; a completed shift still advances time,
@@ -667,11 +673,11 @@ extension GameSnapshot {
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid, playerRecoveryIsValid,
-              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid, outing.isValid,
+              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid, outing.isValid, stationCat.isValid,
               outing.trip.map({ trip in cats.contains { $0.id == trip.catID } }) ?? true,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),
-              [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),
+              [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter, inventory.catGrass].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),
               HomeCatalog.level(home.roomLevel) != nil,
               home.hasValidFloors,

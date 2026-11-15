@@ -17,6 +17,8 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var catPlay: CatPlayState
     /// 2.0: cat outings, the keepsake album and garden decor.
     public var outing: OutingState
+    /// 2.5: the Station Cat's hunger clock and run-away notice.
+    public var stationCat: StationCatState = StationCatState()
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
@@ -39,7 +41,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay, outing
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay, outing, stationCat
     }
 
     public init(from decoder: Decoder) throws {
@@ -101,6 +103,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         if version < 11 { community.events.advance(to: tasks.dailyDayKey) }
         catPlay = version < 12 && !values.contains(.catPlay) ? CatPlayState() : try values.decode(CatPlayState.self, forKey: .catPlay)
         outing = version < 18 && !values.contains(.outing) ? OutingState() : try values.decode(OutingState.self, forKey: .outing)
+        stationCat = (try? values.decodeIfPresent(StationCatState.self, forKey: .stationCat)) ?? StationCatState()
         // Reflow only untouched starter rooms; in-use and player-authored places remain authoritative.
         if version < 13, home.bowlPosition == NormalizedPoint(x: 0.76, y: 0.79), home.upperBowlPosition == nil,
            home.furniture.sorted(by: { $0.itemID < $1.itemID })
@@ -366,6 +369,8 @@ public struct InventoryState: Codable, Equatable, Sendable {
     public var litter: Int
     public var premiumFood: Int
     public var premiumLitter: Int
+    /// 2.5: cat grass for the Station Cat.
+    public var catGrass: Int
     /// Remaining play uses. One purchased wand supplies six uses.
     public var toys: Int
     /// Every owned instance, including furniture currently placed in the room.
@@ -374,11 +379,12 @@ public struct InventoryState: Codable, Equatable, Sendable {
 
     public init(food: Int = 3, litter: Int = 2, toys: Int = 0,
                 furniture: [FurnitureItem] = FurnitureCatalog.defaultItems, gifts: [String: Int] = [:],
-                premiumFood: Int = 0, premiumLitter: Int = 0) {
+                premiumFood: Int = 0, premiumLitter: Int = 0, catGrass: Int = 0) {
         self.food = food
         self.litter = litter
         self.premiumFood = premiumFood
         self.premiumLitter = premiumLitter
+        self.catGrass = catGrass
         self.toys = toys
         self.furniture = furniture
         self.gifts = gifts
@@ -392,7 +398,7 @@ public struct InventoryState: Codable, Equatable, Sendable {
         }
     }
 
-    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture, gifts, premiumFood, premiumLitter }
+    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture, gifts, premiumFood, premiumLitter, catGrass }
 
     public init(from decoder: Decoder) throws {
         try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
@@ -406,6 +412,7 @@ public struct InventoryState: Codable, Equatable, Sendable {
             ? 0 : try values.decode(Int.self, forKey: .premiumFood)
         premiumLitter = schemaVersion < 8 && !values.contains(.premiumLitter)
             ? 0 : try values.decode(Int.self, forKey: .premiumLitter)
+        catGrass = try values.decodeIfPresent(Int.self, forKey: .catGrass) ?? 0
         toys = try values.decode(Int.self, forKey: .toys)
         // Schema 1 saves predate movable furniture. Only an absent key migrates;
         // an explicit empty collection stays empty and malformed data still fails.

@@ -133,6 +133,7 @@
 		7AAF2BE16D5857AB3220798189BCDD95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04B45E6993475312D44CB9DB8872CC23 /* Cocoa.framework */; };
 		7AB2F3FF490CB6AE73FAF539CB9235EE /* TaskRewardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A127C6FE0207C889019CA691B4C1F5 /* TaskRewardView.swift */; };
 		7BE92E5F7690A298C592B6E26DDC575F /* GameStore+Arrangement68.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93FC420B932CCA514B0B9A33DA2DA09 /* GameStore+Arrangement68.swift */; };
+		7C1781A2150FA88AE409DB95C017312E /* GameStrings+StationCat250.swift in Sources */ = {isa = PBXBuildFile; fileRef = 746682D1BD4838CC4B946852DB8238E0 /* GameStrings+StationCat250.swift */; };
 		7D4CDDFC6E0145B21D697460826176E6 /* MacRoomShellArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E2E2DBB560359AD211943558B7B9EA /* MacRoomShellArtwork.swift */; };
 		7F05A95D01EF85974BDE6466BD12C92E /* GameStrings+Furniture54.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8F73654C6C076B4385E0523A4D727E /* GameStrings+Furniture54.swift */; };
 		7FD95D670740EC6C387C440995987BD9 /* GameStrings+Companionship67.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3E0C86064A17662186F874A4F2563B /* GameStrings+Companionship67.swift */; };
@@ -388,6 +389,7 @@
 		72703E706E6DE0AA9CA7D1EC9AFE83A4 /* TownPlot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownPlot.swift; path = Views/TownPlot.swift; sourceTree = "<group>"; };
 		73D8C331B3753641EDD3DD1DD2D65399 /* GameStrings+MacSettings69.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+MacSettings69.swift"; path = "Localization/GameStrings+MacSettings69.swift"; sourceTree = "<group>"; };
 		73FB0C741D13632122BE34339A681047 /* RoomSceneHost.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomSceneHost.swift; path = Views/RoomSceneHost.swift; sourceTree = "<group>"; };
+		746682D1BD4838CC4B946852DB8238E0 /* GameStrings+StationCat250.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+StationCat250.swift"; path = "Localization/GameStrings+StationCat250.swift"; sourceTree = "<group>"; };
 		74A3D8C0D746258F65251E999BB20A73 /* CatLifeMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CatLifeMacApp.swift; sourceTree = "<group>"; };
 		759AE7457F9C457586EBD007E8D5F5B7 /* GameStrings+SimplifiedChinese.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+SimplifiedChinese.swift"; path = "Localization/GameStrings+SimplifiedChinese.swift"; sourceTree = "<group>"; };
 		786F8B7542C2A54E22545E2046E4F95A /* SaveManagementView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SaveManagementView.swift; path = Views/SaveManagementView.swift; sourceTree = "<group>"; };
@@ -646,6 +648,7 @@
 				D05BC5066EFDCD98B2717D47F3F50419 /* GameStrings+ShopBrowse.swift */,
 				815E7736766CF7F1DC99C7D1C3177F0D /* GameStrings+ShopDesign55.swift */,
 				759AE7457F9C457586EBD007E8D5F5B7 /* GameStrings+SimplifiedChinese.swift */,
+				746682D1BD4838CC4B946852DB8238E0 /* GameStrings+StationCat250.swift */,
 				8F32C233B354852D52D6171A08FB6E3C /* GameStrings+Supplies.swift */,
 				A0A77EEBA7C90A4146BDD360506AF61E /* GameStrings+SupplyDesign55.swift */,
 				CE28E523E6AD3A514FC208A091EB5C11 /* GameStrings+Town140.swift */,
@@ -1091,6 +1094,7 @@
 				72B85F8AE995BE0850F085D229971BFC /* GameStrings+ShopBrowse.swift in Sources */,
 				6396233EB220128B3FE7AA9FCF084886 /* GameStrings+ShopDesign55.swift in Sources */,
 				71D1CD8F8EE9186997B7B90E8C861D75 /* GameStrings+SimplifiedChinese.swift in Sources */,
+				7C1781A2150FA88AE409DB95C017312E /* GameStrings+StationCat250.swift in Sources */,
 				D1A6BBF9C82C983364CFA29C0B5D949C /* GameStrings+Supplies.swift in Sources */,
 				93C081850AA047445B9AA476D0932179 /* GameStrings+SupplyDesign55.swift in Sources */,
 				22C158FFF395DF5182E1C6004DA05111 /* GameStrings+Town140.swift in Sources */,

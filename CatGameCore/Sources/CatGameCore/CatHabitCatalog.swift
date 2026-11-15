@@ -29,7 +29,8 @@ public enum CatHabitCatalog {
         .init(id: CatCatalog.cowCatID, style: .curious, rest: .bed, play: .slowMove),
         .init(id: CatCatalog.blueCatID, style: .quiet, rest: .cushion, play: .slowMove),
         .init(id: CatCatalog.siameseCatID, style: .playful, rest: .bed, play: .moveAndPause),
-        .init(id: CatCatalog.silverCatID, style: .curious, rest: .cushion, play: .moveAndPause)
+        .init(id: CatCatalog.silverCatID, style: .curious, rest: .cushion, play: .moveAndPause),
+        .init(id: CatCatalog.stationCatID, style: .quiet, rest: .bed, play: .slowMove)
     ]
     public static func definition(for catID: String) -> CatHabitDefinition? { all.first { $0.id == catID } }
     public static let cluesToConfirm = 2

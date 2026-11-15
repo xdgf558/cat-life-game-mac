@@ -9,6 +9,7 @@ enum CatArtwork {
         case .blue: return baseName.replacingOccurrences(of: "cat-", with: "cat-blue-")
         case .siamese: return baseName.replacingOccurrences(of: "cat-", with: "cat-siamese-")
         case .silver: return baseName.replacingOccurrences(of: "cat-", with: "cat-silver-")
+        case .station: return baseName.replacingOccurrences(of: "cat-", with: "cat-station-")
         }
     }
 }

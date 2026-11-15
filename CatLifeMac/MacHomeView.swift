@@ -35,6 +35,9 @@ struct MacHomeView: View {
                 ScrollViewReader { reader in
                     ScrollView {
                         VStack(spacing: 14) {
+                            if let snapshot = store.snapshot, StationCatRules.owns(snapshot) || snapshot.stationCat.noticePending {
+                                stationPanel(snapshot)
+                            }
                             catCard.macTourAnchor(.careCard).id(MacTourTarget.careCard)
                             tasks.macTourAnchor(.tasks).id(MacTourTarget.tasks)
                             if let snapshot = store.snapshot, !snapshot.outing.decor.isEmpty { decorBonus(snapshot) }
@@ -294,6 +297,44 @@ struct MacHomeView: View {
         }
     }
     /// 2.14: what the outing decor placed at home is giving right now. Shown once any outing decor is found.
+    /// 2.5: the Station Cat's double wage, its hunger countdown, or the note that it ran back to the garden.
+    @ViewBuilder private func stationPanel(_ snapshot: GameSnapshot) -> some View {
+        let owned = StationCatRules.owns(snapshot)
+        let leavesAt = snapshot.stationCat.runsAwayAt
+        MacPanel {
+            HStack(spacing: 10) {
+                Image(systemName: owned ? "headphones" : "figure.walk.departure").font(.system(size: 15, weight: .heavy))
+                    .foregroundStyle(.white).frame(width: 34, height: 34)
+                    .background(owned && leavesAt == nil ? CatCollectionPalette.tint(.station) : RoomTheme.coral, in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    if owned, let leavesAt {
+                        let minutes = max(1, Int(ceil(leavesAt.timeIntervalSince(store.now) / 60)))
+                        Text(GameStrings.text("stationCat.home.hungryTitle")).font(.system(size: 14.5, weight: .heavy)).foregroundStyle(RoomTheme.coral)
+                        Text(GameStrings.format("stationCat.home.hungryBody", minutes / 60, minutes % 60))
+                            .font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else if owned {
+                        Text(GameStrings.format("stationCat.home.bonusTitle", StationCatRules.wageMultiplier)).font(.system(size: 14.5, weight: .heavy))
+                        Text(GameStrings.text("stationCat.home.bonusBody")).font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(GameStrings.text("stationCat.home.ranTitle")).font(.system(size: 14.5, weight: .heavy)).foregroundStyle(RoomTheme.coral)
+                        Text(GameStrings.text("stationCat.home.ranBody")).font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            if !owned {
+                Button { Task { await store.acknowledgeStationCatNotice() } } label: {
+                    Text(GameStrings.text("stationCat.home.ranOK")).font(.system(size: 13, weight: .heavy)).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(MintButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("macStationCatRanOK")
+            }
+        }
+        .accessibilityElement(children: .contain).accessibilityIdentifier("macStationCatPanel")
+    }
+
     private func decorBonus(_ snapshot: GameSnapshot) -> some View {
         let active = OutingBonuses.active(in: snapshot)
         let count = GameStrings.format("mac.home.bonus.count", active.count, OutingCatalog.maximumActiveDecor)

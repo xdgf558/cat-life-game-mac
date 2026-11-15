@@ -11,6 +11,7 @@ enum CatCollectionPalette {
         case .blue: Color(red: 0.37, green: 0.50, blue: 0.62)
         case .siamese: Color(red: 107 / 255, green: 74 / 255, blue: 54 / 255)
         case .silver: Color(red: 140 / 255, green: 152 / 255, blue: 164 / 255)
+        case .station: Color(red: 43 / 255, green: 48 / 255, blue: 84 / 255)
         }
     }
     static func background(_ appearance: CatAppearance) -> Color {
@@ -20,6 +21,7 @@ enum CatCollectionPalette {
         case .blue: Color(red: 0.86, green: 0.90, blue: 0.94)
         case .siamese: Color(red: 243 / 255, green: 230 / 255, blue: 214 / 255)
         case .silver: Color(red: 230 / 255, green: 234 / 255, blue: 238 / 255)
+        case .station: Color(red: 226 / 255, green: 228 / 255, blue: 244 / 255)
         }
     }
 

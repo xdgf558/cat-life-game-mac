@@ -58,7 +58,7 @@ struct InventoryView: View {
                     SupplySectionHeading(premium: true)
                     ForEach([Supply.premiumFood, .premiumLitter], id: \.self) { supplyRow($0) }
                     SupplySectionHeading(premium: false).padding(.top, 3)
-                    ForEach([Supply.food, .litter, .toy], id: \.self) { supplyRow($0) }
+                    ForEach([Supply.food, .litter, .toy, .catGrass], id: \.self) { supplyRow($0) }
                     SupplyManualUseHint()
                     CommunityGiftEntry(store: store) { showsGifts = true }
                 case .furniture:
@@ -348,13 +348,15 @@ struct InventoryView: View {
     }
 
     private func count(_ supply: Supply) -> Int { store.snapshot?.inventory.count(supply) ?? 0 }
+    /// Cat grass is only spent on the Station Cat in the garden, like in the desktop bag.
     private func canUse(_ supply: Supply) -> Bool {
-        count(supply) >= ((supply == .food || supply == .premiumFood) ? store.foodRequired : 1)
+        supply != .catGrass && count(supply) >= ((supply == .food || supply == .premiumFood) ? store.foodRequired : 1)
     }
     private func use(_ supply: Supply) {
         switch supply {
         case .food, .premiumFood, .litter, .premiumLitter: store.openSupplyPicker(for: supply)
         case .toy: store.play()
+        case .catGrass: break
         }
     }
     private func furnitureStatus(_ id: String, badge: Bool = false) -> String {

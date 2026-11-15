@@ -109,6 +109,8 @@ struct MacGardenView: View {
         if let eventID = trip.pendingEventID, let event = OutingCatalog.event(id: eventID) {
             let options = event.options(for: cat)
             if options.indices.contains(index) { choose(options[index].id) }
+        } else if trip.pendingStationCat != nil {
+            if index == 0 { lureStation() } else if index == 1 { leaveStation() }
         } else if cardEntryID == nil, trip.pendingPuzzle == nil, OutingSpot.allCases.indices.contains(index) {
             explore(OutingSpot.allCases[index])
         }
@@ -130,7 +132,7 @@ struct MacGardenView: View {
         if compareID != nil { deferredCompare = true; return }
         if confirmsLeave { confirmsLeave = false; return }
         if onMap {
-            if cardEntryID != nil { cardEntryID = nil } else if trip?.pendingEventID == nil { confirmsLeave = true }
+            if cardEntryID != nil { cardEntryID = nil } else if trip?.pendingEventID == nil, trip?.pendingStationCat == nil { confirmsLeave = true }
             return
         }
         exits.town()
@@ -148,7 +150,8 @@ struct MacGardenView: View {
     }
 
     private func explore(_ spot: OutingSpot) {
-        guard !working, let trip, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.footprintsLeft > 0, cardEntryID == nil
+        guard !working, let trip, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.pendingStationCat == nil,
+              trip.footprintsLeft > 0, cardEntryID == nil
         else { return }
         working = true
         let from = MacGardenScene.catGround(trip.log.last?.spot)
@@ -160,7 +163,7 @@ struct MacGardenView: View {
             let remaining = duration - Date.now.timeIntervalSince(started)
             if succeeded, remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
             catWalk = nil
-            if succeeded, let last = store.outingTrip?.log.last, last.kind != .event, last.kind != .puzzle {
+            if succeeded, let last = store.outingTrip?.log.last, last.kind != .event, last.kind != .puzzle, last.kind != .stationCat {
                 cardEntryID = last.id
             }
             working = false
@@ -198,7 +201,28 @@ struct MacGardenView: View {
 
     private func continueAfterCard() {
         cardEntryID = nil
-        if let trip, trip.footprintsLeft == 0, trip.pendingEventID == nil, trip.pendingPuzzle == nil { end() }
+        if let trip, trip.footprintsLeft == 0, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.pendingStationCat == nil { end() }
+    }
+
+    /// 2.5: one cat grass brings the Station Cat home; the result card says what it does now.
+    private func lureStation() {
+        guard !working, (state?.inventory.catGrass ?? 0) > 0 else { return }
+        working = true
+        Task {
+            if await store.lureStationCat(),
+               let last = store.outingTrip?.log.last(where: { $0.eventID == StationCatRules.logEventID }) { cardEntryID = last.id }
+            working = false
+        }
+    }
+
+    private func leaveStation() {
+        guard !working else { return }
+        working = true
+        Task {
+            if await store.letStationCatGo(),
+               let last = store.outingTrip?.log.last(where: { $0.eventID == StationCatRules.logEventID }) { cardEntryID = last.id }
+            working = false
+        }
     }
 
     private func end() {
@@ -451,7 +475,7 @@ struct MacGardenView: View {
                         spotLabel(spot, index: index, trip: trip)
                             .position(MacGardenScene.labelPoint(spot, in: proxy.size))
                     }
-                    if let hoveredSpot, trip.pendingEventID == nil, trip.pendingPuzzle == nil, cardEntryID == nil {
+                    if let hoveredSpot, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.pendingStationCat == nil, cardEntryID == nil {
                         let anchor = MacGardenScene.labelPoint(hoveredSpot, in: proxy.size)
                         spotTooltip(hoveredSpot)
                             .position(x: min(proxy.size.width - 150, max(150, anchor.x)), y: max(80, anchor.y - 96))
@@ -466,6 +490,8 @@ struct MacGardenView: View {
                             MacOutingPuzzleCard(puzzle: puzzle, cat: cat, working: working, onSolved: solvePuzzle, onSkip: skipPuzzle)
                                 .id(puzzle.seed)
                         }
+                    } else if catWalk == nil, trip.pendingStationCat != nil {
+                        MacModalScrim(opacity: 0.18) { stationCatCard() }
                     } else if let id = cardEntryID, let entry = trip.log.first(where: { $0.id == id }) {
                         MacModalScrim(opacity: 0.18) { resultCard(entry, trip: trip, cat: cat) }
                     }
@@ -479,7 +505,8 @@ struct MacGardenView: View {
     }
 
     private func spotLabel(_ spot: OutingSpot, index: Int, trip: OutingTrip) -> some View {
-        let enabled = trip.footprintsLeft > 0 && trip.pendingEventID == nil && trip.pendingPuzzle == nil && cardEntryID == nil && !working
+        let enabled = trip.footprintsLeft > 0 && trip.pendingEventID == nil && trip.pendingPuzzle == nil && trip.pendingStationCat == nil
+            && cardEntryID == nil && !working
         return Button { explore(spot) } label: {
             HStack(spacing: 6) {
                 Text(key(numberCommands[index])).font(.system(size: 11, weight: .heavy).monospaced())
@@ -680,6 +707,69 @@ struct MacGardenView: View {
         .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal).accessibilityIdentifier("outingEventCard")
     }
 
+    // MARK: Station Cat (2.5)
+
+    private var stationPortrait: some View {
+        Image(CatArtwork.asset("cat-avatar", appearance: .station)).resizable().scaledToFit()
+            .frame(width: 92, height: 92)
+            .background(CatCollectionPalette.background(.station), in: Circle())
+            .overlay(Circle().strokeBorder(.white, lineWidth: 3))
+            .overlay(alignment: .bottomTrailing) {
+                Image(systemName: "headphones").font(.system(size: 13, weight: .heavy)).foregroundStyle(.white)
+                    .frame(width: 28, height: 28).background(CatCollectionPalette.tint(.station), in: Circle())
+                    .overlay(Circle().strokeBorder(.white, lineWidth: 2))
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func stationCatCard() -> some View {
+        let grass = state?.inventory.catGrass ?? 0
+        return VStack(spacing: 12) {
+            stationPortrait
+            Text(GameStrings.text("stationCat.card.title")).font(.system(size: 18, weight: .heavy))
+            Text(GameStrings.text("stationCat.card.body")).font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 6) {
+                Label(GameStrings.format("stationCat.perk.wage", StationCatRules.wageMultiplier), systemImage: "dollarsign.circle.fill")
+                    .foregroundStyle(RoomTheme.gold)
+                Label(GameStrings.format("stationCat.perk.hunger", Int(StationCatRules.runAwayAfter / 3600)), systemImage: "fork.knife")
+                    .foregroundStyle(RoomTheme.coral)
+            }
+            .font(.system(size: 12, weight: .heavy)).frame(maxWidth: .infinity, alignment: .leading)
+            .padding(10).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+            Button(action: lureStation) {
+                VStack(spacing: 2) {
+                    Text(GameStrings.text("stationCat.lure") + "  " + key(numberCommands[0])).font(.system(size: 14, weight: .heavy))
+                    Text(grass > 0 ? GameStrings.format("stationCat.grassLeft", grass) : GameStrings.text("stationCat.noGrass"))
+                        .font(.system(size: 11, weight: .semibold)).opacity(0.85)
+                }.frame(maxWidth: .infinity)
+            }
+            .buttonStyle(MintButtonStyle()).disabled(working || grass == 0).accessibilityIdentifier("stationCatLure")
+            Button(action: leaveStation) {
+                Text(GameStrings.text("stationCat.leave") + "  " + key(numberCommands[1]))
+                    .font(.system(size: 13, weight: .heavy)).frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint).disabled(working).accessibilityIdentifier("stationCatLeave")
+            Text(GameStrings.text("stationCat.card.again")).font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(18).frame(width: 400)
+        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(.white, lineWidth: 3))
+        .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal).accessibilityIdentifier("stationCatCard")
+    }
+
+    private func stationCatResult(caught: Bool) -> some View {
+        VStack(spacing: 8) {
+            stationPortrait
+            Text(GameStrings.text(caught ? "stationCat.result.caughtTitle" : "stationCat.result.leftTitle")).font(.system(size: 17, weight: .heavy))
+            Text(caught ? GameStrings.format("stationCat.result.caughtBody", StationCatRules.wageMultiplier, Int(StationCatRules.runAwayAfter / 3600))
+                 : GameStrings.text("stationCat.result.leftBody"))
+                .font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     /// O4 / O6 / O7 and the quiet results: what this footprint actually gave.
     private func resultCard(_ entry: OutingLogEntry, trip: OutingTrip, cat: CatState) -> some View {
         let name = GameStrings.catName(cat)
@@ -690,6 +780,8 @@ struct MacGardenView: View {
             switch entry.kind {
             case .find:
                 if let loot { MacOutingLootDetail(loot: loot, catName: name, reactionKey: entry.reactionKey, outing: state?.outing) }
+            case .outcome where entry.eventID == StationCatRules.logEventID:
+                stationCatResult(caught: entry.optionID == "lure")
             case .outcome:
                 if let event = entry.eventID.flatMap(OutingCatalog.event(id:)) {
                     VStack(spacing: 8) {
@@ -710,7 +802,7 @@ struct MacGardenView: View {
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     OutingChips(items: MacOutingText.effects(entry), tint: RoomTheme.darkMint, background: RoomTheme.paleMint)
                 }
-            case .event, .puzzle:
+            case .event, .puzzle, .stationCat:
                 EmptyView()
             }
             Button(action: continueAfterCard) {
@@ -773,7 +865,7 @@ struct MacGardenView: View {
 
     private func settlementModal(_ settlement: OutingSettlement) -> some View {
         let cat = state?.cats.first { $0.id == settlement.catID }
-        let name = cat.map(GameStrings.catName) ?? ""
+        let name = cat.map(GameStrings.catName) ?? (settlement.catID == CatCatalog.stationCatID ? GameStrings.text("cat.stationName") : "")
         let decor = newDecor(settlement)
         return MacModalScrim(opacity: 0.32) {
             VStack(alignment: .leading, spacing: 14) {
@@ -1073,6 +1165,10 @@ enum MacOutingText {
         case .event:
             return spot + " · " + (entry.eventID.flatMap(OutingCatalog.event(id:)).map { GameStrings.text($0.titleKey) } ?? "")
                 + " · " + GameStrings.text("outing.log.waiting")
+        case .stationCat:
+            return spot + " · " + GameStrings.text("stationCat.title") + " · " + GameStrings.text("outing.log.waiting")
+        case .outcome where entry.eventID == StationCatRules.logEventID:
+            return spot + " · " + GameStrings.text("stationCat.title") + " · " + GameStrings.text(entry.reactionKey ?? "")
         case .outcome:
             let title = entry.eventID.flatMap(OutingCatalog.event(id:)).map { GameStrings.text($0.titleKey) } ?? ""
             return spot + " · " + title + " · " + effects(entry).joined(separator: " ")

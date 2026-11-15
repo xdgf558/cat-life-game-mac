@@ -461,6 +461,11 @@ struct MacDesktopRoot: View {
     /// If it fails or the player moves on while it waits, nothing else is opened.
     private func arrangeOutingItem(_ itemID: String) {
         select(.home)
+        // No particular piece to show (empty or not owned): plain arrange mode, right away.
+        guard !itemID.isEmpty, store.snapshot?.inventory.furniture.contains(where: { $0.id == itemID }) == true else {
+            store.beginDecorating()
+            return
+        }
         Task { @MainActor in _ = await store.arrangeInventoryFurniture(id: itemID) }
     }
     /// Where the recovery popover, bag and work page send the player.

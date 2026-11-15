@@ -351,7 +351,13 @@ struct MacKeepsakesView: View {
                         .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                Button { arrange(active.first.flatMap { OutingCatalog.decor(id: $0.decorID)?.itemID } ?? "") } label: {
+                Button {
+                    // An active piece first; with no bonus yet, an outing piece still in the bag; else plain arrange.
+                    let stored = OutingCatalog.decor.first { item in
+                        outing.decor[item.id] != nil && store.storedFurniture.contains { $0.id == item.itemID }
+                    }
+                    arrange(active.first.flatMap { OutingCatalog.decor(id: $0.decorID)?.itemID } ?? stored?.itemID ?? "")
+                } label: {
                     Text(GameStrings.text("outing.decor.arrange")).font(.system(size: 14, weight: .heavy)).frame(maxWidth: .infinity)
                 }.buttonStyle(MintButtonStyle()).accessibilityIdentifier("bonusArrange")
             }

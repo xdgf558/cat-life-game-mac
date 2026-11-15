@@ -110,6 +110,7 @@ extension GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard var trip = state.outing.trip else { return .init(failure: .outingMissing) }
         guard trip.pendingEventID == nil else { return .init(failure: .outingEventPending) }
+        guard trip.pendingPuzzle == nil else { return .init(failure: .outingPuzzlePending) }
         guard trip.footprintsLeft > 0 else { return .init(failure: .outingNoFootprints) }
         guard let index = state.cats.firstIndex(where: { $0.id == trip.catID }) else { return .init(failure: .careCatMissing) }
         let timestamp = effectiveTime(state, now: now)
@@ -121,7 +122,22 @@ extension GameEngine {
         let entryID = "\(trip.id)-\(trip.step)"
         let favored = OutingHabit.style(spot.favoredStyle).isKnown(for: candidate.cats[index])
         let pool = OutingCatalog.events.filter { ($0.spot == nil || $0.spot == spot) && !trip.seenEventIDs.contains($0.id) }
-        if random.percent() < OutingCatalog.eventChance, let event = random.pick(pool) {
+        if trip.puzzleCount < OutingCatalog.maximumPuzzlesPerTrip, random.percent() < OutingCatalog.puzzleChance {
+            // 2.10: this step is a puzzle; what it finds waits for the stars.
+            let kind: OutingPuzzleKind = switch spot {
+            case .flowerBed: .planting
+            case .treeShade: random.percent() < 50 ? .acorns : .sunbeam
+            case .path: .pebbles
+            }
+            let departures = candidate.outing.totalDepartures
+            trip.pendingPuzzle = OutingPuzzle(kind: kind, spot: spot, seed: random.next(),
+                                              tier: departures < 5 ? 0 : departures < 15 ? 1 : 2, hints: favored ? 2 : 1)
+            var entry = OutingLogEntry(id: entryID, spot: spot, kind: .puzzle, lootID: nil, eventID: nil, optionID: nil,
+                                       reactionKey: nil, catMood: 0, bond: 0, friendship: 0, neighborID: nil, gold: 0,
+                                       refundedFootprint: false)
+            entry.puzzleKind = kind
+            trip.log.append(entry)
+        } else if random.percent() < OutingCatalog.eventChance, let event = random.pick(pool) {
             trip.pendingEventID = event.id
             trip.pendingSpot = spot
             trip.seenEventIDs.append(event.id)
@@ -184,6 +200,37 @@ extension GameEngine {
         guard candidate.isValid else { return .init(failure: .gameInvalidState) }
         state = candidate
         return .init(success: .outingEventChosen)
+    }
+
+    /// 2.10: the answer is replayed from the puzzle's own seed, so only a real solution counts,
+    /// and the stars come from the same rules the board showed.
+    public static func solveOutingPuzzle(_ state: inout GameSnapshot, moves: [OutingPuzzleMove],
+                                         now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard var trip = state.outing.trip, let puzzle = trip.pendingPuzzle else { return .init(failure: .outingPuzzleMissing) }
+        guard let play = OutingPuzzlePlay.replay(puzzle, moves: moves), play.isSolved else {
+            return .init(failure: .outingPuzzleInvalid)
+        }
+        var candidate = state
+        resolvePuzzle(&candidate, trip: &trip, stars: play.stars, at: effectiveTime(state, now: now))
+        candidate.outing.trip = trip
+        guard candidate.isValid else { return .init(failure: .gameInvalidState) }
+        state = candidate
+        return .init(success: .outingPuzzleSolved)
+    }
+
+    /// "直接看看": the step finds what an ordinary step would.
+    public static func skipOutingPuzzle(_ state: inout GameSnapshot, now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard var trip = state.outing.trip, trip.pendingPuzzle != nil else { return .init(failure: .outingPuzzleMissing) }
+        var candidate = state
+        resolvePuzzle(&candidate, trip: &trip, stars: 0, at: effectiveTime(state, now: now))
+        candidate.outing.trip = trip
+        guard candidate.isValid else { return .init(failure: .gameInvalidState) }
+        state = candidate
+        return .init(success: .outingPuzzleSkipped)
     }
 
     /// "结束出游": remaining footprints are given up and the trip is settled.
@@ -249,7 +296,12 @@ extension GameEngine {
     // MARK: Internals
 
     static func settleOuting(_ state: inout GameSnapshot, reason: OutingEndReason, at timestamp: Date) {
-        guard let trip = state.outing.trip else { return }
+        guard var trip = state.outing.trip else { return }
+        // A puzzle left open counts as skipped: the step still finds what an ordinary step would.
+        if trip.pendingPuzzle != nil {
+            resolvePuzzle(&state, trip: &trip, stars: 0, at: timestamp)
+            state.outing.trip = trip
+        }
         state.outing.lastSettlement = OutingSettlement(
             id: trip.id, catID: trip.catID, endedAt: timestamp, reason: reason,
             footprintsTotal: trip.footprintsTotal, footprintsUsed: trip.footprintsUsed, loot: trip.loot,
@@ -264,9 +316,45 @@ extension GameEngine {
         return gained
     }
 
+    /// Turns a waiting puzzle into its step: ★ or skipped is an ordinary step, ★★ finds more often
+    /// and its decor is at least fine, ★★★ always finds something and prefers a keepsake not yet found here.
+    static func resolvePuzzle(_ state: inout GameSnapshot, trip: inout OutingTrip, stars: Int, at timestamp: Date) {
+        guard let puzzle = trip.pendingPuzzle else { return }
+        trip.pendingPuzzle = nil
+        guard let index = state.cats.firstIndex(where: { $0.id == trip.catID }) else { return }
+        let spot = puzzle.spot
+        var random = OutingRandom(seed: puzzle.seed, step: 97)
+        let pending = trip.log.lastIndex { $0.kind == .puzzle }
+        let entryID = pending.map { trip.log[$0].id } ?? "\(trip.id)-\(trip.step)"
+        let favored = OutingHabit.style(spot.favoredStyle).isKnown(for: state.cats[index])
+        let chance = stars >= 3 ? 100
+            : OutingCatalog.findChance + (favored ? OutingCatalog.favoredFindBonus : 0) + (stars == 2 ? OutingCatalog.twoStarFindBonus : 0)
+        var entry: OutingLogEntry
+        if random.percent() < chance {
+            let reaction = favored ? "outing.reaction.\(spot.favoredStyle.rawValue)" : "outing.reaction.plain"
+            let loot = rollFind(&state, spot: spot, catID: trip.catID, random: &random, at: timestamp, lootID: entryID,
+                                reaction: reaction, preferNewKeepsake: stars >= 3, qualityFloor: stars >= 2 ? .fine : .common)
+            trip.loot.append(loot)
+            entry = OutingLogEntry(id: entryID, spot: spot, kind: .find, lootID: loot.id, eventID: nil, optionID: nil,
+                                   reactionKey: reaction, catMood: 0, bond: 0, friendship: 0, neighborID: nil, gold: 0,
+                                   refundedFootprint: false)
+        } else {
+            let mood = raiseMood(&state.cats[index], by: OutingCatalog.nothingMood, at: timestamp)
+            entry = OutingLogEntry(id: entryID, spot: spot, kind: .nothing, lootID: nil, eventID: nil, optionID: nil,
+                                   reactionKey: "outing.reaction.nothing", catMood: mood, bond: 0, friendship: 0,
+                                   neighborID: nil, gold: 0, refundedFootprint: false)
+        }
+        entry.puzzleKind = puzzle.kind
+        entry.puzzleStars = stars
+        if let pending { trip.log[pending] = entry } else { trip.log.append(entry) }
+    }
+
     private static func rollFind(_ state: inout GameSnapshot, spot: OutingSpot, catID: String,
-                                 random: inout OutingRandom, at timestamp: Date, lootID: String, reaction: String) -> OutingLoot {
-        let roll = random.percent()
+                                 random: inout OutingRandom, at timestamp: Date, lootID: String, reaction: String,
+                                 preferNewKeepsake: Bool = false, qualityFloor: OutingDecorQuality = .common) -> OutingLoot {
+        let unfoundHere = OutingCatalog.keepsakes(at: spot).contains { state.outing.keepsakes[$0.id] == nil }
+        let rolled = random.percent()
+        let roll = preferNewKeepsake && unfoundHere ? 0 : rolled
         if roll < OutingCatalog.keepsakeShare {
             let here = OutingCatalog.keepsakes(at: spot)
             if let found = random.pick(here.filter { state.outing.keepsakes[$0.id] == nil }) {
@@ -280,7 +368,8 @@ extension GameEngine {
         }
         if roll < OutingCatalog.keepsakeShare + OutingCatalog.decorShare, let definition = random.pick(OutingCatalog.decor(at: spot)) {
             let qualityRoll = random.percent()
-            let quality: OutingDecorQuality = qualityRoll < 60 ? .common : qualityRoll < 90 ? .fine : .treasured
+            let rolledQuality: OutingDecorQuality = qualityRoll < 60 ? .common : qualityRoll < 90 ? .fine : .treasured
+            let quality = max(rolledQuality, qualityFloor)
             let attributes = OutingDecorAttribute.allCases.filter { $0 != .footprint || quality == .treasured }
             let attribute = random.pick(attributes) ?? .catMood
             let decorRoll = OutingDecorRoll(quality: quality, attribute: attribute,

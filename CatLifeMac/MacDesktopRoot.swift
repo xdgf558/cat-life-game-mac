@@ -37,6 +37,7 @@ struct MacDesktopRoot: View {
     @State private var showsGarden = false
     @State private var gardenCatID: String?
     @State private var gardenTakesNumbers = false
+    @State private var gardenPuzzleKeys = false
     @State private var catsTab = "cats"
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -282,7 +283,8 @@ struct MacDesktopRoot: View {
                         home: { select(.home) },
                         album: { catsTab = "album"; select(.cats) },
                         arrange: arrangeOutingItem),
-                        preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers)
+                        preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers,
+                        puzzleOwnsKeys: $gardenPuzzleKeys)
                         .id(gardenCatID ?? "garden")
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
@@ -415,7 +417,7 @@ struct MacDesktopRoot: View {
             guard !store.hasUnsavedLayoutChanges || confirm("mac.draft.title", body: "mac.draft.body") else { return }
             store.cancelDecorating()
         }
-        titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false
+        titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false; gardenPuzzleKeys = false
         if next != .cats { catsTab = "cats" }
         store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
@@ -553,6 +555,8 @@ struct MacDesktopRoot: View {
         guard !titleVisible, auxiliary == nil, !showsHelp, !store.isShowingPlayTogether, !store.showsPlayChoices, store.supplyPicker == nil else { return false }
         let scope: MacShortcutScope = store.isDecorating ? .arrangement : page == .home ? .home : page == .town ? .town : page == .shop ? .shop : .list
         if page == .town && showsGarden && !store.isDecorating {
+            // An open puzzle reads its own keys (numbers, letters, arrows, ↩); Esc was handled above.
+            if gardenPuzzleKeys { return false }
             // In the garden 1/2/3 pick a spot or an answer, and ↩ continues.
             if gardenTakesNumbers, let index = [MacCommand.home, .work, .shop].firstIndex(of: command) {
                 NotificationCenter.default.post(name: .macGardenKey, object: index); return true

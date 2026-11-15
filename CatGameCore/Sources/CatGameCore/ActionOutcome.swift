@@ -98,6 +98,9 @@ public enum ActionFailure: String, Equatable, Sendable {
     case outingStaminaRequired = "outing.error.stamina"
     case outingNoFootprints = "outing.error.noFootprints"
     case outingEventPending = "outing.error.eventPending"
+    case outingPuzzlePending = "outing.error.puzzlePending"
+    case outingPuzzleMissing = "outing.error.puzzleMissing"
+    case outingPuzzleInvalid = "outing.error.puzzleInvalid"
     case outingEventMissing = "outing.error.eventMissing"
     case outingDuplicateMissing = "outing.error.duplicateMissing"
     case outingKeepsakeMissing = "outing.error.keepsakeMissing"
@@ -155,6 +158,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case outingAcknowledged = "outing.acknowledged"
     case outingDuplicateResolved = "outing.duplicateResolved"
     case outingShelfUpdated = "outing.shelfUpdated"
+    case outingPuzzleSolved = "outing.puzzleSolved"
+    case outingPuzzleSkipped = "outing.puzzleSkipped"
 
     public var kind: ActionKind {
         switch self {
@@ -167,7 +172,7 @@ public enum ActionSuccess: String, Equatable, Sendable {
               .townEventCompleted, .townMilestoneClaimed: return .none
         case .habitPlayOpened, .habitPlayUpdated, .habitPlayEnded, .habitCornerSelected, .workCancelled: return .none
         case .outingStarted, .outingExplored, .outingEventChosen, .outingEnded, .outingAcknowledged,
-             .outingDuplicateResolved, .outingShelfUpdated: return .none
+             .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

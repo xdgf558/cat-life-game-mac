@@ -165,6 +165,7 @@
 		9DC96D06A1AC941B3CB2FDDA54F01FEE /* CatProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD3FF49D48C8BF109A0622483599383 /* CatProfileView.swift */; };
 		9E417F696CC6F2A5456AF81B5421C754 /* MacDesktopRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */; };
 		A083C3DC3FA02CD1CC420B1C614C5C13 /* TownPlace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C71DA0C81746FB880A0164D88B3CAA5 /* TownPlace.swift */; };
+		A0ABCD6CBC0289ED314BDE74B4B0FFD1 /* MacGardenPuzzle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C29E120FF459B7E9FCFE5EB6B87DE3A /* MacGardenPuzzle.swift */; };
 		A2F0CBE913C67A8B12EFECC30B2866BE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04B45E6993475312D44CB9DB8872CC23 /* Cocoa.framework */; };
 		A3A33D61341A1F31BB48531BBA471A0B /* CatLifeMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A3D8C0D746258F65251E999BB20A73 /* CatLifeMacApp.swift */; };
 		A465E869BF459E660E798F02BC93E5A7 /* CatCollectionComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8261E57367F4889332F7596555050657 /* CatCollectionComponents.swift */; };
@@ -316,6 +317,7 @@
 		27749C9667A6541866A1DE83FD1E6A69 /* RoomViewProjection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomViewProjection.swift; path = Scene/RoomViewProjection.swift; sourceTree = "<group>"; };
 		2B23EE0E4A5BE7F7B54FA82F5320EBDC /* HomeRoomLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomeRoomLayout.swift; path = Views/HomeRoomLayout.swift; sourceTree = "<group>"; };
 		2B4897CBC932923E64CCBE26F38FE5EA /* ProfileDressingStage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProfileDressingStage.swift; path = Views/ProfileDressingStage.swift; sourceTree = "<group>"; };
+		2C29E120FF459B7E9FCFE5EB6B87DE3A /* MacGardenPuzzle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacGardenPuzzle.swift; sourceTree = "<group>"; };
 		2D6AB74648A4D72710DC8D4C7993A891 /* GameStrings+CatGrowth57.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+CatGrowth57.swift"; path = "Localization/GameStrings+CatGrowth57.swift"; sourceTree = "<group>"; };
 		2DE5A7A0810DE6FEFC31E1BC66808319 /* HospitalTreatmentViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HospitalTreatmentViews.swift; path = Views/HospitalTreatmentViews.swift; sourceTree = "<group>"; };
 		2E0A12A723A70D95CC395637598EC483 /* CareerDirectory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CareerDirectory.swift; path = Views/CareerDirectory.swift; sourceTree = "<group>"; };
@@ -843,6 +845,7 @@
 				E6B73E5FE65C272E195961F55E9C9E08 /* MacCatsView.swift */,
 				35844050B7877DDAE553E96AD2E4B129 /* MacCommonViews.swift */,
 				F12A90370E40BCF7650A48CC971F3641 /* MacDesktopRoot.swift */,
+				2C29E120FF459B7E9FCFE5EB6B87DE3A /* MacGardenPuzzle.swift */,
 				52B9BAF87AC4C02483653E90337FFBEA /* MacGardenView.swift */,
 				F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */,
 				374ABBC067961B4274066AFEE5BB1434 /* MacHomeView.swift */,
@@ -1253,6 +1256,7 @@
 				82690A04E3EFBBA04990BB70F185BF23 /* MacCatsView.swift in Sources */,
 				66C24C043623276180C1260399B357FF /* MacCommonViews.swift in Sources */,
 				9E417F696CC6F2A5456AF81B5421C754 /* MacDesktopRoot.swift in Sources */,
+				A0ABCD6CBC0289ED314BDE74B4B0FFD1 /* MacGardenPuzzle.swift in Sources */,
 				4E64D8E9833A30DB0457B943AFC0E784 /* MacGardenView.swift in Sources */,
 				E8E34CC70F078784A002A25C512B8C6C /* MacHomeUpgradeView.swift in Sources */,
 				9433836444AF4738092AD8ED3C1860A6 /* MacHomeView.swift in Sources */,

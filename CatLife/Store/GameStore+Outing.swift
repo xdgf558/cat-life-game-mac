@@ -22,6 +22,17 @@ extension GameStore {
         await performOuting { GameEngine.chooseOutingEvent(&$0, optionID: optionID, now: $1) }
     }
 
+    /// 2.10: hands the board's moves to Core, which replays them and awards the stars.
+    @discardableResult
+    func solveOutingPuzzle(moves: [OutingPuzzleMove]) async -> Bool {
+        await performOuting { GameEngine.solveOutingPuzzle(&$0, moves: moves, now: $1) }
+    }
+
+    @discardableResult
+    func skipOutingPuzzle() async -> Bool {
+        await performOuting { GameEngine.skipOutingPuzzle(&$0, now: $1) }
+    }
+
     @discardableResult
     func endOuting() async -> Bool {
         await performOuting { GameEngine.endOuting(&$0, now: $1) }

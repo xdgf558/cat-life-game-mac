@@ -8,7 +8,8 @@ public struct OutingDecorRoll: Codable, Equatable, Sendable {
     public let foundAt: Date
     public let catID: String
 
-    /// Higher quality first, then where the value sits within its quality's range. Ties keep the older copy.
+    /// For two copies with the same attribute: higher quality first, then where the value sits
+    /// within its quality's range. Ties keep the older copy.
     public func isBetter(than other: OutingDecorRoll) -> Bool {
         if quality != other.quality { return quality > other.quality }
         return share > other.share
@@ -24,11 +25,40 @@ public struct OutingDecorRoll: Codable, Equatable, Sendable {
     }
 }
 
-/// The copy the player keeps, plus a newer duplicate waiting for the keep-old / take-new choice.
+/// The copy the player keeps, plus newer duplicates waiting for the keep-old / take-new choice:
+/// `pendingDuplicate` is compared first, then `queuedDuplicates` in order. At most one waiting
+/// copy per attribute, so every real choice (a different attribute) reaches the player.
 public struct OutingDecorRecord: Codable, Equatable, Sendable {
     public var kept: OutingDecorRoll
     public var pendingDuplicate: OutingDecorRoll?
-    var isValid: Bool { kept.isValid && (pendingDuplicate?.isValid ?? true) }
+    public var queuedDuplicates: [OutingDecorRoll]
+
+    public init(kept: OutingDecorRoll, pendingDuplicate: OutingDecorRoll? = nil, queuedDuplicates: [OutingDecorRoll] = []) {
+        self.kept = kept; self.pendingDuplicate = pendingDuplicate; self.queuedDuplicates = queuedDuplicates
+    }
+
+    private enum CodingKeys: String, CodingKey { case kept, pendingDuplicate, queuedDuplicates }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        kept = try values.decode(OutingDecorRoll.self, forKey: .kept)
+        pendingDuplicate = try values.decodeIfPresent(OutingDecorRoll.self, forKey: .pendingDuplicate)
+        queuedDuplicates = try values.decodeIfPresent([OutingDecorRoll].self, forKey: .queuedDuplicates) ?? []
+    }
+
+    /// Every copy waiting for a compare, in the order the player will see them.
+    public var waitingDuplicates: [OutingDecorRoll] { (pendingDuplicate.map { [$0] } ?? []) + queuedDuplicates }
+    mutating func setWaiting(_ rolls: [OutingDecorRoll]) {
+        pendingDuplicate = rolls.first
+        queuedDuplicates = Array(rolls.dropFirst())
+    }
+
+    var isValid: Bool {
+        let waiting = waitingDuplicates
+        return kept.isValid && waiting.allSatisfy(\.isValid)
+            && (pendingDuplicate != nil || queuedDuplicates.isEmpty)
+            && Set(waiting.map(\.attribute)).count == waiting.count
+    }
 }
 
 public struct OutingKeepsakeRecord: Codable, Equatable, Sendable {
@@ -194,6 +224,8 @@ public struct OutingState: Codable, Equatable, Sendable {
     public var pendingDuplicates: [String] {
         OutingCatalog.decor.map(\.id).filter { decor[$0]?.pendingDuplicate != nil }
     }
+    /// Copies waiting for a compare across all decor (a decor can hold one per attribute).
+    public var pendingCopyCount: Int { decor.values.reduce(0) { $0 + $1.waitingDuplicates.count } }
     public var unacknowledgedSettlement: OutingSettlement? { lastSettlement.flatMap { $0.acknowledged ? nil : $0 } }
 
     static func validID(_ value: String) -> Bool {

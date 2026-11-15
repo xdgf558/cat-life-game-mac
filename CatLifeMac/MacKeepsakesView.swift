@@ -66,7 +66,7 @@ struct MacKeepsakesView: View {
             Spacer(minLength: 0)
             if !outing.pendingDuplicates.isEmpty, outing.trip == nil {
                 Button { comparing = outing.pendingDuplicates.first } label: {
-                    Label(GameStrings.format("outing.compare.pending", outing.pendingDuplicates.count), systemImage: "arrow.left.arrow.right")
+                    Label(GameStrings.format("outing.compare.pending", outing.pendingCopyCount), systemImage: "arrow.left.arrow.right")
                         .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
                         .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoomTheme.paleCoral.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))

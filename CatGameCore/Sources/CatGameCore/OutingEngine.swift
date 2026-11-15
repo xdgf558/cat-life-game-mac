@@ -217,7 +217,8 @@ extension GameEngine {
         }
         var candidate = state
         if keepNew { record.kept = pending }
-        record.pendingDuplicate = nil
+        // The next queued copy (another attribute) is compared next.
+        record.setWaiting(Array(record.waitingDuplicates.dropFirst()))
         candidate.outing.decor[decorID] = record
         candidate.player.gold += min(OutingCatalog.duplicateDecorGold, GameSnapshot.maximumGold - candidate.player.gold)
         guard candidate.isValid else { return .init(failure: .gameInvalidState) }
@@ -285,15 +286,18 @@ extension GameEngine {
             let decorRoll = OutingDecorRoll(quality: quality, attribute: attribute,
                                             value: random.int(attribute.range(for: quality)), foundAt: timestamp, catID: catID)
             if var record = state.outing.decor[definition.id] {
-                // One copy waits for the compare at a time. When another arrives, the better of the
-                // two keeps waiting and the other becomes gold, so a treasured copy is never lost.
+                // Waiting copies hold at most one per attribute. A copy with the same attribute as one
+                // already waiting is a plain upgrade or downgrade: the better stays and the other becomes
+                // gold. A different attribute is a real choice, so it joins the queue for the player.
+                var waiting = record.waitingDuplicates
                 var gold = 0
-                if let waiting = record.pendingDuplicate {
+                if let same = waiting.firstIndex(where: { $0.attribute == decorRoll.attribute }) {
                     gold = addGold(&state, OutingCatalog.duplicateDecorGold)
-                    if decorRoll.isBetter(than: waiting) { record.pendingDuplicate = decorRoll }
+                    if decorRoll.isBetter(than: waiting[same]) { waiting[same] = decorRoll }
                 } else {
-                    record.pendingDuplicate = decorRoll
+                    waiting.append(decorRoll)
                 }
+                record.setWaiting(waiting)
                 state.outing.decor[definition.id] = record
                 return .init(id: lootID, kind: .decor, itemID: definition.id, roll: decorRoll, gold: gold, duplicate: true)
             }

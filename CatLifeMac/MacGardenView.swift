@@ -38,7 +38,8 @@ struct MacGardenView: View {
     @State private var deferredCompare = false
     /// The cat walking to a spot; cards wait until it arrives.
     @State private var catWalk: MacOutingCatWalk?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The system setting or the game's own Reduce Motion option, merged by the root.
+    @Environment(\.gameReduceMotionOverride) private var reduceMotion
 
     private var state: GameSnapshot? { store.snapshot }
     private var trip: OutingTrip? { state?.outing.trip }
@@ -224,7 +225,7 @@ struct MacGardenView: View {
             .buttonStyle(.plain).accessibilityIdentifier("outingAlbumLink")
             if (state?.outing.pendingDuplicates.isEmpty == false) {
                 Button { deferredCompare = false } label: {
-                    Label(GameStrings.format("outing.compare.pending", state?.outing.pendingDuplicates.count ?? 0), systemImage: "arrow.left.arrow.right")
+                    Label(GameStrings.format("outing.compare.pending", state?.outing.pendingCopyCount ?? 0), systemImage: "arrow.left.arrow.right")
                         .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
                 }.buttonStyle(.plain).disabled(trip != nil)
             }

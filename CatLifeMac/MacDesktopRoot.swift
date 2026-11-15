@@ -458,12 +458,10 @@ struct MacDesktopRoot: View {
     }
     /// Home, arrange mode, and the outing piece selected (placed or still in the bag). The shared
     /// arrange path moves to the floor the piece is on first, so a piece upstairs is found too.
+    /// If it fails or the player moves on while it waits, nothing else is opened.
     private func arrangeOutingItem(_ itemID: String) {
         select(.home)
-        Task { @MainActor in
-            if await store.arrangeInventoryFurniture(id: itemID) { return }
-            if !store.isDecorating { store.beginDecorating() }
-        }
+        Task { @MainActor in _ = await store.arrangeInventoryFurniture(id: itemID) }
     }
     /// Where the recovery popover, bag and work page send the player.
     private var recoveryExits: MacRecoveryExits {

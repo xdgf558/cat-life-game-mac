@@ -168,6 +168,11 @@ public enum OutingCatalog {
 
     // Exploration odds, in percent.
     static let eventChance = 28
+    /// 2.10: chance a step turns into a puzzle, at most twice a trip.
+    static let puzzleChance = 35
+    static let maximumPuzzlesPerTrip = 2
+    /// ★★ adds this to the find chance; ★★★ always finds something.
+    static let twoStarFindBonus = 20
     static let findChance = 50
     static let favoredFindBonus = 15
     static let keepsakeShare = 55

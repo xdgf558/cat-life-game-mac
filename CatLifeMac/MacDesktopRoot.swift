@@ -37,6 +37,7 @@ struct MacDesktopRoot: View {
     @State private var showsGarden = false
     @State private var gardenCatID: String?
     @State private var gardenTakesNumbers = false
+    @State private var gardenPuzzleKeys = false
     @State private var catsTab = "cats"
     @Environment(\.scenePhase) private var phase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -282,7 +283,8 @@ struct MacDesktopRoot: View {
                         home: { select(.home) },
                         album: { catsTab = "album"; select(.cats) },
                         arrange: arrangeOutingItem),
-                        preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers)
+                        preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers,
+                        puzzleOwnsKeys: $gardenPuzzleKeys)
                         .id(gardenCatID ?? "garden")
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
@@ -415,7 +417,7 @@ struct MacDesktopRoot: View {
             guard !store.hasUnsavedLayoutChanges || confirm("mac.draft.title", body: "mac.draft.body") else { return }
             store.cancelDecorating()
         }
-        titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false
+        titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false; gardenPuzzleKeys = false
         if next != .cats { catsTab = "cats" }
         store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
@@ -531,6 +533,11 @@ struct MacDesktopRoot: View {
             if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }
             return true
         }
+        // An open garden puzzle reads its own keys (letters such as R, numbers, arrows, ↩) before any
+        // game shortcut, however they are bound; only Esc, Settings and Help stay global.
+        let puzzleOwnsKeys = gardenPuzzleKeys && page == .town && showsGarden && !titleVisible && auxiliary == nil && !showsHelp
+            && !store.isDecorating
+        if puzzleOwnsKeys, ![MacCommand.escape, .settings, .help].contains(command) { return false }
         if command == .settings { select(.settings); return true }
         if command == .help { showsHelp.toggle(); return true }
         if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {

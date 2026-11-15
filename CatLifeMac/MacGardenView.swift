@@ -28,6 +28,8 @@ struct MacGardenView: View {
     var preselectedCatID: String?
     /// True while number keys mean spots / options here instead of switching pages.
     @Binding var takesNumberKeys: Bool
+    /// True while a garden puzzle is open: its card reads the keys itself (numbers, letters, arrows).
+    @Binding var puzzleOwnsKeys: Bool
 
     @State private var onMap = false
     @State private var chosenCatID: String?
@@ -72,10 +74,12 @@ struct MacGardenView: View {
             chosenCatID = preselectedCatID ?? chosenCatID ?? firstAvailableCat()
             updateNumberKeys()
         }
-        .onDisappear { takesNumberKeys = false }
+        .onDisappear { takesNumberKeys = false; puzzleOwnsKeys = false }
         .onChange(of: trip?.id) { _, id in if id == nil { onMap = false; cardEntryID = nil; confirmsLeave = false }; updateNumberKeys() }
         .onChange(of: onMap) { _, _ in updateNumberKeys() }
         .onChange(of: settlement?.id) { _, _ in updateNumberKeys() }
+        .onChange(of: trip?.pendingPuzzle) { _, _ in updateNumberKeys() }
+        .onChange(of: confirmsLeave) { _, _ in updateNumberKeys() }
         .onChange(of: store.saveSceneGeneration) { _, _ in
             onMap = false; cardEntryID = nil; confirmsLeave = false; chosenCatID = firstAvailableCat()
         }
@@ -86,7 +90,11 @@ struct MacGardenView: View {
         .onReceive(NotificationCenter.default.publisher(for: .macGardenEscape)) { _ in escape() }
     }
 
-    private func updateNumberKeys() { takesNumberKeys = onMap && trip != nil && settlement == nil }
+    private func updateNumberKeys() {
+        let open = onMap && trip != nil && settlement == nil
+        puzzleOwnsKeys = open && trip?.pendingPuzzle != nil && !confirmsLeave
+        takesNumberKeys = open && !puzzleOwnsKeys
+    }
 
     private func firstAvailableCat() -> String? {
         guard let state else { return nil }
@@ -101,7 +109,7 @@ struct MacGardenView: View {
         if let eventID = trip.pendingEventID, let event = OutingCatalog.event(id: eventID) {
             let options = event.options(for: cat)
             if options.indices.contains(index) { choose(options[index].id) }
-        } else if cardEntryID == nil, OutingSpot.allCases.indices.contains(index) {
+        } else if cardEntryID == nil, trip.pendingPuzzle == nil, OutingSpot.allCases.indices.contains(index) {
             explore(OutingSpot.allCases[index])
         }
     }
@@ -140,7 +148,8 @@ struct MacGardenView: View {
     }
 
     private func explore(_ spot: OutingSpot) {
-        guard !working, let trip, trip.pendingEventID == nil, trip.footprintsLeft > 0, cardEntryID == nil else { return }
+        guard !working, let trip, trip.pendingEventID == nil, trip.pendingPuzzle == nil, trip.footprintsLeft > 0, cardEntryID == nil
+        else { return }
         working = true
         let from = MacGardenScene.catGround(trip.log.last?.spot)
         let duration = reduceMotion || trip.log.last?.spot == spot ? 0 : MacOutingCatWalk.duration(from: from, to: spot)
@@ -151,7 +160,7 @@ struct MacGardenView: View {
             let remaining = duration - Date.now.timeIntervalSince(started)
             if succeeded, remaining > 0 { try? await Task.sleep(for: .seconds(remaining)) }
             catWalk = nil
-            if succeeded, let last = store.outingTrip?.log.last, last.kind != .event {
+            if succeeded, let last = store.outingTrip?.log.last, last.kind != .event, last.kind != .puzzle {
                 cardEntryID = last.id
             }
             working = false
@@ -168,9 +177,28 @@ struct MacGardenView: View {
         }
     }
 
+    /// 2.10: hands the finished moves to the engine (which replays them), then shows what the step found.
+    private func solvePuzzle(_ moves: [OutingPuzzleMove]) {
+        guard !working, let entryID = trip?.log.last(where: { $0.kind == .puzzle })?.id else { return }
+        working = true
+        Task {
+            if await store.solveOutingPuzzle(moves: moves) { cardEntryID = entryID }
+            working = false
+        }
+    }
+
+    private func skipPuzzle() {
+        guard !working, let entryID = trip?.log.last(where: { $0.kind == .puzzle })?.id else { return }
+        working = true
+        Task {
+            if await store.skipOutingPuzzle() { cardEntryID = entryID }
+            working = false
+        }
+    }
+
     private func continueAfterCard() {
         cardEntryID = nil
-        if let trip, trip.footprintsLeft == 0, trip.pendingEventID == nil { end() }
+        if let trip, trip.footprintsLeft == 0, trip.pendingEventID == nil, trip.pendingPuzzle == nil { end() }
     }
 
     private func end() {
@@ -423,7 +451,7 @@ struct MacGardenView: View {
                         spotLabel(spot, index: index, trip: trip)
                             .position(MacGardenScene.labelPoint(spot, in: proxy.size))
                     }
-                    if let hoveredSpot, trip.pendingEventID == nil, cardEntryID == nil {
+                    if let hoveredSpot, trip.pendingEventID == nil, trip.pendingPuzzle == nil, cardEntryID == nil {
                         let anchor = MacGardenScene.labelPoint(hoveredSpot, in: proxy.size)
                         spotTooltip(hoveredSpot)
                             .position(x: min(proxy.size.width - 150, max(150, anchor.x)), y: max(80, anchor.y - 96))
@@ -433,6 +461,11 @@ struct MacGardenView: View {
                     VStack { Spacer(); HStack { catBubble(trip, cat); Spacer() } }.padding(14)
                     if catWalk == nil, let eventID = trip.pendingEventID, let event = OutingCatalog.event(id: eventID) {
                         MacModalScrim(opacity: 0.18) { eventCard(event, cat) }
+                    } else if catWalk == nil, let puzzle = trip.pendingPuzzle {
+                        MacModalScrim(opacity: 0.18) {
+                            MacOutingPuzzleCard(puzzle: puzzle, cat: cat, working: working, onSolved: solvePuzzle, onSkip: skipPuzzle)
+                                .id(puzzle.seed)
+                        }
                     } else if let id = cardEntryID, let entry = trip.log.first(where: { $0.id == id }) {
                         MacModalScrim(opacity: 0.18) { resultCard(entry, trip: trip, cat: cat) }
                     }
@@ -446,7 +479,7 @@ struct MacGardenView: View {
     }
 
     private func spotLabel(_ spot: OutingSpot, index: Int, trip: OutingTrip) -> some View {
-        let enabled = trip.footprintsLeft > 0 && trip.pendingEventID == nil && cardEntryID == nil && !working
+        let enabled = trip.footprintsLeft > 0 && trip.pendingEventID == nil && trip.pendingPuzzle == nil && cardEntryID == nil && !working
         return Button { explore(spot) } label: {
             HStack(spacing: 6) {
                 Text(key(numberCommands[index])).font(.system(size: 11, weight: .heavy).monospaced())
@@ -653,6 +686,7 @@ struct MacGardenView: View {
         let loot = entry.lootID.flatMap { id in trip.loot.first { $0.id == id } }
         let isLast = trip.footprintsLeft == 0
         return VStack(spacing: 12) {
+            if let kind = entry.puzzleKind, let stars = entry.puzzleStars { MacOutingPuzzleBadge(kind: kind, stars: stars) }
             switch entry.kind {
             case .find:
                 if let loot { MacOutingLootDetail(loot: loot, catName: name, reactionKey: entry.reactionKey, outing: state?.outing) }
@@ -676,7 +710,7 @@ struct MacGardenView: View {
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     OutingChips(items: MacOutingText.effects(entry), tint: RoomTheme.darkMint, background: RoomTheme.paleMint)
                 }
-            case .event:
+            case .event, .puzzle:
                 EmptyView()
             }
             Button(action: continueAfterCard) {
@@ -1032,7 +1066,10 @@ enum MacOutingText {
         switch entry.kind {
         case .find:
             let loot = entry.lootID.flatMap { id in trip.loot.first { $0.id == id } }
-            return spot + " · " + (loot.map { name($0) + (($0.duplicate) ? " · " + GameStrings.text("outing.log.again") : "") } ?? "")
+            return spot + puzzleNote(entry) + " · "
+                + (loot.map { name($0) + (($0.duplicate) ? " · " + GameStrings.text("outing.log.again") : "") } ?? "")
+        case .puzzle:
+            return spot + " · " + (entry.puzzleKind.map { GameStrings.text($0.titleKey) } ?? "") + " · " + GameStrings.text("outing.log.waiting")
         case .event:
             return spot + " · " + (entry.eventID.flatMap(OutingCatalog.event(id:)).map { GameStrings.text($0.titleKey) } ?? "")
                 + " · " + GameStrings.text("outing.log.waiting")
@@ -1040,8 +1077,13 @@ enum MacOutingText {
             let title = entry.eventID.flatMap(OutingCatalog.event(id:)).map { GameStrings.text($0.titleKey) } ?? ""
             return spot + " · " + title + " · " + effects(entry).joined(separator: " ")
         case .nothing:
-            return spot + " · " + effects(entry).joined(separator: " ")
+            return spot + puzzleNote(entry) + " · " + effects(entry).joined(separator: " ")
         }
+    }
+    /// " · ★★" after a solved puzzle, " · skipped puzzle" after a skipped one.
+    static func puzzleNote(_ entry: OutingLogEntry) -> String {
+        guard entry.puzzleKind != nil, let stars = entry.puzzleStars else { return "" }
+        return " · " + (stars > 0 ? String(repeating: "★", count: stars) : GameStrings.text("outing.log.puzzleSkipped"))
     }
     static func neighborName(_ id: String) -> String {
         CommunityCatalog.neighbor(id: id).map { GameStrings.text($0.nameKey) } ?? id

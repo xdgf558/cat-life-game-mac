@@ -92,7 +92,11 @@ public struct OutingLoot: Codable, Equatable, Sendable, Identifiable {
     }
 }
 
-public enum OutingStepKind: String, Codable, Sendable { case find, event, outcome, nothing }
+public enum OutingStepKind: String, Codable, Sendable {
+    case find, event, outcome, nothing
+    /// 2.10: a puzzle still waiting; replaced by its find (or nothing) once solved or skipped.
+    case puzzle
+}
 
 /// One line of "一路上": what happened at a spot, with the values actually applied.
 public struct OutingLogEntry: Codable, Equatable, Sendable, Identifiable {
@@ -109,8 +113,12 @@ public struct OutingLogEntry: Codable, Equatable, Sendable, Identifiable {
     public let neighborID: String?
     public let gold: Int
     public let refundedFootprint: Bool
+    /// 2.10: the puzzle this step was (nil for an ordinary step) and its stars (0 = skipped).
+    public var puzzleKind: OutingPuzzleKind? = nil
+    public var puzzleStars: Int? = nil
     var isValid: Bool {
         OutingState.validID(id) && [catMood, bond, friendship].allSatisfy { (0...100).contains($0) } && (0...1_000).contains(gold)
+            && (puzzleStars.map { (0...3).contains($0) } ?? true)
     }
 }
 
@@ -129,6 +137,10 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
     public var pendingEventID: String?
     public var pendingSpot: OutingSpot?
     public var seenEventIDs: [String]
+    /// 2.10: a puzzle on the map; exploring waits until it is solved or skipped.
+    public var pendingPuzzle: OutingPuzzle? = nil
+    /// Puzzles met on this trip, waiting or done.
+    public var puzzleCount: Int { log.filter { $0.kind == .puzzle || $0.puzzleKind != nil }.count }
 
     public func visits(at spot: OutingSpot) -> Int { visits[spot.rawValue, default: 0] }
     public var footprintsUsed: Int { footprintsTotal - footprintsLeft }
@@ -149,6 +161,7 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
             && visits.allSatisfy { OutingSpot(rawValue: $0.key) != nil && (0...100).contains($0.value) }
             && loot.allSatisfy(\.isValid) && log.allSatisfy(\.isValid)
             && (pendingEventID == nil) == (pendingSpot == nil) && seenEventIDs.count <= 32
+            && (pendingPuzzle == nil || pendingEventID == nil) && (pendingPuzzle?.isValid ?? true)
     }
 }
 

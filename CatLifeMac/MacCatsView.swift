@@ -55,6 +55,10 @@ struct MacCatsView: View {
             }
         }
         .onDisappear { isVisible = false }
+        .onChange(of: cats.map(\.id)) { _, ids in
+            // A cat that left (the Station Cat running back to the garden) falls back to the companion.
+            if let id = selectedID, !ids.contains(id), !offers.contains(where: { $0.id == id }) { selectedID = nil }
+        }
         .onChange(of: store.saveSceneGeneration) { _, _ in selectedID = nil; memory = nil; renameCat = nil; showsGuide = false; confirmsAdoption = false }
     }
 

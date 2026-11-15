@@ -9,9 +9,7 @@ enum CatArtwork {
         case .blue: return baseName.replacingOccurrences(of: "cat-", with: "cat-blue-")
         case .siamese: return baseName.replacingOccurrences(of: "cat-", with: "cat-siamese-")
         case .silver: return baseName.replacingOccurrences(of: "cat-", with: "cat-silver-")
-        // 2.5: the Station Cat borrows Milk's sheets until its own art (ArtSource/CatBreeds/station) lands;
-        // CatAtlasRegistration and CatActor use Milk's measurements for it until then.
-        case .station: return baseName.replacingOccurrences(of: "cat-", with: "cat-cow-")
+        case .station: return baseName.replacingOccurrences(of: "cat-", with: "cat-station-")
         }
     }
 }

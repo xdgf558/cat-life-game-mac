@@ -4,7 +4,7 @@
 Usage:
     python3 -B scripts/measure_cat_art.py <appearance> [--assets DIR] [--preview OUT_DIR]
 
-<appearance> is orange, cow, blue, siamese or silver. By default the runtime images in
+<appearance> is orange, cow, blue, siamese, silver or station. By default the runtime images in
 CatLife/Assets.xcassets are read; --assets can point at a folder of new candidate PNGs
 named like the runtime ones (cat-blue-walk.png, ...). Nothing is written except optional
 preview PNGs with the measured landmarks drawn on them.
@@ -170,7 +170,7 @@ def row_gaps(image):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("appearance", choices=["orange", "cow", "blue", "siamese", "silver"])
+    parser.add_argument("appearance", choices=["orange", "cow", "blue", "siamese", "silver", "station"])
     parser.add_argument("--assets", help="folder with candidate PNGs named like the runtime assets")
     parser.add_argument("--preview", help="folder to write annotated preview PNGs")
     args = parser.parse_args()

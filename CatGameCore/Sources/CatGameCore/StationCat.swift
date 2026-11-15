@@ -74,13 +74,14 @@ public enum StationCatRules {
     /// Called for the Station Cat on every sync, right after its needs are settled. The hungry clock starts
     /// at the moment satiety actually crossed the line, worked out from the decay, so time spent with the
     /// game closed counts the same as time with it open.
+    /// A cat that was fed at the start of this sync always gets a fresh clock: a feed raises satiety without
+    /// a sync of its own, so a clock saved from before the meal must not carry over.
     static func trackHunger(_ station: inout StationCatState, cat: CatState, before: (satiety: Int, tracker: Date), at timestamp: Date) {
         guard cat.satiety < hungryBelow else { station.hungrySince = nil; return }
-        guard station.hungrySince == nil else { return }
         if before.satiety >= hungryBelow {
             let steps = Double(before.satiety - hungryBelow + 1)
             station.hungrySince = min(timestamp, before.tracker.addingTimeInterval(steps * decayInterval))
-        } else {
+        } else if station.hungrySince == nil {
             station.hungrySince = timestamp
         }
     }

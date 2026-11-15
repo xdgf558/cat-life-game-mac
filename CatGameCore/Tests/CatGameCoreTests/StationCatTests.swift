@@ -129,4 +129,15 @@ struct StationCatTests {
         _ = GameEngine.synchronize(&state, now: later.addingTimeInterval(4 * 3600))
         #expect(StationCatRules.owns(state))
     }
+
+    @Test func aClockSavedBeforeAMealIsNotReused() throws {
+        // Fed after the clock started, then saved before any sync cleared it.
+        var state = withStationCat(satiety: 80)
+        state.stationCat.hungrySince = now.addingTimeInterval(-5 * 3600)
+        // Satiety 80 falls under the line after 51 twelve-minute steps.
+        let crossed = now.addingTimeInterval(51 * 12 * 60)
+        _ = GameEngine.synchronize(&state, now: crossed.addingTimeInterval(60))
+        #expect(StationCatRules.owns(state))
+        #expect(state.stationCat.hungrySince == crossed)
+    }
 }

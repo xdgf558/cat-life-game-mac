@@ -126,7 +126,18 @@ enum CatAtlasRegistration {
                          CGPoint(x: 100.1, y: 374), CGPoint(x: 94.0, y: 334),
                          CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
                 baselines = [426, 425, 419, 417, 380, 334, 337, 391]
-            case .cow, .station:
+            case .station:
+                // Station Cat art (2.5): measured with scripts/measure_cat_art.py.
+                front = [CGPoint(x: 251.1, y: 397), CGPoint(x: 346.0, y: 343),
+                         CGPoint(x: 284.1, y: 358), CGPoint(x: 290.9, y: 354),
+                         CGPoint(x: 255.0, y: 355), CGPoint(x: 294.2, y: 385),
+                         CGPoint(x: 263.0, y: 385), CGPoint(x: 259.6, y: 385)]
+                rear = [CGPoint(x: 95.6, y: 392), CGPoint(x: 105.5, y: 392),
+                         CGPoint(x: 100.8, y: 393), CGPoint(x: 117.0, y: 392),
+                         CGPoint(x: 107.3, y: 353), CGPoint(x: 118.9, y: 334),
+                         CGPoint(x: 117.3, y: 335), CGPoint(x: 105.6, y: 373)]
+                baselines = [397, 397, 393, 392, 355, 334, 335, 385]
+            case .cow:
                 // Redrawn breed art (0.28.0): re-measured with scripts/measure_cat_art.py.
                 front = [CGPoint(x: 269.5, y: 410), CGPoint(x: 346.5, y: 345),
                          CGPoint(x: 313.7, y: 377), CGPoint(x: 315.1, y: 377),

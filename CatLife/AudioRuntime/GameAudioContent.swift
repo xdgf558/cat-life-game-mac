@@ -3,8 +3,11 @@ import CatGameCore
 
 enum GameMusicTrack: String, CaseIterable {
     case cover, home, night, sleep, work, town, hospital, shop, promenade, upstairs
+    /// 2.21: songs that only play when the player picks them; no scene uses them.
+    case rainyWindow = "rainy-window", gardenAfternoon = "garden-afternoon", starlitHearth = "starlit-hearth"
     var fileName: String { "bgm-\(rawValue)" }
-    var sceneKey: String { "audio.scene.\(rawValue)" }
+    var isPickOnly: Bool { [.rainyWindow, .gardenAfternoon, .starlitHearth].contains(self) }
+    var sceneKey: String { isPickOnly ? "audio.musicChoice.picked" : "audio.scene.\(rawValue)" }
     /// 2.20: the player-facing song name in the music picker.
     var nameKey: String { "audio.track.\(rawValue)" }
     /// Tracks the player can pick to play everywhere. The title screen keeps its own theme.
@@ -21,6 +24,9 @@ enum GameMusicTrack: String, CaseIterable {
         case .upstairs: "Sunlit Upstairs"
         case .hospital: "Gentle Checkup"
         case .shop: "Bell Over the Door"
+        case .rainyWindow: "Rainy Window Nap"
+        case .gardenAfternoon: "Garden Afternoon"
+        case .starlitHearth: "Starlit Hearth"
         }
     }
 }

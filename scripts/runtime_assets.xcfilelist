@@ -914,12 +914,15 @@ $(SRCROOT)/CatLife/Assets.xcassets/wood-plaque.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/wood-plaque.imageset/wood-plaque.png
 $(SRCROOT)/CatLife/Audio
 $(SRCROOT)/CatLife/Audio/bgm-cover.caf
+$(SRCROOT)/CatLife/Audio/bgm-garden-afternoon.caf
 $(SRCROOT)/CatLife/Audio/bgm-home.caf
 $(SRCROOT)/CatLife/Audio/bgm-hospital.caf
 $(SRCROOT)/CatLife/Audio/bgm-night.caf
 $(SRCROOT)/CatLife/Audio/bgm-promenade.caf
+$(SRCROOT)/CatLife/Audio/bgm-rainy-window.caf
 $(SRCROOT)/CatLife/Audio/bgm-shop.caf
 $(SRCROOT)/CatLife/Audio/bgm-sleep.caf
+$(SRCROOT)/CatLife/Audio/bgm-starlit-hearth.caf
 $(SRCROOT)/CatLife/Audio/bgm-town.caf
 $(SRCROOT)/CatLife/Audio/bgm-upstairs.caf
 $(SRCROOT)/CatLife/Audio/bgm-work.caf

@@ -43,4 +43,21 @@ final class MacAudioChoiceTests: XCTestCase {
         }
         XCTAssertEqual(CatVoice.tiny.fileName(for: .coins), GameSoundEffect.coins.fileName)
     }
+
+    /// 2.21: the three Suno songs are pick-only, ship in the bundle, and play when picked.
+    @MainActor func testPickOnlySongsShipAndPlayWhenPicked() {
+        var settings = AudioSettings()
+        for track in [GameMusicTrack.rainyWindow, .gardenAfternoon, .starlitHearth] {
+            XCTAssertTrue(track.isPickOnly)
+            XCTAssertTrue(GameMusicTrack.pickable.contains(track))
+            XCTAssertNotNil(Bundle.main.url(forResource: track.fileName, withExtension: "caf", subdirectory: "Audio"), track.fileName)
+            XCTAssertNotEqual(GameStrings.text(track.nameKey), track.nameKey)
+            settings.musicChoice = track.rawValue
+            XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: 12), track)
+        }
+        settings.musicChoice = nil
+        for hour in 0..<24 {
+            XCTAssertFalse(GameAudioPolicy.track(.home, settings: settings, hour: hour).isPickOnly)
+        }
+    }
 }

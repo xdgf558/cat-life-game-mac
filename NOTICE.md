@@ -8,4 +8,6 @@
 
 2.10 的 18 张花园谜题图标由 OpenAI 图像生成工具基于本项目美术参考制作，并统一尺寸与透明留白。
 
+2.21 的三首新背景音乐由 Suno v6 按项目提示词生成：[雨天窗边](https://suno.com/song/0868e856-9605-4c93-9ac2-091a22531512)、[午后花园](https://suno.com/song/85b2a4da-c44d-43cb-b45a-1c56de38de07)、[星夜暖炉](https://suno.com/song/3c4be21f-aa44-4c4c-8d7b-411aef7f642d)。原始 WAV、备用版本和来源记录保存在 `ArtSource/Music220/`；游戏内文件由 `scripts/make_bgm_loops.py` 去掉淡出、做成无缝循环并统一音量。
+
 代码和素材的既有授权不因仓库公开而改变。

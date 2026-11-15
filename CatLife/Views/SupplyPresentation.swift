@@ -12,6 +12,7 @@ extension SupplyKind {
         case .litter: RoomTheme.sky
         case .premiumLitter: RoomTheme.lilac
         case .toy: RoomTheme.coral
+        case .catGrass: RoomTheme.darkMint
         }
     }
     var countID: String {
@@ -21,14 +22,15 @@ extension SupplyKind {
         case .toy: "inventoryToyUses"
         case .premiumFood: "inventoryPremiumFoodCount"
         case .premiumLitter: "inventoryPremiumLitterCount"
+        case .catGrass: "inventoryCatGrassCount"
         }
     }
     var countKey: String { nameKey }
     var actionKey: String {
-        switch self { case .food, .premiumFood: "care.feed"; case .litter, .premiumLitter: "care.clean"; case .toy: "care.play" }
+        switch self { case .food, .premiumFood: "care.feed"; case .litter, .premiumLitter: "care.clean"; case .toy: "care.play"; case .catGrass: "stationCat.lure" }
     }
     private var identifierName: String {
-        switch self { case .food: "Food"; case .litter: "Litter"; case .toy: "Toy"; case .premiumFood: "PremiumFood"; case .premiumLitter: "PremiumLitter" }
+        switch self { case .food: "Food"; case .litter: "Litter"; case .toy: "Toy"; case .premiumFood: "PremiumFood"; case .premiumLitter: "PremiumLitter"; case .catGrass: "CatGrass" }
     }
     var useID: String { "use\(identifierName)Button" }
     var restockID: String { "restock\(identifierName)Button" }

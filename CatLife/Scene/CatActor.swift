@@ -229,8 +229,8 @@ final class CatActor: SKNode {
         switch (appearance, frame) {
         case (.orange, 2): offset = CGPoint(x: 0.3791 * visualWidth, y: 0.1472 * visualWidth)
         case (.orange, 3): offset = CGPoint(x: 0.3084 * visualWidth, y: 0.1472 * visualWidth)
-        case (.cow, 2): offset = CGPoint(x: 0.457358 * visualWidth, y: 0.148126 * visualWidth)
-        case (.cow, 3): offset = CGPoint(x: 0.427653 * visualWidth, y: 0.134347 * visualWidth)
+        case (.cow, 2), (.station, 2): offset = CGPoint(x: 0.457358 * visualWidth, y: 0.148126 * visualWidth)
+        case (.cow, 3), (.station, 3): offset = CGPoint(x: 0.427653 * visualWidth, y: 0.134347 * visualWidth)
         // Redrawn British Shorthair: frame 2 mouth confirmed by eye (head not yet fully down).
         case (.blue, 2): offset = CGPoint(x: 0.365810 * visualWidth, y: 0.255231 * visualWidth)
         case (.blue, 3): offset = CGPoint(x: 0.295632 * visualWidth, y: 0.148615 * visualWidth)

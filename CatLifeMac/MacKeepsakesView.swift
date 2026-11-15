@@ -248,7 +248,9 @@ struct MacKeepsakesView: View {
     }
 
     private func catName(_ id: String) -> String {
-        store.snapshot?.cats.first { $0.id == id }.map(GameStrings.catName) ?? GameStrings.text("outing.album.someCat")
+        // A Station Cat that ran back to the garden still gets its name on what it found.
+        store.snapshot?.cats.first { $0.id == id }.map(GameStrings.catName)
+            ?? GameStrings.text(id == CatCatalog.stationCatID ? "cat.stationName" : "outing.album.someCat")
     }
 
     private func keepsakeDetail(_ item: OutingKeepsakeDefinition, _ record: OutingKeepsakeRecord) -> some View {

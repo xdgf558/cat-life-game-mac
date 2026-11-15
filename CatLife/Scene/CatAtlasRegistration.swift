@@ -26,7 +26,7 @@ enum CatAtlasRegistration {
     /// `scripts/measure_cat_art.py <appearance>` whenever a breed's rest sheet is redrawn.
     static func restRowCuts(for appearance: CatAppearance) -> [CGFloat] {
         switch appearance {
-        case .orange, .cow, .blue, .siamese, .silver: [0, 0.285, 0.515, 0.725, 1]
+        case .orange, .cow, .blue, .siamese, .silver, .station: [0, 0.285, 0.515, 0.725, 1]
         }
     }
 
@@ -126,7 +126,7 @@ enum CatAtlasRegistration {
                          CGPoint(x: 100.1, y: 374), CGPoint(x: 94.0, y: 334),
                          CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
                 baselines = [426, 425, 419, 417, 380, 334, 337, 391]
-            case .cow:
+            case .cow, .station:
                 // Redrawn breed art (0.28.0): re-measured with scripts/measure_cat_art.py.
                 front = [CGPoint(x: 269.5, y: 410), CGPoint(x: 346.5, y: 345),
                          CGPoint(x: 313.7, y: 377), CGPoint(x: 315.1, y: 377),

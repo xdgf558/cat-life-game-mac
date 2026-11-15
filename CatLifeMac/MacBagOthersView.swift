@@ -79,7 +79,7 @@ struct MacBagOthersView: View {
             groupTitle(premium: true)
             tileRow([.premiumFood, .premiumLitter])
             groupTitle(premium: false)
-            tileRow([.food, .litter, .toy])
+            tileRow([.food, .litter, .toy, .catGrass])
         case .furniture:
             HStack {
                 Text(GameStrings.format("inventory.furnitureStoredCount", store.storedFurniture.count))
@@ -125,8 +125,8 @@ struct MacBagOthersView: View {
     private func tileRow(_ kinds: [SupplyKind]) -> some View {
         HStack(spacing: 10) {
             ForEach(kinds, id: \.self) { supplyTile($0) }
-            // Keep premium tiles the same width as the three daily ones.
-            ForEach(0..<max(0, 3 - kinds.count), id: \.self) { _ in Color.clear.frame(maxWidth: .infinity, maxHeight: 1) }
+            // Keep premium tiles the same width as the four daily ones (3.0 added cat grass).
+            ForEach(0..<max(0, 4 - kinds.count), id: \.self) { _ in Color.clear.frame(maxWidth: .infinity, maxHeight: 1) }
         }
     }
 
@@ -273,8 +273,9 @@ struct MacBagOthersView: View {
     // MARK: Rules (same as the phone inventory)
 
     private func count(_ kind: SupplyKind) -> Int { store.snapshot?.inventory.count(kind) ?? 0 }
+    /// Cat grass is only used in the garden, so the bag offers a restock instead.
     private func canUse(_ kind: SupplyKind) -> Bool {
-        count(kind) >= ((kind == .food || kind == .premiumFood) ? store.foodRequired : 1)
+        kind != .catGrass && count(kind) >= ((kind == .food || kind == .premiumFood) ? store.foodRequired : 1)
     }
     private func firstEffect(_ kind: SupplyKind) -> String {
         let detail = GameStrings.text(SupplyCatalog.definition(for: kind).detailKey)
@@ -290,6 +291,7 @@ struct MacBagOthersView: View {
             switch kind {
             case .food, .premiumFood, .litter, .premiumLitter: store.openSupplyPicker(for: kind)
             case .toy: store.presentPlayChoices()
+            case .catGrass: break
             }
         }
     }

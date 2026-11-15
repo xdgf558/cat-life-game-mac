@@ -59,12 +59,13 @@ public enum CatGrowthCatalog {
         case .orange, .silver: 90
         case .cow, .siamese: 180
         case .blue: 365
+        case .station: 730
         }
     }
 
     public static func sex(for appearance: CatAppearance) -> CatSex {
         switch appearance {
-        case .orange, .blue, .siamese: .male
+        case .orange, .blue, .siamese, .station: .male
         case .cow, .silver: .female
         }
     }

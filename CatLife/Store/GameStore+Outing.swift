@@ -56,6 +56,23 @@ extension GameStore {
         await performOuting { GameEngine.setKeepsakeOnShelf(&$0, keepsakeID: keepsakeID, onShelf: onShelf, now: $1) }
     }
 
+    /// 3.0: spend one cat grass on the Station Cat waiting on the map.
+    @discardableResult
+    func lureStationCat() async -> Bool {
+        await performOuting { GameEngine.lureStationCat(&$0, now: $1) }
+    }
+
+    @discardableResult
+    func letStationCatGo() async -> Bool {
+        await performOuting { GameEngine.letStationCatGo(&$0, now: $1) }
+    }
+
+    @discardableResult
+    func acknowledgeStationCatNotice() async -> Bool {
+        guard snapshot?.stationCat.noticePending == true else { return true }
+        return await performOuting { GameEngine.acknowledgeStationCatNotice(&$0, now: $1) }
+    }
+
     private func performOuting(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         let generation = saveSceneGeneration
         let succeeded = await performPersistedAction(playsSound: false, showsSuccessNotice: false, action)

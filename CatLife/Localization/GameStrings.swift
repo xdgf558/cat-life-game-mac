@@ -37,6 +37,7 @@ enum GameStrings {
         if let customName = cat.customName { return customName }
         if cat.id == CatCatalog.initialCatID, cat.name == "小橘" { return text("cat.defaultName") }
         if let offer = CatCatalog.adoptionOffer(catID: cat.id), cat.name == offer.name { return catAdoptionName(offer) }
+        if cat.id == CatCatalog.stationCatID, cat.name == CatCatalog.stationCatName { return text("cat.stationName") }
         return cat.name
     }
 

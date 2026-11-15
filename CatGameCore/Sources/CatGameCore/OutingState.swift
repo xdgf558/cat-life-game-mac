@@ -96,6 +96,8 @@ public enum OutingStepKind: String, Codable, Sendable {
     case find, event, outcome, nothing
     /// 2.10: a puzzle still waiting; replaced by its find (or nothing) once solved or skipped.
     case puzzle
+    /// 3.0: the Station Cat showed up; replaced by an outcome once the player lures it or lets it go.
+    case stationCat
 }
 
 /// One line of "一路上": what happened at a spot, with the values actually applied.
@@ -139,6 +141,9 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
     public var seenEventIDs: [String]
     /// 2.10: a puzzle on the map; exploring waits until it is solved or skipped.
     public var pendingPuzzle: OutingPuzzle? = nil
+    /// 3.0: the Station Cat is waiting at this spot; exploring waits until the player decides.
+    public var pendingStationCat: OutingSpot? = nil
+    public var metStationCat: Bool { log.contains { $0.kind == .stationCat || $0.eventID == StationCatRules.logEventID } }
     /// Puzzles met on this trip, waiting or done.
     public var puzzleCount: Int { log.filter { $0.kind == .puzzle || $0.puzzleKind != nil }.count }
 
@@ -162,6 +167,7 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
             && loot.allSatisfy(\.isValid) && log.allSatisfy(\.isValid)
             && (pendingEventID == nil) == (pendingSpot == nil) && seenEventIDs.count <= 32
             && (pendingPuzzle == nil || pendingEventID == nil) && (pendingPuzzle?.isValid ?? true)
+            && (pendingStationCat == nil || (pendingEventID == nil && pendingPuzzle == nil))
     }
 }
 

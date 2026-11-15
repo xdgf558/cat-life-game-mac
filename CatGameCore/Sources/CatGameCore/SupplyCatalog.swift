@@ -2,6 +2,8 @@ import Foundation
 
 public enum SupplyKind: String, Codable, CaseIterable, Hashable, Sendable {
     case food, litter, toy, premiumFood, premiumLitter
+    /// 3.0: lures the Station Cat in the garden; not a care supply.
+    case catGrass
 }
 
 public struct SupplyDefinition: Identifiable, Equatable, Sendable {
@@ -29,6 +31,8 @@ public enum SupplyCatalog {
                                 unitsPerPurchase: 1, assetName: "supply-premium-food", symbol: "fish.fill")
         case .premiumLitter: .init(kind: kind, price: 45, unlockLevel: 3,
                                   unitsPerPurchase: 1, assetName: "supply-premium-litter", symbol: "sparkles")
+        case .catGrass: .init(kind: kind, price: StationCatRules.catGrassPrice, unlockLevel: 1,
+                             unitsPerPurchase: 1, assetName: "supply-cat-grass", symbol: "leaf.fill")
         }
     }
 }
@@ -45,6 +49,7 @@ extension SupplyKind {
         case .toy: \.toys
         case .premiumFood: \.premiumFood
         case .premiumLitter: \.premiumLitter
+        case .catGrass: \.catGrass
         }
     }
 }
@@ -72,7 +77,7 @@ extension GameEngine {
         case .food: success = .foodPurchased
         case .litter: success = .litterPurchased
         case .toy: success = .toyPurchased
-        case .premiumFood, .premiumLitter: success = .supplyPurchased
+        case .premiumFood, .premiumLitter, .catGrass: success = .supplyPurchased
         }
         return .init(success: success, amount: units)
     }

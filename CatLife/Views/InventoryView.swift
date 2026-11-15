@@ -355,6 +355,7 @@ struct InventoryView: View {
         switch supply {
         case .food, .premiumFood, .litter, .premiumLitter: store.openSupplyPicker(for: supply)
         case .toy: store.play()
+        case .catGrass: break
         }
     }
     private func furnitureStatus(_ id: String, badge: Bool = false) -> String {

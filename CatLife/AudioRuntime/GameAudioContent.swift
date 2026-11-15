@@ -93,7 +93,7 @@ enum CatVoice: String, CaseIterable, Hashable {
         let base: Int = switch cat.appearance {
         case .cow, .siamese: 1
         case .orange: 2
-        case .blue, .silver: 3
+        case .blue, .silver, .station: 3
         }
         let kitten = cat.growthState?.stage(at: date) == .kitten ? -1 : 0
         let individual = Int(stableHash(cat.id) % 3) - 1

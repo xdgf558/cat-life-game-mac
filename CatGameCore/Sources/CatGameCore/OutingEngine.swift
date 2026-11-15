@@ -111,6 +111,7 @@ extension GameEngine {
         guard var trip = state.outing.trip else { return .init(failure: .outingMissing) }
         guard trip.pendingEventID == nil else { return .init(failure: .outingEventPending) }
         guard trip.pendingPuzzle == nil else { return .init(failure: .outingPuzzlePending) }
+        guard trip.pendingStationCat == nil else { return .init(failure: .stationCatPending) }
         guard trip.footprintsLeft > 0 else { return .init(failure: .outingNoFootprints) }
         guard let index = state.cats.firstIndex(where: { $0.id == trip.catID }) else { return .init(failure: .careCatMissing) }
         let timestamp = effectiveTime(state, now: now)
@@ -122,7 +123,13 @@ extension GameEngine {
         let entryID = "\(trip.id)-\(trip.step)"
         let favored = OutingHabit.style(spot.favoredStyle).isKnown(for: candidate.cats[index])
         let pool = OutingCatalog.events.filter { ($0.spot == nil || $0.spot == spot) && !trip.seenEventIDs.contains($0.id) }
-        if trip.puzzleCount < OutingCatalog.maximumPuzzlesPerTrip, random.percent() < OutingCatalog.puzzleChance {
+        if StationCatRules.appears(on: trip, in: candidate) {
+            // 3.0: the Station Cat, rolled on its own stream so every other outcome stays the same.
+            trip.pendingStationCat = spot
+            trip.log.append(.init(id: entryID, spot: spot, kind: .stationCat, lootID: nil, eventID: StationCatRules.logEventID,
+                                  optionID: nil, reactionKey: "stationCat.log.seen", catMood: 0, bond: 0, friendship: 0,
+                                  neighborID: nil, gold: 0, refundedFootprint: false))
+        } else if trip.puzzleCount < OutingCatalog.maximumPuzzlesPerTrip, random.percent() < OutingCatalog.puzzleChance {
             // 2.10: this step is a puzzle; what it finds waits for the stars.
             let kind: OutingPuzzleKind = switch spot {
             case .flowerBed: .planting
@@ -302,6 +309,8 @@ extension GameEngine {
             resolvePuzzle(&state, trip: &trip, stars: 0, at: timestamp)
             state.outing.trip = trip
         }
+        // A Station Cat left waiting wanders off.
+        if trip.pendingStationCat != nil { StationCatRules.resolveSighting(&trip, caught: false) }
         state.outing.lastSettlement = OutingSettlement(
             id: trip.id, catID: trip.catID, endedAt: timestamp, reason: reason,
             footprintsTotal: trip.footprintsTotal, footprintsUsed: trip.footprintsUsed, loot: trip.loot,

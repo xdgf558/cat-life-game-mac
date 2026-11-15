@@ -210,6 +210,7 @@
 		CC6375FCD0F355547D1A6CB4B2DD94E2 /* AppleGraphicsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D08CF540330EDE61D1872E10C59206 /* AppleGraphicsTests.swift */; };
 		CE62C6633E418AC0A59F2B9D5C48B618 /* CompanionMemoryNotices68.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC051F37F32E74BA8263B934C9DC18AD /* CompanionMemoryNotices68.swift */; };
 		CE8821E9A6853A6477A5981C3C2233F7 /* CatActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16B74F93622CBC7E4E3A8064EB73644F /* CatActor.swift */; };
+		CEA74C79826BD406260CD80C3542C2CA /* MacTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0601EFDCF6F7081E6BE9AA7E2D9DF2FA /* MacTasksView.swift */; };
 		D0788332EDC2F358C3ACEF28D4058F44 /* GameStore+Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDF26DB5C3F15CEE89BE5882A4FE210F /* GameStore+Onboarding.swift */; };
 		D1A6BBF9C82C983364CFA29C0B5D949C /* GameStrings+Supplies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F32C233B354852D52D6171A08FB6E3C /* GameStrings+Supplies.swift */; };
 		D2872CEE7FEF5C4994DADAF49C8AD933 /* RoomHabitBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0504B4C43FDF1FA0F262B987ECBA543C /* RoomHabitBehavior.swift */; };
@@ -286,6 +287,7 @@
 		0504B4C43FDF1FA0F262B987ECBA543C /* RoomHabitBehavior.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomHabitBehavior.swift; path = Scene/RoomHabitBehavior.swift; sourceTree = "<group>"; };
 		055F11650CDEA761354C227C5F257755 /* PlayChoicesSheet68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PlayChoicesSheet68.swift; path = Views/PlayChoicesSheet68.swift; sourceTree = "<group>"; };
 		05BD43C71D5B77ED37F8E7BBBD691976 /* GameStrings+Outing200.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Outing200.swift"; path = "Localization/GameStrings+Outing200.swift"; sourceTree = "<group>"; };
+		0601EFDCF6F7081E6BE9AA7E2D9DF2FA /* MacTasksView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacTasksView.swift; sourceTree = "<group>"; };
 		06CF84FB675B1546047A6FB257F3954F /* RoomArrangementPanel68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomArrangementPanel68.swift; path = Views/RoomArrangementPanel68.swift; sourceTree = "<group>"; };
 		06E9408B9374750BBB77C9238D7D5995 /* MacPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacPreferencesTests.swift; sourceTree = "<group>"; };
 		087D80DE6226FA3FB2C6094EA1D119AF /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
@@ -866,6 +868,7 @@
 				D0A137A8A28640D44E15F2DEF73EACE3 /* MacSettingsView.swift */,
 				8569B958224F0D00648FB495F25FAA3C /* MacShopView.swift */,
 				BC464A2B11B92E81AAB353FFB9A07898 /* MacShortcuts.swift */,
+				0601EFDCF6F7081E6BE9AA7E2D9DF2FA /* MacTasksView.swift */,
 				606FED6ABE63EF81399A24F71C864AFA /* MacTitleView.swift */,
 				A076C6274FA3A75927A2C5318E89C23F /* MacTownView.swift */,
 				83006BF74C08737390F607C7E0500CF0 /* MacTownWalk.swift */,
@@ -1279,6 +1282,7 @@
 				07502ECD20B3D475F895108AE8D59C19 /* MacSettingsView.swift in Sources */,
 				55999E01CB0A5008CFB99A0791455489 /* MacShopView.swift in Sources */,
 				C37EBA2FB6BE823A38FB8D2F5289E2AE /* MacShortcuts.swift in Sources */,
+				CEA74C79826BD406260CD80C3542C2CA /* MacTasksView.swift in Sources */,
 				53A2D2EC987792A27F345AD217658853 /* MacTitleView.swift in Sources */,
 				4E41B8600246497FDEB25E316D9984D5 /* MacTownView.swift in Sources */,
 				651335E69F5DCC090387B707A88AA091 /* MacTownWalk.swift in Sources */,

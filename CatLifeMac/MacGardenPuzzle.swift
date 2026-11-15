@@ -64,7 +64,7 @@ struct MacOutingPuzzleCard: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            GameIcon(asset: "puzzle-\(kind.rawValue)", symbol: Self.symbol(kind), size: 24, tint: Self.tint(kind))
+            GameIcon(asset: "puzzle-\(kind.rawValue)", symbol: Self.symbol(kind), size: 32, tint: Self.tint(kind))
                 .frame(width: 44, height: 44).background(RoomTheme.rewardPaper, in: Circle())
             VStack(alignment: .leading, spacing: 2) {
                 Text(GameStrings.format("outing.puzzle.kicker", GameStrings.text(puzzle.spot.titleKey)))
@@ -346,9 +346,9 @@ struct MacOutingPuzzleCard: View {
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 10).fill(given ? RoomTheme.cork.opacity(0.75) : RoomTheme.cream)
-                if let planted { seedlingIcon(planted, size: side * 0.55) }
+                if let planted { seedlingIcon(planted, size: side * 0.72) }
                 else if flash == cell {
-                    GameIcon(asset: "puzzle-wilted", symbol: "leaf.arrow.triangle.circlepath", size: side * 0.45, tint: RoomTheme.coral)
+                    GameIcon(asset: "puzzle-wilted", symbol: "leaf.arrow.triangle.circlepath", size: side * 0.62, tint: RoomTheme.coral)
                 }
                 cursorRing(cell)
             }
@@ -382,7 +382,7 @@ struct MacOutingPuzzleCard: View {
                 }
             }
         }
-        .padding(6).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 14))
+        .padding(6).background(RoomTheme.wood.opacity(0.45), in: RoundedRectangle(cornerRadius: 14))
     }
 
     private func acornCell(_ cell: Int, b: OutingAcornBoard, side: CGFloat) -> some View {
@@ -399,9 +399,9 @@ struct MacOutingPuzzleCard: View {
             if !revealed && !rolled { flipOrMark(cell) } else { focused = true }
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 10).fill(revealed ? RoomTheme.cream : RoomTheme.mint.opacity(0.85))
+                RoundedRectangle(cornerRadius: 10).fill(revealed || showAcorn ? (rolled ? RoomTheme.paleCoral : RoomTheme.cream) : RoomTheme.cork.opacity(0.55))
                 if showAcorn {
-                    GameIcon(asset: "puzzle-acorn", symbol: "circle.hexagongrid.fill", size: side * 0.5,
+                    GameIcon(asset: "puzzle-acorn", symbol: "circle.hexagongrid.fill", size: side * 0.68,
                              tint: rolled ? RoomTheme.coralDeep : RoomTheme.secondary)
                 } else if revealed {
                     if b.numbers[cell] > 0 {
@@ -409,7 +409,7 @@ struct MacOutingPuzzleCard: View {
                             .foregroundStyle(Self.numberTint(b.numbers[cell]))
                     }
                 } else {
-                    GameIcon(asset: "puzzle-leaf", symbol: "leaf.fill", size: side * 0.48, tint: .white.opacity(0.9))
+                    GameIcon(asset: "puzzle-leaf", symbol: "leaf.fill", size: side * 0.78, tint: RoomTheme.darkMint)
                     if marked {
                         Image(systemName: "mappin.circle.fill").font(.system(size: 15, weight: .bold))
                             .foregroundStyle(RoomTheme.coralDeep, .white).offset(x: side * 0.24, y: -side * 0.24)
@@ -443,7 +443,7 @@ struct MacOutingPuzzleCard: View {
                     }
                 }
             }
-            .padding(6).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 14))
+            .padding(6).background(RoomTheme.mint.opacity(0.3), in: RoundedRectangle(cornerRadius: 14))
             directionPad
         }
     }
@@ -452,9 +452,9 @@ struct MacOutingPuzzleCard: View {
         let puddle = b.puddles.contains(cell), filled = play.filled.contains(cell)
         let content: String
         let base: Color
-        if b.walls.contains(cell) { content = "outing.puzzle.a11y.bush"; base = RoomTheme.darkMint.opacity(0.75) }
-        else if puddle && !filled { content = "outing.puzzle.a11y.puddle"; base = RoomTheme.sky.opacity(0.55) }
-        else if filled { content = "outing.puzzle.a11y.stone"; base = RoomTheme.wood }
+        if b.walls.contains(cell) { content = "outing.puzzle.a11y.bush"; base = RoomTheme.paleMint }
+        else if puddle && !filled { content = "outing.puzzle.a11y.puddle"; base = RoomTheme.sky.opacity(0.16) }
+        else if filled { content = "outing.puzzle.a11y.stone"; base = RoomTheme.cream }
         else { content = "outing.puzzle.a11y.path"; base = RoomTheme.cream }
         var parts = [GameStrings.text(content)]
         if play.pebbles.contains(cell) { parts.append(GameStrings.text("outing.puzzle.a11y.pebble")) }
@@ -467,17 +467,17 @@ struct MacOutingPuzzleCard: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(base)
                 if b.walls.contains(cell) {
-                    GameIcon(asset: "puzzle-bush", symbol: "tree.fill", size: side * 0.56, tint: .white.opacity(0.9))
+                    GameIcon(asset: "puzzle-bush", symbol: "tree.fill", size: side * 0.9, tint: RoomTheme.darkMint)
                 } else if puddle && !filled {
-                    GameIcon(asset: "puzzle-puddle", symbol: "drop.fill", size: side * 0.4, tint: .white.opacity(0.85))
+                    GameIcon(asset: "puzzle-puddle", symbol: "drop.fill", size: side * 0.92, tint: RoomTheme.sky)
                 } else if filled {
-                    GameIcon(asset: "puzzle-stone", symbol: "circle.dashed", size: side * 0.5, tint: RoomTheme.secondary.opacity(0.6))
+                    GameIcon(asset: "puzzle-stone", symbol: "circle.dashed", size: side * 0.84, tint: RoomTheme.secondary.opacity(0.6))
                 }
                 if cell == b.goal && cell != play.cat {
-                    GameIcon(asset: "puzzle-keepsake", symbol: "gift.fill", size: side * 0.5, tint: RoomTheme.gold)
+                    GameIcon(asset: "puzzle-keepsake", symbol: "gift.fill", size: side * 0.72, tint: RoomTheme.gold)
                 }
                 if play.pebbles.contains(cell) {
-                    GameIcon(asset: "puzzle-pebble", symbol: "circle.fill", size: side * 0.6, tint: Color(white: 0.62))
+                    GameIcon(asset: "puzzle-pebble", symbol: "circle.fill", size: side * 0.78, tint: Color(white: 0.62))
                 }
                 if cell == play.cat {
                     CatCollectionPortrait(appearance: cat.appearance, size: side * 0.9)
@@ -533,7 +533,7 @@ struct MacOutingPuzzleCard: View {
                 ForEach(0..<n, id: \.self) { r in
                     Group {
                         if r == b.sourceRow {
-                            GameIcon(asset: "puzzle-sun", symbol: "sun.max.fill", size: 26, tint: RoomTheme.gold)
+                            GameIcon(asset: "puzzle-sun", symbol: "sun.max.fill", size: 32, tint: RoomTheme.gold)
                                 .accessibilityLabel(GameStrings.text("outing.puzzle.a11y.sun"))
                         } else { Color.clear }
                     }
@@ -555,7 +555,7 @@ struct MacOutingPuzzleCard: View {
                     .allowsHitTesting(false).accessibilityHidden(true)
             }
             .frame(width: span, height: span)
-            .padding(6).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 14))
+            .padding(6).background(RoomTheme.mint.opacity(0.3), in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
@@ -570,16 +570,16 @@ struct MacOutingPuzzleCard: View {
             if mirror != nil { apply(.turn(cell: cell)) } else { focused = true }
         } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: 10).fill(b.blocks.contains(cell) ? RoomTheme.darkMint.opacity(0.75) : RoomTheme.cream)
+                RoundedRectangle(cornerRadius: 10).fill(b.blocks.contains(cell) ? RoomTheme.paleMint : RoomTheme.cream)
                 if cell == b.target {
                     ZStack {
                         Circle().fill(RoomTheme.friendshipPaper).frame(width: side * 0.78, height: side * 0.78)
                             .shadow(color: RoomTheme.gold.opacity(lit ? 0.9 : 0), radius: lit ? 10 : 0)
                         if lit { CatCollectionPortrait(appearance: cat.appearance, size: side * 0.7) }
-                        else { GameIcon(asset: "puzzle-cushion", symbol: "pawprint.fill", size: side * 0.4, tint: RoomTheme.friendship) }
+                        else { GameIcon(asset: "puzzle-cushion", symbol: "pawprint.fill", size: side * 0.72, tint: RoomTheme.friendship) }
                     }
                 } else if b.blocks.contains(cell) {
-                    GameIcon(asset: "puzzle-bush", symbol: "tree.fill", size: side * 0.56, tint: .white.opacity(0.9))
+                    GameIcon(asset: "puzzle-bush", symbol: "tree.fill", size: side * 0.88, tint: RoomTheme.darkMint)
                 } else if let mirror {
                     Capsule().fill(RoomTheme.mint).frame(width: side * 0.82, height: side * 0.2)
                         .overlay(Capsule().strokeBorder(RoomTheme.darkMint, lineWidth: 2))

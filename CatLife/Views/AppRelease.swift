@@ -23,6 +23,7 @@ struct AppRelease: Identifiable, Sendable {
         .init(build: 114, version: "2.12", date: "2026-11-15"),
         .init(build: 113, version: "2.11", date: "2026-11-15"),
         .init(build: 112, version: "2.10", date: "2026-11-15"),
+        .init(build: 111, version: "2.07", date: "2026-11-15"),
         .init(build: 110, version: "2.06", date: "2026-11-15"),
         .init(build: 109, version: "2.05", date: "2026-11-15"),
         .init(build: 108, version: "2.04", date: "2026-11-15"),

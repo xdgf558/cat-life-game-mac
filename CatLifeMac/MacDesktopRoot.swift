@@ -707,7 +707,7 @@ struct MacDesktopRoot: View {
                 case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)
                 case .neighborDetail: NavigationStack { if let neighborID { NeighborDetailView(store: store, neighborID: neighborID) } }
                 case .neighbors: CommunityView(store: store, onClose: { auxiliary = nil })
-                case .market: NavigationStack { ExchangeMarketView(store: store, onClose: { auxiliary = nil }) }
+                case .market: NavigationStack { ExchangeMarketView(store: store, showsBack: false, onClose: { auxiliary = nil }) }
                 case .board: TownNoticeBoardView(store: store, onClose: { auxiliary = nil })
                 case .saves:
                     #if APP_STORE
@@ -758,7 +758,7 @@ private enum MacAuxiliary: String, Identifiable {
     var id: String { rawValue }
     var usesActiveSheet: Bool { [.tasks, .inventory, .upgrade, .hospital, .player].contains(self) }
     /// Sheets whose scene banner is the whole header (no separate title row).
-    var bannerOnly: Bool { self == .hospital }
+    var bannerOnly: Bool { self == .hospital || self == .market }
     /// Town places opened as sheets show that place's scene banner.
     var place: TownPlace? {
         switch self {

@@ -21,6 +21,8 @@ enum MacRoomPointer {
 enum MacRoomContextAction: Equatable {
     case companion(String), profile(String), closeUp(String), play(String), hospital(String)
     case rest(String), decorate(String?), store(String)
+    /// 2.0: "带它出门" opens the garden with this cat selected.
+    case outing(String)
 }
 
 /// Native input only. Every drag still enters RoomScene's asynchronous placement resolver.
@@ -165,7 +167,7 @@ final class MacRoomSKView: SKView {
         var entries: [(String, MacRoomContextAction)] = []
         if let id = catID(hit: hit, scene: roomScene), roomScene.canInspectResidents {
             if id != roomScene.displayedCatID { entries.append(("companion", .companion(id))) }
-            entries += [("profile", .profile(id)), ("closeUp", .closeUp(id)), ("play", .play(id)), ("hospital", .hospital(id))]
+            entries += [("profile", .profile(id)), ("closeUp", .closeUp(id)), ("play", .play(id)), ("outing", .outing(id)), ("hospital", .hospital(id))]
         } else if let hit, hit.hasPrefix("furniture-") {
             let id = String(hit.dropFirst("furniture-".count))
             if !roomScene.editing, let item = roomScene.ownedFurniture.first(where: { $0.id == id }),

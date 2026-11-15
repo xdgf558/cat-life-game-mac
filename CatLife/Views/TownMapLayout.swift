@@ -12,7 +12,7 @@ enum TownMapLayout {
         case .work: values = (14, 196, 156)
         case .shop: values = (220, 200, 156)
         case .plaza: values = (106, 500, 178)
-        case .board, .lot3: values = (4, 714, 134)
+        case .board, .lot3, .garden: values = (4, 714, 134)
         case .market: values = (234, 714, 152)
         case .street: values = (4, 910, 164)
         case .hospital: values = (234, 910, 152)
@@ -77,6 +77,12 @@ struct TownMapStatus {
             let remaining = max(0, Int(ceil(active.endsAt.timeIntervalSince(max(now, snapshot?.meta.lastSyncAt ?? now)))))
             if remaining == 0 { return GameStrings.text("townMap.workReady") }
             return GameStrings.format("townMap.working", String(format: "%02d:%02d", remaining / 60, remaining % 60))
+        case .garden:
+            guard let outing = snapshot?.outing else { return nil }
+            if let trip = outing.trip { return GameStrings.format("outing.badge.left", trip.footprintsLeft) }
+            if outing.unacknowledgedSettlement != nil || !outing.pendingDuplicates.isEmpty { return GameStrings.text("outing.badge.settled") }
+            let left = outing.departuresLeft(today: snapshot?.tasks.dailyDayKey)
+            return left > 0 ? GameStrings.format("outing.badge.departures", left) : GameStrings.text("outing.badge.done")
         case .cafe:
             if snapshot?.player.activeNap != nil { return GameStrings.text("cafe.badge.napping") }
             if !CafeCatalog.isOpen(at: now) { return GameStrings.text("cafe.badge.closed") }
@@ -93,6 +99,7 @@ struct TownMapStatus {
         case .street: return RoomTheme.friendship
         case .work: return RoomTheme.gold
         case .cafe: return RoomTheme.lilac
+        case .garden: return snapshot?.outing.trip != nil ? RoomTheme.coral : RoomTheme.friendship
         case .market where exhaustedExchanges: return RoomTheme.secondary
         default: return RoomTheme.mint
         }

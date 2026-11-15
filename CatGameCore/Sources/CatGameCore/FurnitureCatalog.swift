@@ -3,8 +3,16 @@ import Foundation
 public enum FurnitureKind: String, Codable, CaseIterable, Hashable, Sendable {
     case cabinet, catTree, catBed, wallFlower, wallCat, plant, floorCushion, flowerStool
     case bookcase, rattanChair, sideTable, wallSunrise, wallTownMemory
+    // 2.0 garden decor and the keepsake shelf, brought home from outings.
+    case gardenWindChime, gardenClayPot, gardenLeafWreath, gardenPebbleLamp, gardenPicnicBasket, gardenBirdhouse, keepsakeShelf
 
-    public var supportsRotation: Bool { ![.wallFlower, .wallCat, .wallSunrise, .wallTownMemory].contains(self) }
+    public var supportsRotation: Bool {
+        ![.wallFlower, .wallCat, .wallSunrise, .wallTownMemory, .gardenWindChime, .gardenLeafWreath, .gardenBirdhouse, .keepsakeShelf].contains(self)
+    }
+    /// Found on outings, listed under the tray's "出游装饰" filter.
+    public var isOutingDecor: Bool {
+        [.gardenWindChime, .gardenClayPot, .gardenLeafWreath, .gardenPebbleLamp, .gardenPicnicBasket, .gardenBirdhouse, .keepsakeShelf].contains(self)
+    }
 
 }
 
@@ -202,6 +210,13 @@ public enum FurnitureCatalog {
         case .sideTable: asset = "furniture-side-table"
         case .wallSunrise: asset = "furniture-wall-sunrise"
         case .wallTownMemory: asset = "furniture-town-memory-frame"
+        case .gardenWindChime: asset = "furniture-garden-wind-chime"
+        case .gardenClayPot: asset = "furniture-garden-clay-pot"
+        case .gardenLeafWreath: asset = "furniture-garden-leaf-wreath"
+        case .gardenPebbleLamp: asset = "furniture-garden-pebble-lamp"
+        case .gardenPicnicBasket: asset = "furniture-garden-picnic-basket"
+        case .gardenBirdhouse: asset = "furniture-garden-birdhouse"
+        case .keepsakeShelf: asset = "furniture-keepsake-shelf"
         }
         let dimensions: (width: Double, depth: Double, height: Double)
         switch kind {
@@ -218,6 +233,13 @@ public enum FurnitureCatalog {
         case .wallCat: dimensions = (108, 148, 0)
         case .wallSunrise: dimensions = (104, 178, 0)
         case .wallTownMemory: dimensions = (132, 126, 0)
+        case .gardenWindChime: dimensions = (84, 150, 0)
+        case .gardenClayPot: dimensions = (78, 46, 0.9)
+        case .gardenLeafWreath: dimensions = (120, 120, 0)
+        case .gardenPebbleLamp: dimensions = (70, 44, 1.6)
+        case .gardenPicnicBasket: dimensions = (120, 66, 0.8)
+        case .gardenBirdhouse: dimensions = (96, 140, 0)
+        case .keepsakeShelf: dimensions = (176, 120, 0)
         }
         return FurnitureMetadata(kind: kind, isWall: !kind.supportsRotation,
                                  assetName: asset, nameKey: "furniture.\(kind.rawValue)",

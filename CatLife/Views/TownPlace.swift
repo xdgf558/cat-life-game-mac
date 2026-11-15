@@ -17,11 +17,19 @@ enum TownLayer: String, CaseIterable, Identifiable {
 /// These places describe navigation only. Future locations never imply unlocked gameplay.
 enum TownPlace: String, CaseIterable, Identifiable {
     case street, hospital, cafe, work, plaza, shop, home, board, market, adoption, lot1, lot2, lot3
+    /// 2.0: the Cat Town garden, where a cat goes on an outing. Built on the empty lot by the plaza.
+    case garden
     var id: String { rawValue }
     var isEmpty: Bool { self == .lot1 || self == .lot2 || self == .lot3 }
     /// Places drawn on the town map. Since 1.3.0 the notice board stands in the plaza, so the plaza is its
     /// only entrance and the board's old plot is an empty lot. `.board` still names the board sheet.
-    static var mapPlaces: [TownPlace] { allCases.filter { $0 != .board } }
+    static var mapPlaces: [TownPlace] {
+        #if os(macOS)
+        allCases.filter { $0 != .board && $0 != .lot3 }
+        #else
+        allCases.filter { $0 != .board && $0 != .garden }
+        #endif
+    }
     /// No place is pending any more: the café opened in 1.1.0. Kept for the shared map code paths.
     var isFuture: Bool { false }
     var layer: TownLayer {
@@ -55,6 +63,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .market: "town-market-cartoon"
         case .adoption: "town-collection-cartoon"
         case .lot1, .lot2, .lot3: "town-lot-cartoon"
+        case .garden: "town-garden-cartoon"
         }
     }
     var symbol: String {
@@ -70,6 +79,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .market: "arrow.left.arrow.right.square.fill"
         case .adoption: "book.closed.fill"
         case .lot1, .lot2, .lot3: "leaf.fill"
+        case .garden: "camera.macro"
         }
     }
     var tint: Color {
@@ -78,6 +88,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .hospital: return RoomTheme.coral
         case .work, .adoption: return RoomTheme.gold
         case .shop: return Color(red: 0.24, green: 0.50, blue: 0.66)
+        case .garden: return RoomTheme.friendshipDeep
         case .lot1, .lot2, .lot3: return TownPalette.emptyEdge
         default: return RoomTheme.darkMint
         }
@@ -89,6 +100,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .work: return Color(red: 0.98, green: 0.92, blue: 0.78)
         case .shop: return Color(red: 0.86, green: 0.92, blue: 0.95)
         case .adoption: return Color(red: 0.98, green: 0.89, blue: 0.72)
+        case .garden: return RoomTheme.friendshipPaper
         case .lot1, .lot2, .lot3: return .clear
         default: return RoomTheme.paleMint
         }
@@ -109,6 +121,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .home: return "town.goHome"
         case .market: return "market.enter"
         case .cafe: return "cafe.enter"
+        case .garden: return "outing.enter"
         default: return "town.meetCat"
         }
     }

@@ -26,6 +26,8 @@ final class MacPreferences {
     var reduceMotion: Bool { get { state.reduceMotion } set { state.reduceMotion = newValue } }
     /// Keep music, effects and cat voices playing while another app is frontmost.
     var backgroundAudio: Bool { get { state.backgroundAudio } set { state.backgroundAudio = newValue } }
+    /// 2.6: the opening animation has played once on this Mac.
+    var introSeen: Bool { get { state.introSeen } set { state.introSeen = newValue } }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -69,11 +71,12 @@ final class MacPreferences {
         var notificationsEnabled = false
         var reduceMotion = false
         var backgroundAudio = false
+        var introSeen = false
         var bindings: [String: MacKeyBinding] = [:]
         init() {}
         private enum CodingKeys: String, CodingKey {
             case frameLimit, interfaceScale, windowMode, wheelReversed, contextMenus, hoverHints
-            case alwaysOnTop, followDaylight, notificationsEnabled, reduceMotion, backgroundAudio, bindings
+            case alwaysOnTop, followDaylight, notificationsEnabled, reduceMotion, backgroundAudio, bindings, introSeen
         }
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -90,6 +93,7 @@ final class MacPreferences {
             notificationsEnabled = (try? values.decode(Bool.self, forKey: .notificationsEnabled)) ?? false
             reduceMotion = (try? values.decode(Bool.self, forKey: .reduceMotion)) ?? false
             backgroundAudio = (try? values.decode(Bool.self, forKey: .backgroundAudio)) ?? false
+            introSeen = (try? values.decode(Bool.self, forKey: .introSeen)) ?? false
             let decoded = (try? values.decode([String: MacKeyBinding].self, forKey: .bindings)) ?? [:]
             bindings = decoded.filter { entry in
                 guard let command = MacCommand(rawValue: entry.key) else { return false }

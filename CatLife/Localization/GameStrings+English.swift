@@ -1083,4 +1083,5 @@ extension GameStrings {
         .merging(outing200English) { _, new in new }
         .merging(stationCat250English) { _, new in new }
         .merging(macAlbum252English) { _, new in new }
+        .merging(intro260English) { _, new in new }
 }

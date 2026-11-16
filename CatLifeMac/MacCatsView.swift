@@ -45,7 +45,9 @@ struct MacCatsView: View {
     private var stationMet: Bool { (store.snapshot?.stationCat.timesCaught ?? 0) > 0 }
 
     var body: some View {
-        Group {
+        // A stable container: on a Group the lifecycle modifiers below would attach to each branch, and the
+        // detail's own onAppear would close it again the moment it opened.
+        ZStack {
             if isNested, let entry = entries.first(where: { $0.id == focusedID }) {
                 detail(entry).transition(.opacity.combined(with: .scale(scale: 0.98)))
             } else {

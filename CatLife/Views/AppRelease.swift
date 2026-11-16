@@ -20,6 +20,7 @@ struct AppRelease: Identifiable, Sendable {
     // Keep release history as data. Only the latest three entries for this
     // installed binary are rendered; older entries have no hidden UI elements.
     private static let history: [AppRelease] = [
+        .init(build: 124, version: "2.6", date: "2026-11-16"),
         .init(build: 123, version: "2.53", date: "2026-11-16"),
         .init(build: 122, version: "2.52", date: "2026-11-16"),
         .init(build: 121, version: "2.51", date: "2026-11-16"),

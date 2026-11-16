@@ -12,6 +12,8 @@ struct MacDesktopRoot: View {
     /// The profile page has a wardrobe, sources, rename or look picker open; Esc steps back there first.
     @State private var profileNested = false
     @State private var catsNested = false
+    /// 2.6: Settings asked to see the opening again.
+    @State private var replayingIntro = false
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
@@ -96,12 +98,22 @@ struct MacDesktopRoot: View {
                     }
                 }
             }
+            if showsIntro {
+                MacIntroView(store: store, reducedMotion: systemReduceMotion || preferences.reduceMotion, onFinish: finishIntro)
+                    .transition(.opacity).zIndex(10)
+            }
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
         .environment(\.gameReduceMotionOverride, systemReduceMotion || preferences.reduceMotion)
         .transaction { if preferences.reduceMotion { $0.disablesAnimations = true } }
         .preferredColorScheme(.light)
+        .onReceive(NotificationCenter.default.publisher(for: .macReplayIntro)) { _ in replayingIntro = true }
+    }
+    /// 2.6: the opening plays once, on first launch, and again whenever Settings asks for it.
+    private var showsIntro: Bool { replayingIntro || !preferences.introSeen }
+    private func finishIntro() {
+        withAnimation(.easeOut(duration: 0.35)) { preferences.introSeen = true; replayingIntro = false }
     }
     private var scaledContent: some View {
         GeometryReader { geometry in
@@ -527,6 +539,7 @@ struct MacDesktopRoot: View {
     }
     private func handle(_ command: MacCommand) -> Bool {
         guard !creatingHome else { return true }
+        if showsIntro { finishIntro(); return true }
         if tourPresented {
             // The tour card owns ← → ↩ and Esc; game shortcuts wait until it is closed.
             if command == .escape { store.onboarding.isPresented = false; return true }

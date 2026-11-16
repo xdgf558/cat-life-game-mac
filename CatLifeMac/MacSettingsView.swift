@@ -133,6 +133,10 @@ struct MacSettingsView: View {
                 MacSegmented(selection: $preferences.frameLimit, options: [30, 60, 120].map { ($0, String($0)) }).accessibilityIdentifier("macFrameLimit")
             }
             toggleRow("mac.settings.reduceMotion", detail: "mac.settings.reduceMotionHint", value: $preferences.reduceMotion, id: "macReduceMotion")
+            row("mac.settings.intro", detail: "mac.settings.introHint") {
+                Button(GameStrings.text("mac.settings.introPlay")) { NotificationCenter.default.post(name: .macReplayIntro, object: nil) }
+                    .buttonStyle(SoftButtonStyle()).fixedSize().accessibilityIdentifier("macReplayIntro")
+            }
             toggleRow("mac.settings.daylight", detail: "mac.settings.daylightHint", value: $preferences.followDaylight, id: "macFollowDaylight")
             toggleRow("mac.settings.onTop", detail: "mac.settings.onTopHint", value: $preferences.alwaysOnTop, id: "macAlwaysOnTop")
                 .onChange(of: preferences.alwaysOnTop) { _, _ in windowController.apply() }

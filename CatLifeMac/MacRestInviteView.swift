@@ -4,7 +4,7 @@ import CatGameCore
 
 /// 2.61: the nap invitation shown when the player picks a bed or cushion in the room, in place of the
 /// grey system dialog. A night-sky scene with the cat and the furniture, the cat's energy, what a full
-/// nap is good for, then 再等等 (Esc) and 去休息 (↩). The root routes Esc / ↩ here while it is open.
+/// nap is good for, then 再等等 (Esc, via the root) and 去休息 (Return, its default action; ⌘↩ via the root too).
 @MainActor
 struct MacRestInviteView: View {
     let cat: CatState
@@ -15,6 +15,8 @@ struct MacRestInviteView: View {
     let confirm: () -> Void
     let cancel: () -> Void
     @State private var shown = false
+    @FocusState private var focus: Control?
+    private enum Control: Hashable { case cancel, confirm }
 
     var body: some View {
         ZStack {
@@ -29,6 +31,8 @@ struct MacRestInviteView: View {
             .opacity(shown ? 1 : 0)
         }
         .onAppear {
+            // With keyboard navigation on, focus starts inside the card rather than on the room behind it.
+            focus = reason() == nil ? .confirm : .cancel
             withAnimation(reducedMotion ? .easeOut(duration: 0.15) : .spring(response: 0.34, dampingFraction: 0.72)) { shown = true }
         }
     }
@@ -64,7 +68,8 @@ struct MacRestInviteView: View {
                         MacKeyCap(value: "esc")
                     }
                 }
-                .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("macRestInviteCancel")
+                .buttonStyle(SoftButtonStyle()).focused($focus, equals: .cancel)
+                .accessibilityIdentifier("macRestInviteCancel")
                 Button(action: confirm) {
                     HStack(spacing: 8) {
                         Image(systemName: "moon.zzz.fill").font(.system(size: 13, weight: .bold))
@@ -74,6 +79,8 @@ struct MacRestInviteView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(MintButtonStyle()).disabled(reason != nil)
+                // Plain Return, as the ↩ cap says; the game's own confirm binding (⌘↩) also reaches it via the root.
+                .keyboardShortcut(.defaultAction).focused($focus, equals: .confirm)
                 .accessibilityIdentifier("macRestInviteConfirm")
             }
         }

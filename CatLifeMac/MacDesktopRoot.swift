@@ -89,14 +89,21 @@ struct MacDesktopRoot: View {
                 }
                 // While the tour is open the game underneath is inert for VoiceOver and keyboard focus too,
                 // not just for the mouse; only the tour card is reachable.
-                .disabled(tourPresented)
-                .accessibilityHidden(tourPresented)
+                // The nap card is modal too: background controls leave the Tab order so Space cannot press them.
+                .disabled(tourPresented || restInvite != nil)
+                .accessibilityHidden(tourPresented || restInvite != nil)
                 .overlayPreferenceValue(MacTourAnchorKey.self) { anchors in
                     if tourPresented {
                         MacOnboardingTour(store: store, anchors: anchors, preferences: preferences, onExplore: exploreTour)
                             .transition(.opacity)
                     }
                 }
+            }
+            if let invite = restInvite {
+                MacRestInviteView(cat: invite.cat, furniture: invite.furniture, reducedMotion: systemReduceMotion || preferences.reduceMotion,
+                                  reason: { store.isBusy ? "common.saving" : scene?.restPresentation68.reasonKey },
+                                  confirm: confirmRest, cancel: cancelRest)
+                    .id(invite.furniture.id).transition(.opacity).zIndex(5)
             }
             if showsIntro {
                 MacIntroView(store: store, reducedMotion: systemReduceMotion || preferences.reduceMotion, onFinish: finishIntro)
@@ -109,6 +116,21 @@ struct MacDesktopRoot: View {
         .transaction { if preferences.reduceMotion { $0.disablesAnimations = true } }
         .preferredColorScheme(.light)
         .onReceive(NotificationCenter.default.publisher(for: .macReplayIntro)) { _ in replayingIntro = true }
+    }
+    /// 2.61: the nap invitation card for the bed or cushion the player picked, while the room is showing.
+    private var restInvite: (cat: CatState, furniture: FurnitureItem)? {
+        guard let id = restRequest, !titleVisible, auxiliary == nil, let cat = store.cat,
+              let furniture = store.snapshot?.inventory.furniture.first(where: { $0.id == id }) else { return nil }
+        return (cat, furniture)
+    }
+    private func cancelRest() {
+        withAnimation(.easeOut(duration: 0.15)) { restRequest = nil }
+        scene?.restPromptFurnitureID68 = nil
+    }
+    private func confirmRest() {
+        guard let id = restRequest, !store.isBusy, scene?.restPresentation68.canStart == true else { return }
+        cancelRest()
+        scene?.confirmFurnitureRest68(id)
     }
     /// 2.6: the opening plays once, on first launch, and again whenever Settings asks for it.
     private var showsIntro: Bool { replayingIntro || !preferences.introSeen }
@@ -176,10 +198,6 @@ struct MacDesktopRoot: View {
         }
         .sheet(isPresented: Binding(get: { store.supplyPicker != nil }, set: { if !$0 { store.supplyPicker = nil } })) {
             if let kind = store.supplyPicker { SupplyPickerView(store: store, kind: kind).frame(width: 600, height: 580).saveRecoveryAlert(store: store).interactiveDismissDisabled(store.isBusy) }
-        }
-        .confirmationDialog(GameStrings.text("mac.rest.title"), isPresented: Binding(get: { restRequest != nil }, set: { if !$0 { restRequest = nil } })) {
-            Button(GameStrings.text("mac.rest.confirm")) { if let id = restRequest { scene?.confirmFurnitureRest68(id) }; restRequest = nil }
-            Button(GameStrings.text("common.cancel"), role: .cancel) { restRequest = nil }
         }
         .saveRecoveryAlert(store: store, isActive: auxiliary == nil && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil && !store.isPresentingHabitGuide && !store.isPresentingHabitMemory)
     }
@@ -546,6 +564,11 @@ struct MacDesktopRoot: View {
             return false
         }
         if command == .fullscreen { windowController?.toggleFullscreen(); return true }
+        if restInvite != nil {
+            // The nap card covers the room: Esc cancels, ↩ confirms, every other game shortcut waits.
+            if command == .escape { cancelRest() } else if command == .confirm { confirmRest() }
+            return true
+        }
         if celebrationPresented {
             // The celebration covers the room: Esc / ↩ close it, every game shortcut waits.
             if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }

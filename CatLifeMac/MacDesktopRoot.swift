@@ -708,7 +708,7 @@ struct MacDesktopRoot: View {
             }
             Group {
                 switch item {
-                case .tasks: TaskDestinationView(store: store)
+                case .tasks: MacTasksView(store: store)
                 case .inventory: InventoryView(store: store)
                 case .upgrade: MacHomeUpgradeView(store: store)
                 case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)

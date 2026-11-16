@@ -39,6 +39,7 @@
 		259F562BED27E5EB8E73F80D34B7E2AB /* MacProfilePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1364091FC71E45894C56760CED34F9B7 /* MacProfilePage.swift */; };
 		25D1993692971E7B7347347E20DF3454 /* GameStrings+RoomViews62.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C86C2F11D327BBC536D3EC6C0FD613C /* GameStrings+RoomViews62.swift */; };
 		271ABCDD59D4E5A017DD0291E75C1A7C /* RoomResidentPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3136D1A2C8F6C865EA1F179EF97CFC37 /* RoomResidentPlanner.swift */; };
+		2733CE6178327CCEDE007C72B1D4FD02 /* GameStrings+RestInvite261.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2219FC1D8486A9D2CF11E7E02B72DF8 /* GameStrings+RestInvite261.swift */; };
 		2750DAA4B72B41AFDF099AECE0407E1C /* TownMapCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4466B4D972B97759706588B2F871ED1 /* TownMapCanvas.swift */; };
 		276B4EF017248E613EE4E3D49DCCE8CD /* HospitalTreatmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DE5A7A0810DE6FEFC31E1BC66808319 /* HospitalTreatmentViews.swift */; };
 		28515808D8B98250DF6CC4FAF934E083 /* MacWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD395C46C5FB77E538DA406A5BD8DE0A /* MacWindowController.swift */; };
@@ -147,6 +148,7 @@
 		8624C3F22106973E8A38D599E1D6AB56 /* MacSaveIsolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8F6AC2A0E6F076A945D821C9B7B5A9 /* MacSaveIsolationTests.swift */; };
 		87E5366BA3F35824DD1FF60864CD00D4 /* MacRoomCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70E89E53CCA1D23C96C77DD41EFA88C0 /* MacRoomCanvas.swift */; };
 		8A168750A53A893D2F88D4AF18D1621D /* MacRoomSaveRepair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B9E1144A3C28A2DD4790057F16EC95 /* MacRoomSaveRepair.swift */; };
+		8A886A43EBEF864D329B11526E8CC905 /* MacRestInviteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 517BAECA855CC9A65F7AA450745EEFD8 /* MacRestInviteView.swift */; };
 		8ADC666A4B7CA5B20CA9A9C290F0BB71 /* GameStrings+HomeHUD63.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDE89577800BDAABC2EA9946BA0D500 /* GameStrings+HomeHUD63.swift */; };
 		8B632636E5DD4CA36928816D5827A7B5 /* RoomFloor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A36B4421D716E771CCE8CED464CB91 /* RoomFloor.swift */; };
 		8C413FECD8F2DB6E10470BB2D2F2987B /* GameStrings+Outing200.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05BD43C71D5B77ED37F8E7BBBD691976 /* GameStrings+Outing200.swift */; };
@@ -361,6 +363,7 @@
 		4EDE89577800BDAABC2EA9946BA0D500 /* GameStrings+HomeHUD63.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+HomeHUD63.swift"; path = "Localization/GameStrings+HomeHUD63.swift"; sourceTree = "<group>"; };
 		4F274281674303E7CA5F020344EF1610 /* RoomResidentCats.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomResidentCats.swift; path = Scene/RoomResidentCats.swift; sourceTree = "<group>"; };
 		4FACF92551DC9A22B2D6D7B4D31AEB0B /* CommunityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CommunityView.swift; path = Views/CommunityView.swift; sourceTree = "<group>"; };
+		517BAECA855CC9A65F7AA450745EEFD8 /* MacRestInviteView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacRestInviteView.swift; sourceTree = "<group>"; };
 		51BC9DA9A17947C4CDE6214B1353A323 /* SupplyPickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SupplyPickerView.swift; path = Views/SupplyPickerView.swift; sourceTree = "<group>"; };
 		52B9BAF87AC4C02483653E90337FFBEA /* MacGardenView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacGardenView.swift; sourceTree = "<group>"; };
 		5440894047968F77F4D866B1AD42045A /* CatGrowthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatGrowthView.swift; path = Views/CatGrowthView.swift; sourceTree = "<group>"; };
@@ -525,6 +528,7 @@
 		F15F914BE322F2AD2DF1DC8B8B4A1942 /* MacHomeUpgradeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacHomeUpgradeView.swift; sourceTree = "<group>"; };
 		F195720139C12E41D720FEC96BBB4466 /* MacWorkPersistenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacWorkPersistenceTests.swift; sourceTree = "<group>"; };
 		F1D80FDE449999293FABFBC05F7D38BB /* GameStore+Mac69.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStore+Mac69.swift"; path = "Store/GameStore+Mac69.swift"; sourceTree = "<group>"; };
+		F2219FC1D8486A9D2CF11E7E02B72DF8 /* GameStrings+RestInvite261.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+RestInvite261.swift"; path = "Localization/GameStrings+RestInvite261.swift"; sourceTree = "<group>"; };
 		F22B29EC7811674812A911F49F358D0A /* SaveTransferUpdateButton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SaveTransferUpdateButton.swift; path = Views/SaveTransferUpdateButton.swift; sourceTree = "<group>"; };
 		F22D4AB1ADB9D4FB223CE5A56D153405 /* RoomArrangementRendering68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomArrangementRendering68.swift; path = Scene/RoomArrangementRendering68.swift; sourceTree = "<group>"; };
 		F264C0E4A5C1AE251F83110B0155675B /* HospitalView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HospitalView.swift; path = Views/HospitalView.swift; sourceTree = "<group>"; };
@@ -653,6 +657,7 @@
 				8DA3C781CA9AC0FE1A7D16E8C4ACE558 /* GameStrings+PlayDesign68.swift */,
 				3B4BCBB2D3B71EE40F322170B494DF10 /* GameStrings+Profile160.swift */,
 				AC91A96B6FDA88A77212F93E8267E8A1 /* GameStrings+Recovery110.swift */,
+				F2219FC1D8486A9D2CF11E7E02B72DF8 /* GameStrings+RestInvite261.swift */,
 				7C86C2F11D327BBC536D3EC6C0FD613C /* GameStrings+RoomViews62.swift */,
 				984B4267EF866FFE7BD5D340F0644FD9 /* GameStrings+SharedHome59.swift */,
 				D05BC5066EFDCD98B2717D47F3F50419 /* GameStrings+ShopBrowse.swift */,
@@ -872,6 +877,7 @@
 				384F769B5FC9E6CF276628A07749E2D9 /* MacPreferences.swift */,
 				1364091FC71E45894C56760CED34F9B7 /* MacProfilePage.swift */,
 				F129D32644DBCF1C6CC88AAD5B641B79 /* MacRecoveryViews.swift */,
+				517BAECA855CC9A65F7AA450745EEFD8 /* MacRestInviteView.swift */,
 				70E89E53CCA1D23C96C77DD41EFA88C0 /* MacRoomCanvas.swift */,
 				D276A556A2B90748E53110C50DF71A59 /* MacSaveDirectoryLock.swift */,
 				D0A137A8A28640D44E15F2DEF73EACE3 /* MacSettingsView.swift */,
@@ -1103,6 +1109,7 @@
 				99FE46D0DD8AB8A478FE353283E85757 /* GameStrings+PlayDesign68.swift in Sources */,
 				E679A005EF31A49C8315A4334B45E45D /* GameStrings+Profile160.swift in Sources */,
 				E3101696F8BB02F90A3B0DB28F36C0CF /* GameStrings+Recovery110.swift in Sources */,
+				2733CE6178327CCEDE007C72B1D4FD02 /* GameStrings+RestInvite261.swift in Sources */,
 				25D1993692971E7B7347347E20DF3454 /* GameStrings+RoomViews62.swift in Sources */,
 				849ED5302ADD66D7552FDEF32B63FA60 /* GameStrings+SharedHome59.swift in Sources */,
 				72B85F8AE995BE0850F085D229971BFC /* GameStrings+ShopBrowse.swift in Sources */,
@@ -1289,6 +1296,7 @@
 				D39AE76091A03F292DC22CF1DE258503 /* MacPreferences.swift in Sources */,
 				259F562BED27E5EB8E73F80D34B7E2AB /* MacProfilePage.swift in Sources */,
 				DEF80CD68DDE4D587BC500E649F90234 /* MacRecoveryViews.swift in Sources */,
+				8A886A43EBEF864D329B11526E8CC905 /* MacRestInviteView.swift in Sources */,
 				87E5366BA3F35824DD1FF60864CD00D4 /* MacRoomCanvas.swift in Sources */,
 				72900905230B7637C4251B9B6310FB79 /* MacSaveDirectoryLock.swift in Sources */,
 				07502ECD20B3D475F895108AE8D59C19 /* MacSettingsView.swift in Sources */,

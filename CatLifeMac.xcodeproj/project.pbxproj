@@ -113,6 +113,7 @@
 		6A5CC4784CCCF7EA3A8C6F624E3A6A00 /* FurnitureArtwork68.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9672BEB6760869CEE7919FD9F662FEC /* FurnitureArtwork68.swift */; };
 		6A945BCE3F6EC197A2C8685719A0AC59 /* CatSpriteLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2A72FA35D8848220365D99D4CEC9CA /* CatSpriteLibrary.swift */; };
 		6B14D2381B882ABAAEC11B84D1018448 /* RoomArrangementGeometry68.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E8F6DFD4FD923079E760FDBAF37B6E /* RoomArrangementGeometry68.swift */; };
+		6B94BF90E92562441CFDC64621CE0832 /* GameStrings+MacAlbum252.swift in Sources */ = {isa = PBXBuildFile; fileRef = E171CB0FA3F71A008EDD2C4E9F2E157E /* GameStrings+MacAlbum252.swift */; };
 		6CADD7F804A39BA6BE634FA4A56E639A /* CatPlayTogetherController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCDFD00887FB23FB8D3DF5CD072159F /* CatPlayTogetherController.swift */; };
 		7089DFA210DBEC9559CC99C23D354566 /* CatAdoptionPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD87541C6086051495036A963738A16A /* CatAdoptionPresentation.swift */; };
 		712430DF47F3D9EBEF4E094B999F1014 /* GameAdoptionReminderCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFAA215E821FDFBD06329749EDF9DFF /* GameAdoptionReminderCenter.swift */; };
@@ -498,6 +499,7 @@
 		DDDDA4DF058EF6B41E3256B49B72FE81 /* TaskGoalCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TaskGoalCard.swift; path = Views/TaskGoalCard.swift; sourceTree = "<group>"; };
 		DF8F6AC2A0E6F076A945D821C9B7B5A9 /* MacSaveIsolationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacSaveIsolationTests.swift; sourceTree = "<group>"; };
 		E0E4099B926C635EB7B778D711C96366 /* GameNoticeCenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GameNoticeCenter.swift; path = Store/GameNoticeCenter.swift; sourceTree = "<group>"; };
+		E171CB0FA3F71A008EDD2C4E9F2E157E /* GameStrings+MacAlbum252.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+MacAlbum252.swift"; path = "Localization/GameStrings+MacAlbum252.swift"; sourceTree = "<group>"; };
 		E1AA38BFEF86C5BCD2AEF9D9BEEBD795 /* RoomScene+Arrangement68.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "RoomScene+Arrangement68.swift"; path = "Scene/RoomScene+Arrangement68.swift"; sourceTree = "<group>"; };
 		E28E1A308C1073B2835CFDF2A348BB13 /* RoomWorldGeometry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomWorldGeometry.swift; path = Scene/RoomWorldGeometry.swift; sourceTree = "<group>"; };
 		E4466B4D972B97759706588B2F871ED1 /* TownMapCanvas.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownMapCanvas.swift; path = Views/TownMapCanvas.swift; sourceTree = "<group>"; };
@@ -632,6 +634,7 @@
 				4EDE89577800BDAABC2EA9946BA0D500 /* GameStrings+HomeHUD63.swift */,
 				490EBDD02F802A7F506D8985B9BBA4FD /* GameStrings+HomeInventory58.swift */,
 				5FDA850708EFD377E4B7CE4D7C6EBF09 /* GameStrings+Layout150.swift */,
+				E171CB0FA3F71A008EDD2C4E9F2E157E /* GameStrings+MacAlbum252.swift */,
 				0C4BAC92723639F51E3E81909528026F /* GameStrings+MacContent69.swift */,
 				C7F45B97852164C602B1097B733CB9C4 /* GameStrings+MacRoomV2.swift */,
 				73D8C331B3753641EDD3DD1DD2D65399 /* GameStrings+MacSettings69.swift */,
@@ -1079,6 +1082,7 @@
 				8ADC666A4B7CA5B20CA9A9C290F0BB71 /* GameStrings+HomeHUD63.swift in Sources */,
 				36FB8C834B5B5341D435122055BD8E0B /* GameStrings+HomeInventory58.swift in Sources */,
 				3171A6207D487CB4DD9C30C61DE15F66 /* GameStrings+Layout150.swift in Sources */,
+				6B94BF90E92562441CFDC64621CE0832 /* GameStrings+MacAlbum252.swift in Sources */,
 				0F7FF511C5FDE54D05152D63B2A80AF0 /* GameStrings+MacContent69.swift in Sources */,
 				D9D539982BE2ABFD72DC270D38A0A073 /* GameStrings+MacRoomV2.swift in Sources */,
 				E0D0F764DF494EC9D961F6670BBA5622 /* GameStrings+MacSettings69.swift in Sources */,

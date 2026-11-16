@@ -11,6 +11,7 @@ struct MacDesktopRoot: View {
     @State private var page = MacPage.home
     /// The profile page has a wardrobe, sources, rename or look picker open; Esc steps back there first.
     @State private var profileNested = false
+    @State private var catsNested = false
     @State private var titleVisible = true
     @State private var showsHelp = false
     @State private var auxiliary: MacAuxiliary?
@@ -274,7 +275,7 @@ struct MacDesktopRoot: View {
                         MacKeepsakesView(store: store, arrange: arrangeOutingItem, openGarden: { openGarden(catID: nil) }, opensBonus: albumOpensBonus)
                             .onDisappear { albumOpensBonus = false }
                     } else {
-                        MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences)
+                        MacCatsView(store: store, onHome: { select(.home) }, preferences: preferences, isNested: $catsNested)
                     }
                 }
             case .town:
@@ -554,6 +555,7 @@ struct MacDesktopRoot: View {
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
             else if page == .town && showsGarden { NotificationCenter.default.post(name: .macGardenEscape, object: nil) }
             else if page == .profile && profileNested { NotificationCenter.default.post(name: .macProfileEscape, object: nil) }
+            else if page == .cats && catsNested { NotificationCenter.default.post(name: .macCatsEscape, object: nil) }
             else if !titleVisible { titleVisible = true }
             return true
         }

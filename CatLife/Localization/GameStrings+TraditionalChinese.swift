@@ -1082,4 +1082,5 @@ extension GameStrings {
         .merging(profile160Traditional) { _, new in new }
         .merging(outing200Traditional) { _, new in new }
         .merging(stationCat250Traditional) { _, new in new }
+        .merging(macAlbum252Traditional) { _, new in new }
 }

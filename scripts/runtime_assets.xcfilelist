@@ -666,6 +666,15 @@ $(SRCROOT)/CatLife/Assets.xcassets/icon-town.imageset/icon-town.png
 $(SRCROOT)/CatLife/Assets.xcassets/icon-work.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/icon-work.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/icon-work.imageset/icon-work.png
+$(SRCROOT)/CatLife/Assets.xcassets/intro-emblem.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/intro-emblem.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/intro-emblem.imageset/intro-emblem.png
+$(SRCROOT)/CatLife/Assets.xcassets/intro-home-window.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/intro-home-window.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/intro-home-window.imageset/intro-home-window.png
+$(SRCROOT)/CatLife/Assets.xcassets/intro-town-wide.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/intro-town-wide.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/intro-town-wide.imageset/intro-town-wide.png
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset/job-cafe-cartoon.png

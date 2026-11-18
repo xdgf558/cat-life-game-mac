@@ -25,6 +25,8 @@ struct MacIntroView: View {
     private static let townEnd = 3.4, homeEnd = 6.6, logoEnd = 9.6
     /// The sill line in `intro-home-window` (and the drawn stand-in), as a fraction of the height.
     private static let sill: CGFloat = 0.70
+    /// Height over width of `intro-home-window` (2560×1600).
+    private static let homeArtAspect: CGFloat = 1600 / 2560
     /// Cats popping up over the sill: breed, horizontal position, height as a fraction of the screen, delay.
     private static let peekers: [(CatAppearance, CGFloat, CGFloat, Double)] = [
         (.orange, 0.50, 0.34, 0.5), (.cow, 0.33, 0.25, 1.0), (.blue, 0.67, 0.25, 1.3),
@@ -80,38 +82,45 @@ struct MacIntroView: View {
 
     private func home(_ t: Double, size: CGSize) -> some View {
         let push = Self.ease(Self.progress(t, Self.townEnd - 0.3, Self.logoEnd))
-        let sillY = size.height * Self.sill
+        // The art fills the window (16:10), so a wider window crops its top and bottom: find where the sill
+        // really lands. The stand-in sill is drawn at the plain fraction.
+        let fillHeight = homeArt ? max(size.height, size.width * Self.homeArtAspect) : size.height
+        let sillY = size.height / 2 + (Self.sill - 0.5) * fillHeight
         return ZStack {
-            Group {
-                if homeArt {
-                    Image("intro-home-window").resizable().scaledToFill()
-                } else {
-                    // Stand-in: the café's warm room, softened, with a drawn sill in front.
-                    Image("cafe-interior").resizable().scaledToFill().overlay(RoomTheme.paper.opacity(0.22))
+            // Art, cats and the stand-in sill zoom together, so the cats stay tucked behind the sill.
+            ZStack {
+                Group {
+                    if homeArt {
+                        Image("intro-home-window").resizable().scaledToFill()
+                    } else {
+                        // Stand-in: the café's warm room, softened, with a drawn sill in front.
+                        Image("cafe-interior").resizable().scaledToFill().overlay(RoomTheme.paper.opacity(0.22))
+                    }
+                }
+                .frame(width: size.width, height: size.height)
+                ZStack {
+                    ForEach(Array(Self.peekers.enumerated()), id: \.offset) { _, peeker in
+                        let height = size.height * peeker.2
+                        let rise = reducedMotion ? Self.progress(t, Self.townEnd + peeker.3, Self.townEnd + peeker.3 + 0.4)
+                            : Self.easeOutBack(Self.progress(t, Self.townEnd + peeker.3, Self.townEnd + peeker.3 + 0.55))
+                        Image(CatArtwork.asset("cat-avatar", appearance: peeker.0)).resizable().scaledToFit()
+                            .frame(height: height)
+                            .position(x: size.width * peeker.1, y: sillY - height * 0.36 + (reducedMotion ? 0 : (1 - rise) * height))
+                            .opacity(reducedMotion ? rise : min(1, rise * 3))
+                    }
+                }
+                .frame(width: size.width, height: size.height)
+                .mask(alignment: .top) { Rectangle().frame(height: sillY) }
+                if !homeArt {
+                    RoundedRectangle(cornerRadius: 8).fill(RoomTheme.wood)
+                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(RoomTheme.secondary.opacity(0.35), lineWidth: 3))
+                        .frame(width: size.width * 0.86, height: size.height * 0.07)
+                        .position(x: size.width / 2, y: sillY + size.height * 0.03)
+                        .shadow(color: RoomTheme.ink.opacity(0.2), radius: 0, y: 5)
                 }
             }
             .frame(width: size.width, height: size.height)
             .scaleEffect(reducedMotion ? 1.05 : 1.02 + 0.10 * push)
-            ZStack {
-                ForEach(Array(Self.peekers.enumerated()), id: \.offset) { _, peeker in
-                    let height = size.height * peeker.2
-                    let rise = reducedMotion ? Self.progress(t, Self.townEnd + peeker.3, Self.townEnd + peeker.3 + 0.4)
-                        : Self.easeOutBack(Self.progress(t, Self.townEnd + peeker.3, Self.townEnd + peeker.3 + 0.55))
-                    Image(CatArtwork.asset("cat-avatar", appearance: peeker.0)).resizable().scaledToFit()
-                        .frame(height: height)
-                        .position(x: size.width * peeker.1, y: sillY - height * 0.36 + (reducedMotion ? 0 : (1 - rise) * height))
-                        .opacity(reducedMotion ? rise : min(1, rise * 3))
-                }
-            }
-            .frame(width: size.width, height: size.height)
-            .mask(alignment: .top) { Rectangle().frame(height: sillY) }
-            if !homeArt {
-                RoundedRectangle(cornerRadius: 8).fill(RoomTheme.wood)
-                    .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(RoomTheme.secondary.opacity(0.35), lineWidth: 3))
-                    .frame(width: size.width * 0.86, height: size.height * 0.07)
-                    .position(x: size.width / 2, y: sillY + size.height * 0.03)
-                    .shadow(color: RoomTheme.ink.opacity(0.2), radius: 0, y: 5)
-            }
             caption("intro.caption.home", t: t, from: Self.townEnd + 2.2, to: Self.homeEnd - 0.2, size: size)
         }
         .opacity(Self.progress(t, Self.townEnd - 0.3, Self.townEnd + 0.5))

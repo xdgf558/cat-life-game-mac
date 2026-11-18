@@ -12,7 +12,9 @@ struct MacCatsView: View {
     @State private var renameCat: CatState?
     @State private var memory: CatMemory?
     @State private var showsGuide = false
-    @State private var confirmsAdoption = false
+    /// The offer whose confirmation card is open.
+    @State private var adoptionOffer: CatAdoptionOffer?
+    @State private var adoptionFailed = false
     @State private var saving = false
     @State private var isVisible = false
 
@@ -61,17 +63,14 @@ struct MacCatsView: View {
         .sheet(item: $renameCat) { cat in MacCatNameEditor69(store: store, cat: cat) }
         .sheet(item: $memory) { value in if let cat = selected { memoryDetail(value, cat: cat) } }
         .sheet(isPresented: $showsGuide) { if let cat = selected { HabitGuidePicker68(store: store, cat: cat).frame(width: 560, height: 620) } }
-        .confirmationDialog(GameStrings.format("cat.adoptionConfirmTitle", offer.map(GameStrings.catAdoptionName) ?? ""), isPresented: $confirmsAdoption) {
-            if let offer {
-                Button(GameStrings.text("cat.adoptionConfirm")) { adopt(offer) }
-            }
-        } message: {
-            Text(GameStrings.format("cat.adoptionConfirmBody", offer?.price ?? 0))
+        .sheet(item: $adoptionOffer) { value in
+            MacAdoptionConfirmSheet(store: store, offer: value, saving: saving, failed: adoptionFailed,
+                                    confirm: { adopt(value) }, cancel: { if !saving { adoptionOffer = nil } })
         }
         .onAppear { isVisible = true; isNested = false }
         .onReceive(NotificationCenter.default.publisher(for: .macCatsEscape)) { _ in isNested = false }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("MacContentCommand"))) { note in
-            guard isVisible, renameCat == nil, memory == nil, !showsGuide, !confirmsAdoption,
+            guard isVisible, renameCat == nil, memory == nil, !showsGuide, adoptionOffer == nil,
                   let raw = note.object as? String, let command = MacCommand(rawValue: raw) else { return }
             switch command {
             case .listUp: moveSelection(-1)
@@ -80,13 +79,13 @@ struct MacCatsView: View {
                 if !isNested { if focusedID != nil { isNested = true } }
                 else if let cat = selected { bringHome(cat) }
                 else if let offer, let snapshot = store.snapshot, !saving, !store.isBusy,
-                        CatAdoptionView.conditionsMet(offer, in: snapshot) == 3 { confirmsAdoption = true }
+                        CatAdoptionView.conditionsMet(offer, in: snapshot) == 3 { openAdoption(offer) }
             default: break
             }
         }
         .onDisappear { isVisible = false; isNested = false }
         .onChange(of: store.saveSceneGeneration) { _, _ in
-            selectedID = nil; memory = nil; renameCat = nil; showsGuide = false; confirmsAdoption = false; isNested = false
+            selectedID = nil; memory = nil; renameCat = nil; showsGuide = false; adoptionOffer = nil; isNested = false
         }
     }
 
@@ -563,7 +562,7 @@ struct MacCatsView: View {
                     requirement("cat.adoptionRoomLevelTitle", have: store.snapshot?.home.roomLevel ?? 1, need: offer.requiredRoomLevel, symbol: "house.fill")
                     requirement("cat.adoptionFeeTitle", have: store.snapshot?.player.gold ?? 0, need: offer.price, symbol: "dollarsign.circle.fill")
                 }
-                Button { confirmsAdoption = true } label: {
+                Button { openAdoption(offer) } label: {
                     Label(GameStrings.format("cat.adoptionPrice", offer.price) + "  " + keyLabel(.confirm), systemImage: "heart.fill")
                         .font(.system(size: 14, weight: .heavy)).frame(maxWidth: .infinity)
                 }.buttonStyle(MintButtonStyle()).disabled(!ready || saving || store.isBusy)
@@ -621,8 +620,15 @@ struct MacCatsView: View {
         Task {
             let saved = await store.adoptCat(catID: offer.id)
             saving = false
-            if saved, isVisible, generation == store.saveSceneGeneration { selectedID = offer.id }
+            guard generation == store.saveSceneGeneration else { return }
+            adoptionFailed = !saved
+            if saved { adoptionOffer = nil; if isVisible { selectedID = offer.id } }
         }
+    }
+
+    private func openAdoption(_ offer: CatAdoptionOffer) {
+        adoptionFailed = false
+        adoptionOffer = offer
     }
 
     private func keyLabel(_ command: MacCommand) -> String { (preferences?.binding(for: command) ?? command.defaultBinding).label }
@@ -676,6 +682,176 @@ private struct MacCatNameEditor69: View {
             let saved = await store.renameCat(id: cat.id, to: value)
             saving = false; failed = !saved
             if saved, generation == store.saveSceneGeneration { dismiss() }
+        }
+    }
+}
+
+/// 2.63: the adoption confirmation, in place of the grey system dialog. The new friend on their breed's
+/// colour, what the adoption costs and what is left, then 再想想 (Esc) and 确认领养 (Return). The sheet stays
+/// open while saving, closes only once the save succeeds, and says so in place if it fails.
+@MainActor
+private struct MacAdoptionConfirmSheet: View {
+    let store: GameStore
+    let offer: CatAdoptionOffer
+    let saving: Bool
+    let failed: Bool
+    let confirm: () -> Void
+    let cancel: () -> Void
+    @Environment(\.gameReduceMotionOverride) private var reduceMotion
+    @State private var shown = false
+    @FocusState private var focus: Control?
+    private enum Control: Hashable { case cancel, confirm }
+
+    private var balance: Int { store.snapshot?.player.gold ?? 0 }
+    private var ready: Bool { store.snapshot.map { CatAdoptionView.conditionsMet(offer, in: $0) == 3 } ?? false }
+    private var name: String { GameStrings.catAdoptionName(offer) }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            hero
+            VStack(spacing: 6) {
+                Text(GameStrings.format("cat.adoptionConfirmTitle", name))
+                    .font(.system(size: 22, weight: .heavy)).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("macAdoptionConfirmTitle")
+                Text(GameStrings.format("cat.adoptionConfirmBody", offer.price))
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            }
+            ledger
+            Label(GameStrings.text("cat.adoptionIndependent"), systemImage: "heart.text.clipboard.fill")
+                .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                .frame(maxWidth: .infinity).padding(.horizontal, 12).padding(.vertical, 8)
+                .background(RoomTheme.paleMint.opacity(0.75), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            if failed {
+                Label(GameStrings.text("cat.adoptionFailed"), systemImage: "exclamationmark.circle.fill")
+                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(RoomTheme.paleCoral.opacity(0.7), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityIdentifier("macAdoptionConfirmFailed")
+            }
+            buttons
+            Label(GameStrings.text("cat.adoptionSavePromise"), systemImage: "lock.shield.fill")
+                .font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(22).frame(width: 440)
+        .background(RoomTheme.paper).foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+        .interactiveDismissDisabled(saving)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("macAdoptionConfirm")
+        .accessibilityValue(Text(verbatim: "\(offer.id):\(balance):\(offer.price)"))
+        .onAppear {
+            focus = ready ? .confirm : .cancel
+            withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.62)) { shown = true }
+        }
+    }
+
+    /// The new friend on their breed's colour, with a few hearts and paw prints around them.
+    private var hero: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(LinearGradient(colors: [CatCollectionPalette.background(offer.appearance), RoomTheme.cream],
+                                     startPoint: .top, endPoint: .bottom))
+            ForEach(Array(Self.decor.enumerated()), id: \.offset) { _, item in
+                Image(systemName: item.symbol).font(.system(size: item.size, weight: .bold))
+                    .foregroundStyle(item.symbol == "heart.fill" ? RoomTheme.friendship.opacity(0.55) : RoomTheme.ink.opacity(0.10))
+                    .rotationEffect(.degrees(item.angle))
+                    .position(x: 396 * item.x, y: 150 * item.y)
+                    .opacity(shown || reduceMotion ? 1 : 0)
+            }
+            Ellipse().fill(RoomTheme.ink.opacity(0.08)).frame(width: 118, height: 14).position(x: 198, y: 134)
+            CatCollectionPortrait(appearance: offer.appearance, size: 112)
+                .shadow(color: RoomTheme.ink.opacity(0.12), radius: 0, y: 4)
+                .overlay(alignment: .topTrailing) {
+                    Image(systemName: "heart.fill").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 30, height: 30).background(RoomTheme.friendship, in: Circle())
+                        .overlay(Circle().strokeBorder(.white, lineWidth: 2.5)).offset(x: 4, y: -2)
+                }
+                .scaleEffect(shown || reduceMotion ? 1 : 0.82)
+                .position(x: 198, y: 72)
+            Label(GameStrings.text("cat.adoptionNewFriend"), systemImage: "sparkles")
+                .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                .padding(.horizontal, 10).padding(.vertical, 5).background(.white.opacity(0.92), in: Capsule())
+                .position(x: 62, y: 22)
+        }
+        .frame(width: 396, height: 150)
+        .accessibilityHidden(true)
+    }
+
+    /// A small receipt: the fee, then the coins before and after.
+    private var ledger: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Label(GameStrings.text("cat.adoptionSpend"), systemImage: "dollarsign.circle.fill")
+                    .labelStyle(LedgerLabelStyle())
+                Spacer()
+                Text(verbatim: "−" + offer.price.formatted()).font(.system(size: 17, weight: .heavy).monospacedDigit())
+                    .foregroundStyle(RoomTheme.coralDeep)
+            }
+            Line().stroke(RoomTheme.rewardBorder, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])).frame(height: 1)
+            HStack {
+                Label(GameStrings.text("cat.adoptionConfirmBalance"), systemImage: "wallet.bifold.fill")
+                    .labelStyle(LedgerLabelStyle())
+                Spacer()
+                HStack(spacing: 6) {
+                    Text(balance, format: .number).font(.system(size: 13, weight: .bold).monospacedDigit())
+                        .foregroundStyle(RoomTheme.secondary)
+                    Image(systemName: "arrow.right").font(.system(size: 10, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                    Text(max(0, balance - offer.price), format: .number).font(.system(size: 20, weight: .heavy).monospacedDigit())
+                        .foregroundStyle(RoomTheme.ink)
+                }
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 13)
+        .background(RoomTheme.letterPaper, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(RoomTheme.rewardBorder.opacity(0.8), lineWidth: 1.5))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var buttons: some View {
+        HStack(spacing: 10) {
+            Button(action: cancel) {
+                HStack(spacing: 8) {
+                    Text(GameStrings.text("cat.adoptionThinkAgain")).font(.system(size: 14, weight: .heavy))
+                    MacKeyCap(value: "esc")
+                }
+            }
+            .buttonStyle(SoftButtonStyle()).disabled(saving)
+            .keyboardShortcut(.cancelAction).focused($focus, equals: .cancel)
+            .accessibilityIdentifier("macAdoptionConfirmCancel")
+            Button(action: confirm) {
+                HStack(spacing: 8) {
+                    if saving { ProgressView().controlSize(.small).tint(.white) }
+                    else { Image(systemName: "heart.fill").font(.system(size: 13, weight: .bold)) }
+                    Text(GameStrings.text(saving ? "common.saving" : "cat.adoptionConfirm")).font(.system(size: 14, weight: .heavy))
+                    if !saving { MacKeyCap(value: "↩") }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(MintButtonStyle()).disabled(saving || store.isBusy || !ready)
+            .keyboardShortcut(.defaultAction).focused($focus, equals: .confirm)
+            .accessibilityIdentifier("macAdoptionConfirmButton")
+        }
+    }
+
+    /// x, y as fractions of the hero, size and tilt.
+    private static let decor: [(symbol: String, x: CGFloat, y: CGFloat, size: CGFloat, angle: Double)] = [
+        ("pawprint.fill", 0.12, 0.62, 18, -18), ("heart.fill", 0.24, 0.30, 12, -12), ("pawprint.fill", 0.30, 0.84, 12, 14),
+        ("heart.fill", 0.74, 0.22, 15, 12), ("pawprint.fill", 0.86, 0.56, 20, 20), ("heart.fill", 0.92, 0.84, 10, -8),
+        ("pawprint.fill", 0.70, 0.86, 11, -22)
+    ]
+
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path { Path { $0.move(to: CGPoint(x: 0, y: rect.midY)); $0.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) } }
+    }
+    private struct LedgerLabelStyle: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack(spacing: 6) {
+                configuration.icon.font(.system(size: 13, weight: .bold)).foregroundStyle(RoomTheme.gold)
+                configuration.title.font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.ink)
+            }
         }
     }
 }

@@ -94,8 +94,10 @@ struct MacMagicWheelPage: View {
             }
             .buttonStyle(MintButtonStyle()).fixedSize().disabled(!enabled || store.isBusy)
             .accessibilityIdentifier("magicSpinButton")
-            Text(note).font(.system(size: 12, weight: .heavy)).foregroundStyle(.white.opacity(0.92))
-                .multilineTextAlignment(.center).accessibilityIdentifier("magicSpinNote")
+            Text(note).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.ink)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 12).padding(.vertical, 5).background(RoomTheme.paper.opacity(0.92), in: Capsule())
+                .accessibilityIdentifier("magicSpinNote")
         }
     }
 

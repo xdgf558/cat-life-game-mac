@@ -7,9 +7,10 @@ enum MacClosetPick: Hashable {
     case item(String), tryOn(String), none
 }
 
-/// The player's full-body art with handmade clothes layered on (W1 / W2). A piece's art arrives later
-/// as `wear-<blueprint>` (one transparent layer on the shared avatar canvas); until then a badge on the
-/// body part stands in. Layer order follows the art guide: shoes, top, accessory, then hat.
+/// The player's full-body art with handmade clothes layered on (W1 / W2). Hats and accessories have a
+/// front-view `wear-<blueprint>` image placed by each avatar's own head / neck / chest points (the six
+/// avatars do not share a pose). Tops and shoes, and anything without wear art, show a badge on the
+/// body part instead. Layer order follows the art guide: shoes, top, accessory, then hat.
 struct MacAvatarFigure: View {
     let avatar: PlayerAvatar?
     let craft: CraftState
@@ -52,8 +53,12 @@ struct MacAvatarFigure: View {
     }
 
     @ViewBuilder private func layer(_ definition: BlueprintDefinition, slot: EquipmentSlot, size: CGSize) -> some View {
-        if UIImage(named: "wear-\(definition.id)") != nil {
-            Image("wear-\(definition.id)").resizable().scaledToFit().frame(width: size.width, height: size.height)
+        if let avatar, let place = Self.placement(definition.id, avatarID: avatar.id), UIImage(named: "wear-\(definition.id)") != nil {
+            // Points are in the avatar art's 1254-pixel canvas; the fitted image is square.
+            let scale = size.width / Self.canvas
+            Image("wear-\(definition.id)").resizable().scaledToFit()
+                .frame(width: place.width * scale, height: place.width * scale)
+                .position(x: place.center.x * scale, y: place.center.y * scale)
         } else {
             let anchor = Self.anchor(slot)
             Image(systemName: definition.symbol).font(.system(size: max(14, size.width * 0.07), weight: .bold))
@@ -66,7 +71,50 @@ struct MacAvatarFigure: View {
         }
     }
 
-    /// Head top, chest, left chest and feet on the shared avatar canvas.
+    private static let canvas: CGFloat = 1254
+
+    /// Where each avatar's head sits, measured on its art: head centre x, the line a hat brim rests on,
+    /// head width, the neck (scarf / necklace) and the wearer's left chest (brooch).
+    private struct BodyPoints {
+        let headX: CGFloat, brimY: CGFloat, headWidth: CGFloat
+        let neck: CGPoint, chest: CGPoint
+    }
+    private static let bodies: [String: BodyPoints] = [
+        "female_forest": .init(headX: 640, brimY: 140, headWidth: 330, neck: CGPoint(x: 640, y: 345), chest: CGPoint(x: 735, y: 440)),
+        "female_sunny": .init(headX: 715, brimY: 185, headWidth: 300, neck: CGPoint(x: 750, y: 430), chest: CGPoint(x: 790, y: 500)),
+        "female_scholarly": .init(headX: 640, brimY: 175, headWidth: 380, neck: CGPoint(x: 615, y: 395), chest: CGPoint(x: 690, y: 470)),
+        "male_sunny": .init(headX: 680, brimY: 175, headWidth: 430, neck: CGPoint(x: 640, y: 430), chest: CGPoint(x: 730, y: 540)),
+        // Wider and lower so a new hat covers the bucket hat drawn on this avatar.
+        "male_forest": .init(headX: 640, brimY: 240, headWidth: 440, neck: CGPoint(x: 615, y: 380), chest: CGPoint(x: 735, y: 455)),
+        "male_scholarly": .init(headX: 640, brimY: 160, headWidth: 370, neck: CGPoint(x: 650, y: 395), chest: CGPoint(x: 720, y: 500))
+    ]
+
+    /// The wear image's square frame (side and centre, in avatar canvas pixels). Each piece's width is a
+    /// multiple of the head width; `pin` is the point of the wear canvas that lands on the body point
+    /// (hats: the brim's bottom edge, drawn at 70% of the wear canvas).
+    static func placement(_ blueprintID: String, avatarID: String) -> (width: CGFloat, center: CGPoint)? {
+        guard let body = bodies[avatarID] else { return nil }
+        let width: CGFloat, pin: CGPoint, point: CGPoint
+        switch blueprintID {
+        case "gardenHat":
+            width = body.headWidth * 1.55; pin = CGPoint(x: 0.5, y: 0.7); point = CGPoint(x: body.headX, y: body.brimY)
+        case "rainHat":
+            width = body.headWidth * 1.26; pin = CGPoint(x: 0.5, y: 0.7); point = CGPoint(x: body.headX, y: body.brimY - body.headWidth * 0.04)
+        case "catEarBand":
+            width = body.headWidth * 1.24; pin = CGPoint(x: 0.5, y: 0.7); point = CGPoint(x: body.headX, y: body.brimY + body.headWidth * 0.1)
+        case "butterflyBrooch":
+            width = body.headWidth * 0.38; pin = CGPoint(x: 0.5, y: 0.5); point = body.chest
+        case "woolScarf":
+            width = body.headWidth * 0.93; pin = CGPoint(x: 0.5, y: 0.16); point = body.neck
+        case "luckyCharm":
+            width = body.headWidth * 0.8; pin = CGPoint(x: 0.5, y: 0.1); point = body.neck
+        default:
+            return nil
+        }
+        return (width, CGPoint(x: point.x + (0.5 - pin.x) * width, y: point.y + (0.5 - pin.y) * width))
+    }
+
+    /// Badge spots for pieces without wear art: head top, chest, left chest and feet.
     static func anchor(_ slot: EquipmentSlot) -> CGPoint {
         switch slot {
         case .head: CGPoint(x: 0.5, y: 0.1)

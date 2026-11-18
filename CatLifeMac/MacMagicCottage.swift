@@ -593,10 +593,20 @@ struct MacMaterialBag: View {
     }
 }
 
-/// The night-sky cottage room behind the hub and the wheel. Placeholder art until the cottage
-/// scene is painted; the stars hold still (nothing moves with Reduce Motion on, nothing moves anyway).
+/// The cottage room behind the hub and the wheel: `magic-cottage-interior`, or a drawn night sky if the
+/// art is missing. Nothing in it moves.
 struct MacCottageBackdrop: View {
     var body: some View {
+        if UIImage(named: "magic-cottage-interior") != nil {
+            Image("magic-cottage-interior").resizable().scaledToFill()
+                .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                .accessibilityHidden(true)
+        } else {
+            placeholder
+        }
+    }
+
+    private var placeholder: some View {
         GeometryReader { geometry in
             let size = geometry.size
             ZStack {

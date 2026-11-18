@@ -178,7 +178,8 @@ struct MacWardrobeCloset: View {
     let store: GameStore
     let slot: EquipmentSlot
     @Binding var pick: MacClosetPick
-    let selectSlot: (EquipmentSlot) -> Void
+    /// Main-actor isolated, so it is Sendable and can back the segmented control's Binding.
+    let selectSlot: @MainActor (EquipmentSlot) -> Void
     let openMagic: () -> Void
 
     private var craft: CraftState { store.snapshot?.craft ?? CraftState() }

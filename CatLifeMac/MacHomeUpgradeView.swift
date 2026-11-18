@@ -7,7 +7,10 @@ import CatGameCore
 @MainActor
 struct MacHomeUpgradeView: View {
     let store: GameStore
-    @State private var confirming = false
+    /// The level whose confirmation card is open.
+    @State private var confirming: HomeLevel?
+    @State private var upgradeFailed = false
+    @State private var saving = false
 
     private var level: Int { store.snapshot?.home.roomLevel ?? 1 }
     private var current: HomeLevel? { HomeCatalog.level(level) }
@@ -36,18 +39,20 @@ struct MacHomeUpgradeView: View {
         }
         .padding(18).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
-        .confirmationDialog(GameStrings.text("homeUpgrade.confirmTitle"), isPresented: $confirming) {
-            if let next {
-                Button(GameStrings.text("homeUpgrade.confirm")) { store.upgradeHome(toLevel: next.level) }
-                    .accessibilityIdentifier("homeUpgradeConfirm")
-            }
-            Button(GameStrings.text("layout.cancel"), role: .cancel) {}
-        } message: {
-            if let next {
-                Text(GameStrings.format("homeUpgrade.confirmMessage", next.upgradeCost, next.level,
-                                        number(area(next)), store.totalFurnitureCapacity(for: next)))
+        .sheet(item: $confirming) { target in
+            if let current {
+                MacHomeUpgradeConfirmSheet(store: store, current: current, target: target, saving: saving, failed: upgradeFailed,
+                                           ready: canUpgrade(target), confirm: { upgrade(target) },
+                                           cancel: { if !saving { confirming = nil } })
             }
         }
+        // The card stays open while saving and closes only once the new level is saved.
+        .onChange(of: store.isBusy) { _, busy in
+            guard saving, !busy, let target = confirming else { return }
+            saving = false
+            if level >= target.level { confirming = nil } else { upgradeFailed = true }
+        }
+        .onChange(of: store.saveSceneGeneration) { _, _ in confirming = nil; saving = false }
         .accessibilityIdentifier("macHomeUpgrade")
     }
 
@@ -135,7 +140,7 @@ struct MacHomeUpgradeView: View {
                             value: GameStrings.format("mac.upgrade.workLevel", next.requiredPlayerLevel),
                             note: GameStrings.format("mac.upgrade.yourLevel", playerLevel), met: enoughLevel)
                     .accessibilityIdentifier("homeUpgradeRequirement")
-                Button { confirming = true } label: {
+                Button { upgradeFailed = false; confirming = next } label: {
                     Label(GameStrings.text("homeUpgrade.action"), systemImage: "hammer.fill")
                         .font(.system(size: 14, weight: .heavy)).frame(maxWidth: .infinity, minHeight: 30)
                 }
@@ -186,10 +191,239 @@ struct MacHomeUpgradeView: View {
 
     // MARK: Rules
 
+    private func upgrade(_ target: HomeLevel) {
+        guard !saving, canUpgrade(target) else { return }
+        upgradeFailed = false
+        saving = true
+        store.upgradeHome(toLevel: target.level)
+        // Nothing started (a guard in the store said no): leave the card open and say so.
+        if !store.isBusy { saving = false; upgradeFailed = level < target.level }
+    }
+
     private func canUpgrade(_ next: HomeLevel) -> Bool {
         store.snapshot != nil && !store.isBusy && !store.isSavingLayout && !store.isResolvingLayout
             && store.placingFurnitureID == nil && gold >= next.upgradeCost && playerLevel >= next.requiredPlayerLevel
     }
+    private func area(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
+    private func number(_ value: Double) -> String {
+        value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: store.language.rawValue)))
+    }
+}
+
+/// 2.64: the upgrade confirmation, in place of the grey system dialog. The home now and after side by side
+/// on a sunny strip, what grows, what it costs and what is left, then 再想想 (Esc) and 确认升级 (Return).
+@MainActor
+private struct MacHomeUpgradeConfirmSheet: View {
+    let store: GameStore
+    let current: HomeLevel
+    let target: HomeLevel
+    let saving: Bool
+    let failed: Bool
+    let ready: Bool
+    let confirm: () -> Void
+    let cancel: () -> Void
+    @Environment(\.gameReduceMotionOverride) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @State private var shown = false
+    @FocusState private var focus: Control?
+    private enum Control: Hashable { case cancel, confirm }
+
+    private var still: Bool { reduceMotion || systemReduceMotion }
+    private var balance: Int { store.snapshot?.player.gold ?? 0 }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            hero
+            VStack(spacing: 6) {
+                Text(GameStrings.format("mac.upgrade.cardTitle", target.level))
+                    .font(.system(size: 22, weight: .heavy)).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("macHomeUpgradeConfirmTitle")
+                Text(GameStrings.text("mac.upgrade.cardBody"))
+                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            }
+            gains
+            perks
+            ledger
+            if failed {
+                Label(GameStrings.text("mac.upgrade.cardFailed"), systemImage: "exclamationmark.circle.fill")
+                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(RoomTheme.paleCoral.opacity(0.7), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityIdentifier("macHomeUpgradeConfirmFailed")
+            }
+            buttons
+            Label(GameStrings.text("mac.upgrade.cardSave"), systemImage: "lock.shield.fill")
+                .font(.system(size: 11, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(22).frame(width: 460)
+        .background(RoomTheme.paper).foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+        .interactiveDismissDisabled(saving)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("macHomeUpgradeConfirm")
+        .onAppear {
+            focus = ready ? .confirm : .cancel
+            withAnimation(still ? nil : .spring(response: 0.45, dampingFraction: 0.62)) { shown = true }
+        }
+    }
+
+    /// Now → after on a sunny strip: the small home, an arrow, the bigger home with its new level.
+    private var hero: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(LinearGradient(colors: [RoomTheme.paleMint, RoomTheme.cream], startPoint: .top, endPoint: .bottom))
+            ForEach(Array(Self.decor.enumerated()), id: \.offset) { _, item in
+                Image(systemName: item.symbol).font(.system(size: item.size, weight: .bold))
+                    .foregroundStyle(item.symbol == "sparkle" ? RoomTheme.gold.opacity(0.75) : RoomTheme.darkMint.opacity(0.14))
+                    .rotationEffect(.degrees(item.angle))
+                    .position(x: 416 * item.x, y: 156 * item.y)
+                    .opacity(shown || still ? 1 : 0)
+            }
+            HStack(alignment: .bottom, spacing: 8) {
+                room(current, width: 118, badge: RoomTheme.darkMint).opacity(0.85)
+                Image(systemName: "arrow.right").font(.system(size: 15, weight: .heavy)).foregroundStyle(.white)
+                    .frame(width: 32, height: 32).background(RoomTheme.mint, in: Circle())
+                    .overlay(Circle().strokeBorder(.white, lineWidth: 2.5)).padding(.bottom, 34)
+                room(target, width: 176, badge: RoomTheme.gold)
+                    .scaleEffect(shown || still ? 1 : 0.86, anchor: .bottom)
+            }
+            Label(GameStrings.text("mac.upgrade.cardKicker"), systemImage: "hammer.fill")
+                .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                .padding(.horizontal, 10).padding(.vertical, 5).background(.white.opacity(0.92), in: Capsule())
+                .position(x: 66, y: 22)
+        }
+        .frame(width: 416, height: 156)
+        .accessibilityHidden(true)
+    }
+
+    private func room(_ home: HomeLevel, width: CGFloat, badge: Color) -> some View {
+        MacMiniRoom(home: home).frame(width: width, height: width * 0.62)
+            .overlay(alignment: .topTrailing) {
+                Text(verbatim: "Lv\(home.level)").font(.system(size: 12, weight: .heavy)).foregroundStyle(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 3).background(badge, in: Capsule())
+                    .overlay(Capsule().strokeBorder(.white, lineWidth: 2)).offset(x: 6, y: -6)
+            }
+    }
+
+    /// What grows: area and furniture, before → after.
+    private var gains: some View {
+        HStack(spacing: 10) {
+            gain("square.dashed", GameStrings.text("mac.upgrade.area"), "×" + number(area(current)), "×" + number(area(target)))
+            gain("sofa.fill", GameStrings.text("mac.upgrade.capacity"),
+                 "\(store.totalFurnitureCapacity(for: current))", "\(store.totalFurnitureCapacity(for: target))")
+        }
+    }
+
+    private func gain(_ symbol: String, _ title: String, _ before: String, _ after: String) -> some View {
+        VStack(spacing: 4) {
+            Label(title, systemImage: symbol).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            HStack(spacing: 6) {
+                Text(before).foregroundStyle(RoomTheme.secondary)
+                Image(systemName: "arrow.right").font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.mint)
+                Text(after).foregroundStyle(RoomTheme.darkMint)
+            }.font(.system(size: 17, weight: .heavy)).monospacedDigit()
+        }
+        .padding(.vertical, 10).frame(maxWidth: .infinity)
+        .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// New this level: a second floor, or cats sharing the home.
+    @ViewBuilder private var perks: some View {
+        let upstairs = target.floors.count > 1 && current.floors.count < 2
+        let shared = target.level >= RoomResidentCats.unlockLevel && current.level < RoomResidentCats.unlockLevel
+        if upstairs || shared {
+            VStack(alignment: .leading, spacing: 6) {
+                if upstairs { perk("stairs", GameStrings.format("homeUpgrade.floorCapacity", store.floorFurnitureCapacity(for: target))) }
+                if shared { perk("pawprint.fill", GameStrings.text("catDirectory.sharedHomeUnlocked")) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.vertical, 9)
+            .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    private func perk(_ symbol: String, _ text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol).font(.system(size: 12, weight: .bold))
+            Text(text).font(.system(size: 12, weight: .heavy)).fixedSize(horizontal: false, vertical: true)
+            Text(GameStrings.text("supply.player.new")).font(.system(size: 9, weight: .heavy)).foregroundStyle(.white)
+                .padding(.horizontal, 5).padding(.vertical, 2).background(RoomTheme.friendship, in: Capsule())
+        }.foregroundStyle(RoomTheme.friendshipDeep)
+    }
+
+    /// A small receipt: the cost, then the coins before and after.
+    private var ledger: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Label(GameStrings.text("cat.adoptionSpend"), systemImage: "dollarsign.circle.fill").labelStyle(LedgerLabelStyle())
+                Spacer()
+                Text(verbatim: "−" + target.upgradeCost.formatted()).font(.system(size: 17, weight: .heavy).monospacedDigit())
+                    .foregroundStyle(RoomTheme.coralDeep)
+            }
+            Line().stroke(RoomTheme.rewardBorder, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])).frame(height: 1)
+            HStack {
+                Label(GameStrings.text("mac.upgrade.cardBalance"), systemImage: "wallet.bifold.fill").labelStyle(LedgerLabelStyle())
+                Spacer()
+                HStack(spacing: 6) {
+                    Text(balance, format: .number).font(.system(size: 13, weight: .bold).monospacedDigit()).foregroundStyle(RoomTheme.secondary)
+                    Image(systemName: "arrow.right").font(.system(size: 10, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                    Text(max(0, balance - target.upgradeCost), format: .number).font(.system(size: 20, weight: .heavy).monospacedDigit())
+                }
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 13)
+        .background(RoomTheme.letterPaper, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(RoomTheme.rewardBorder.opacity(0.8), lineWidth: 1.5))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var buttons: some View {
+        HStack(spacing: 10) {
+            Button(action: cancel) {
+                HStack(spacing: 8) {
+                    Text(GameStrings.text("cat.adoptionThinkAgain")).font(.system(size: 14, weight: .heavy))
+                    MacKeyCap(value: "esc")
+                }
+            }
+            .buttonStyle(SoftButtonStyle()).disabled(saving)
+            .keyboardShortcut(.cancelAction).focused($focus, equals: .cancel)
+            .accessibilityIdentifier("macHomeUpgradeConfirmCancel")
+            Button(action: confirm) {
+                HStack(spacing: 8) {
+                    if saving { ProgressView().controlSize(.small).tint(.white) }
+                    else { Image(systemName: "hammer.fill").font(.system(size: 13, weight: .bold)) }
+                    Text(GameStrings.text(saving ? "common.saving" : "homeUpgrade.confirm")).font(.system(size: 14, weight: .heavy))
+                    if !saving { MacKeyCap(value: "↩") }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(MintButtonStyle()).disabled(saving || !ready)
+            .keyboardShortcut(.defaultAction).focused($focus, equals: .confirm)
+            .accessibilityIdentifier("homeUpgradeConfirm")
+        }
+    }
+
+    /// x, y as fractions of the hero, size and tilt.
+    private static let decor: [(symbol: String, x: CGFloat, y: CGFloat, size: CGFloat, angle: Double)] = [
+        ("sparkle", 0.08, 0.70, 14, 0), ("leaf.fill", 0.16, 0.30, 16, -24), ("sparkle", 0.92, 0.24, 16, 0),
+        ("leaf.fill", 0.90, 0.74, 18, 28), ("sparkle", 0.70, 0.12, 10, 0), ("pawprint.fill", 0.30, 0.86, 12, 14)
+    ]
+
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path { Path { $0.move(to: CGPoint(x: 0, y: rect.midY)); $0.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)) } }
+    }
+    private struct LedgerLabelStyle: LabelStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack(spacing: 6) {
+                configuration.icon.font(.system(size: 13, weight: .bold)).foregroundStyle(RoomTheme.gold)
+                configuration.title.font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.ink)
+            }
+        }
+    }
+
     private func area(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
     private func number(_ value: Double) -> String {
         value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: store.language.rawValue)))

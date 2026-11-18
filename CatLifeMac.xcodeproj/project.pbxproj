@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3662AABD3477853F6FC78A5EFEBDFA27 /* MacWardrobe.swift in Sources */ = {isa = PBXBuildFile; fileRef = D358CA61FDE644B0C75FC131FF3CC4B5 /* MacWardrobe.swift */; };
+		1C1BAF237739DBAD1F355A26068A8460 /* MacMagicCraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2F477F98A7DD910BAE29ADB8DA42CE7 /* MacMagicCraft.swift */; };
+		5D05756C0D003E295C7849417711C7F4 /* MacMagicWheel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AFC95C439A851EAB14A3C3FC2D11177 /* MacMagicWheel.swift */; };
+		044E98779DF42552277AB1A59A60AC18 /* MacMagicCottage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED55D88F4FD89ABCC6934A92B161436 /* MacMagicCottage.swift */; };
+		0AB06D7EB5CEE121D941250404AE22A9 /* GameStrings+Craft300.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12055A5D7197A8BF07AD6707B3EBE40F /* GameStrings+Craft300.swift */; };
+		9EB9E87AE8155BE38920DC0E68BBBB93 /* GameStore+Craft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD4B242FC923512D6CFA6A4F8CC6902 /* GameStore+Craft.swift */; };
 		01E395525814B506C9957B82F3622A31 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED526C2FC72CC1BADA107B6E3637A176 /* WelcomeView.swift */; };
 		02B1D39574A11CF68830A8A6754A56D1 /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A269C0FAA5690AFAADDA1ADD7BEF04BB /* InventoryView.swift */; };
 		031E4A714A677ABD120C9EC6E2BCDC13 /* NeighborActionReceipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5936044DEAFEC065646C2319988458D4 /* NeighborActionReceipt.swift */; };
@@ -284,6 +290,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D358CA61FDE644B0C75FC131FF3CC4B5 /* MacWardrobe.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacWardrobe.swift; sourceTree = "<group>"; };
+		C2F477F98A7DD910BAE29ADB8DA42CE7 /* MacMagicCraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacMagicCraft.swift; sourceTree = "<group>"; };
+		6AFC95C439A851EAB14A3C3FC2D11177 /* MacMagicWheel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacMagicWheel.swift; sourceTree = "<group>"; };
+		6ED55D88F4FD89ABCC6934A92B161436 /* MacMagicCottage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacMagicCottage.swift; sourceTree = "<group>"; };
+		12055A5D7197A8BF07AD6707B3EBE40F /* GameStrings+Craft300.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStrings+Craft300.swift"; path = "Localization/GameStrings+Craft300.swift"; sourceTree = "<group>"; };
+		5FD4B242FC923512D6CFA6A4F8CC6902 /* GameStore+Craft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "GameStore+Craft.swift"; path = "Store/GameStore+Craft.swift"; sourceTree = "<group>"; };
 		002071F88AA73C9A56D6E11F3E27A246 /* HospitalPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HospitalPresentation.swift; path = Views/HospitalPresentation.swift; sourceTree = "<group>"; };
 		01AD92B234B5BAD8AEF878EA8136D162 /* MacRoomLayoutRepair.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRoomLayoutRepair.swift; path = Scene/MacRoomLayoutRepair.swift; sourceTree = "<group>"; };
 		028D7A1E4525382F2A9D65F899D4F81D /* MacOnboardingTour.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacOnboardingTour.swift; sourceTree = "<group>"; };
@@ -658,6 +670,7 @@
 				3B4BCBB2D3B71EE40F322170B494DF10 /* GameStrings+Profile160.swift */,
 				AC91A96B6FDA88A77212F93E8267E8A1 /* GameStrings+Recovery110.swift */,
 				F2219FC1D8486A9D2CF11E7E02B72DF8 /* GameStrings+RestInvite261.swift */,
+				12055A5D7197A8BF07AD6707B3EBE40F /* GameStrings+Craft300.swift */,
 				7C86C2F11D327BBC536D3EC6C0FD613C /* GameStrings+RoomViews62.swift */,
 				984B4267EF866FFE7BD5D340F0644FD9 /* GameStrings+SharedHome59.swift */,
 				D05BC5066EFDCD98B2717D47F3F50419 /* GameStrings+ShopBrowse.swift */,
@@ -726,6 +739,7 @@
 				F1D80FDE449999293FABFBC05F7D38BB /* GameStore+Mac69.swift */,
 				FDF26DB5C3F15CEE89BE5882A4FE210F /* GameStore+Onboarding.swift */,
 				CE1B7454F10AA6B6D64369CAE14A31B4 /* GameStore+Outing.swift */,
+				5FD4B242FC923512D6CFA6A4F8CC6902 /* GameStore+Craft.swift */,
 				12DCAB73F2CDE8504689CC98763DBCBF /* GameStore+SharedHomeNotices.swift */,
 				7A70B38ECF692E217C0D7D49D1D90199 /* GameStore+Tasks.swift */,
 				B637D0368A2BF46ED28999ECF4CDCCD1 /* GameStore+TownEvents.swift */,
@@ -878,6 +892,10 @@
 				1364091FC71E45894C56760CED34F9B7 /* MacProfilePage.swift */,
 				F129D32644DBCF1C6CC88AAD5B641B79 /* MacRecoveryViews.swift */,
 				517BAECA855CC9A65F7AA450745EEFD8 /* MacRestInviteView.swift */,
+				D358CA61FDE644B0C75FC131FF3CC4B5 /* MacWardrobe.swift */,
+				C2F477F98A7DD910BAE29ADB8DA42CE7 /* MacMagicCraft.swift */,
+				6AFC95C439A851EAB14A3C3FC2D11177 /* MacMagicWheel.swift */,
+				6ED55D88F4FD89ABCC6934A92B161436 /* MacMagicCottage.swift */,
 				70E89E53CCA1D23C96C77DD41EFA88C0 /* MacRoomCanvas.swift */,
 				D276A556A2B90748E53110C50DF71A59 /* MacSaveDirectoryLock.swift */,
 				D0A137A8A28640D44E15F2DEF73EACE3 /* MacSettingsView.swift */,
@@ -1297,6 +1315,12 @@
 				259F562BED27E5EB8E73F80D34B7E2AB /* MacProfilePage.swift in Sources */,
 				DEF80CD68DDE4D587BC500E649F90234 /* MacRecoveryViews.swift in Sources */,
 				8A886A43EBEF864D329B11526E8CC905 /* MacRestInviteView.swift in Sources */,
+				3662AABD3477853F6FC78A5EFEBDFA27 /* MacWardrobe.swift in Sources */,
+				1C1BAF237739DBAD1F355A26068A8460 /* MacMagicCraft.swift in Sources */,
+				5D05756C0D003E295C7849417711C7F4 /* MacMagicWheel.swift in Sources */,
+				044E98779DF42552277AB1A59A60AC18 /* MacMagicCottage.swift in Sources */,
+				0AB06D7EB5CEE121D941250404AE22A9 /* GameStrings+Craft300.swift in Sources */,
+				9EB9E87AE8155BE38920DC0E68BBBB93 /* GameStore+Craft.swift in Sources */,
 				87E5366BA3F35824DD1FF60864CD00D4 /* MacRoomCanvas.swift in Sources */,
 				72900905230B7637C4251B9B6310FB79 /* MacSaveDirectoryLock.swift in Sources */,
 				07502ECD20B3D475F895108AE8D59C19 /* MacSettingsView.swift in Sources */,

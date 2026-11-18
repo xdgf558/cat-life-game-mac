@@ -80,6 +80,8 @@ public struct WorkResult: Codable, Equatable, Sendable, Identifiable {
     public var levelBefore: Int
     public var levelAfter: Int
     public var expAfter: Int
+    /// 3.0: fabric the shift brought home.
+    public var fabric: Int? = nil
 
     public init(id: String, jobID: String, completedAt: Date,
                 goldReward: Int, expReward: Int, levelBefore: Int,

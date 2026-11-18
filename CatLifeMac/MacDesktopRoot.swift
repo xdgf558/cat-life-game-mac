@@ -41,6 +41,9 @@ struct MacDesktopRoot: View {
     @State private var gardenCatID: String?
     @State private var gardenTakesNumbers = false
     @State private var gardenPuzzleKeys = false
+    /// 3.0: the magic cottage page inside the town, and the profile opening on its wardrobe.
+    @State private var showsMagic = false
+    @State private var profileOpensWardrobe = false
     @State private var catsTab = "cats"
     /// 2.15: set when the home decor bonus card opens the album, so it starts on the bonus page.
     @State private var albumOpensBonus = false
@@ -317,18 +320,25 @@ struct MacDesktopRoot: View {
                         town: { showsGarden = false; store.playNavigationSound() },
                         home: { select(.home) },
                         album: { catsTab = "album"; select(.cats) },
-                        arrange: arrangeOutingItem),
+                        arrange: arrangeOutingItem, magic: openMagic),
                         preselectedCatID: gardenCatID, takesNumberKeys: $gardenTakesNumbers,
                         puzzleOwnsKeys: $gardenPuzzleKeys)
                         .id(gardenCatID ?? "garden")
+                } else if showsMagic {
+                    MacMagicCottage(store: store, exits: MacMagicExits(
+                        town: { showsMagic = false; store.playNavigationSound() },
+                        wardrobe: openWardrobe,
+                        garden: { openGarden(catID: nil) },
+                        work: { select(.work) }))
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
             case .profile:
                 MacProfilePage(store: store, exits: MacProfileExits(
                     work: { select(.work) }, bag: { auxiliary = .bag },
-                    shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves }),
-                    isNested: $profileNested)
+                    shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves },
+                    magic: openMagic),
+                    isNested: $profileNested, startsInWardrobe: profileOpensWardrobe)
                     // A fresh page per save, so an imported save never inherits a rename draft or open wardrobe.
                     .id(store.saveSceneGeneration)
                     .onChange(of: store.saveSceneGeneration) { _, _ in profileNested = false }
@@ -453,6 +463,8 @@ struct MacDesktopRoot: View {
             store.cancelDecorating()
         }
         titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false; gardenPuzzleKeys = false
+        showsMagic = false
+        if next != .profile { profileOpensWardrobe = false }
         if next != .cats { catsTab = "cats" }
         store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
@@ -485,13 +497,25 @@ struct MacDesktopRoot: View {
         case .plaza, .board: store.openTownBoard()
         case .cafe: showsCafe = true; store.playNavigationSound()
         case .garden: openGarden(catID: nil)
+        case .magic: openMagic()
         default: break
         }
+    }
+    /// 3.0: the magic cottage opens on the town page.
+    private func openMagic() {
+        if page != .town || store.isDecorating { select(.town) }
+        showsCafe = false; showsGarden = false; showsMagic = true
+        store.playNavigationSound()
+    }
+    /// The cottage's wardrobe lives on the profile page, on its appearance closet.
+    private func openWardrobe() {
+        profileOpensWardrobe = true
+        select(.profile)
     }
     /// The garden opens on the town page; a cat chosen from the room is preselected.
     private func openGarden(catID: String?) {
         if page != .town || store.isDecorating { select(.town) }
-        gardenCatID = catID; showsCafe = false; showsGarden = true
+        gardenCatID = catID; showsCafe = false; showsMagic = false; showsGarden = true
         store.playNavigationSound()
     }
     /// Home, arrange mode, and the outing piece selected (placed or still in the bag). The shared
@@ -509,7 +533,7 @@ struct MacDesktopRoot: View {
     /// Where the recovery popover, bag and work page send the player.
     private var recoveryExits: MacRecoveryExits {
         MacRecoveryExits(
-            cafe: { auxiliary = nil; if page != .town { select(.town) }; showsCafe = true },
+            cafe: { auxiliary = nil; if page != .town { select(.town) }; showsMagic = false; showsCafe = true },
             rest: { auxiliary = .rest },
             shop: { auxiliary = nil; store.shopCategory = .supplies; select(.shop) },
             close: { auxiliary = nil },
@@ -579,6 +603,11 @@ struct MacDesktopRoot: View {
         let puzzleOwnsKeys = gardenPuzzleKeys && page == .town && showsGarden && !titleVisible && auxiliary == nil && !showsHelp
             && !store.isDecorating
         if puzzleOwnsKeys, ![MacCommand.escape, .settings, .help].contains(command) { return false }
+        // 3.0: the cottage reads W / C / R / B, Space and the arrows itself; page numbers and Esc stay global.
+        let magicOwnsKeys = page == .town && showsMagic && !titleVisible && auxiliary == nil && !showsHelp && !store.isDecorating
+        if magicOwnsKeys, ![MacCommand.escape, .settings, .help, .home, .work, .shop, .town, .cats, .fullscreen].contains(command) {
+            return false
+        }
         if command == .settings { select(.settings); return true }
         if command == .help { showsHelp.toggle(); return true }
         if command == .recovery, !titleVisible, !store.isDecorating, auxiliary == nil {
@@ -590,6 +619,7 @@ struct MacDesktopRoot: View {
             else if auxiliary != nil { if !store.isBusy { auxiliary = nil } } else if showsHelp { showsHelp = false }
             else if store.isDecorating { select(.home) } else if page == .town && showsCafe { showsCafe = false }
             else if page == .town && showsGarden { NotificationCenter.default.post(name: .macGardenEscape, object: nil) }
+            else if page == .town && showsMagic { NotificationCenter.default.post(name: .macMagicEscape, object: nil) }
             else if page == .profile && profileNested { NotificationCenter.default.post(name: .macProfileEscape, object: nil) }
             else if page == .cats && catsNested { NotificationCenter.default.post(name: .macCatsEscape, object: nil) }
             else if !titleVisible { titleVisible = true }

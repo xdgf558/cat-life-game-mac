@@ -277,7 +277,7 @@ public enum GameEngine {
         state.cats[index].mood = cap(state.cats[index].mood + 18 + comfortBonus)
         // The web rule awards +8 intimacy and a further +4 toy bonus.
         // Placed garden decor adds a percentage of the 12; the fraction carries to the next play.
-        let bondShare = 12 * Double(OutingBonuses.value(.bond, in: state)) / 100
+        let bondShare = 12 * Double(OutingBonuses.value(.bond, in: state) + state.craft.bonus(.bond)) / 100
         let bondEarned = bondShare > 0 ? bondShare + state.outing.bondCarry : 0
         let bondBonus = Int(bondEarned)
         if bondShare > 0 { state.outing.bondCarry = bondEarned - Double(bondBonus) }
@@ -381,7 +381,7 @@ public enum GameEngine {
         candidate.player.mood = cap(candidate.player.mood - quote.moodCost)
         candidate.player.activeWork = ActiveWork(jobID: job.id, startedAt: timestamp,
                                             endsAt: timestamp.addingTimeInterval(Double(quote.durationSeconds)),
-                                            goldReward: StationCatRules.wage(job.goldReward, in: candidate),
+                                            goldReward: CraftRules.wage(StationCatRules.wage(job.goldReward, in: candidate), in: candidate),
                                             expReward: job.expReward, quote: quote)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
@@ -455,12 +455,18 @@ public enum GameEngine {
         state.meta.lastSyncAt = timestamp
         let previousDay = state.tasks.dailyDayKey
         state.tasks.advanceDay(to: timestamp)
-        if state.tasks.dailyDayKey != previousDay { state.community.startNewDay() }
+        if state.tasks.dailyDayKey != previousDay {
+            state.community.startNewDay()
+            // 3.0: a worn handmade piece can lift the player's mood each new day.
+            let dailyMood = state.craft.bonus(.dailyMood)
+            if previousDay != nil, dailyMood > 0 { state.player.mood = min(100, state.player.mood + dailyMood) }
+        }
         state.community.events.advance(to: state.tasks.dailyDayKey)
         // A trip belongs to its day: the first sync of a new day settles it.
         if let trip = state.outing.trip, trip.dayKey != state.tasks.dailyDayKey { settleOuting(&state, reason: .newDay, at: timestamp) }
         accrueHomeBonuses(&state, at: timestamp)
         stationCatRunsAwayIfDue(&state, at: timestamp)
+        CraftRules.grantEarnedBlueprints(&state, at: timestamp)
         if let work = state.player.activeWork, let progress = workProgress {
             let levelBefore = state.player.level
             // The wallet has a storage cap; a completed shift still advances time,
@@ -475,6 +481,8 @@ public enum GameEngine {
                 id: work.id, jobID: work.jobID, completedAt: work.endsAt,
                 goldReward: goldAwarded, expReward: work.expReward,
                 levelBefore: levelBefore, levelAfter: progress.level, expAfter: progress.exp)
+            let fabric = CraftRules.workFabric(shiftID: work.id, in: &state)
+            if fabric > 0 { state.player.lastWorkResult?.fabric = fabric }
             state.player.activeWork = nil
             return ActionOutcome(success: .workFinished, amount: goldAwarded)
         }
@@ -673,7 +681,7 @@ extension GameSnapshot {
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid, playerRecoveryIsValid,
-              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid, outing.isValid, stationCat.isValid,
+              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid, outing.isValid, stationCat.isValid, craft.isValid,
               outing.trip.map({ trip in cats.contains { $0.id == trip.catID } }) ?? true,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),

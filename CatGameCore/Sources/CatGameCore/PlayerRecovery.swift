@@ -249,8 +249,9 @@ extension GameEngine {
         guard state.player.gold >= CafeCatalog.napPrice else { return .init(failure: .shopGoldRequired, amount: CafeCatalog.napPrice) }
         state.player.gold -= CafeCatalog.napPrice
         state.player.activeNap = PlayerNap(startedAt: timestamp, endsAt: timestamp.addingTimeInterval(CafeCatalog.napDuration),
-                                           effect: RecoveryEffectRecord(CafeCatalog.napEffect))
+                                           effect: RecoveryEffectRecord(CraftRules.napEffect(in: state)))
         state.recordRecovery(nap: true)
+        state.craft.cafeNaps = min(CraftCatalog.maximumExperience, state.craft.cafeNaps + 1)
         return .init(success: .cafeNapStarted)
     }
 

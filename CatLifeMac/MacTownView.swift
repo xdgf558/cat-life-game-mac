@@ -453,7 +453,7 @@ enum MacTownViewport69 {
         case .home: CGPoint(x: 0.52, y: 0.7)
         case .hospital: CGPoint(x: 0.8, y: 0.7)
         case .adoption: CGPoint(x: 0.36, y: 0.815)
-        case .lot1: CGPoint(x: 0.665, y: 0.83)
+        case .lot1, .magic: CGPoint(x: 0.665, y: 0.83)
         case .lot2: CGPoint(x: 0.945, y: 0.83)
         }
     }

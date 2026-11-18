@@ -269,7 +269,7 @@ struct MacWardrobePage: View {
                 }
                 Group {
                     if let definition {
-                        MacBlueprintIcon(definition: definition, size: 72)
+                        MacBlueprintIcon(definition: definition, size: 72, asItem: true)
                     } else {
                         Image(systemName: "nosign").font(.system(size: 24)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
                             .frame(width: 72, height: 72)
@@ -348,7 +348,7 @@ struct MacWardrobeEntry: View {
                 HStack(spacing: 6) {
                     ForEach(EquipmentSlot.allCases, id: \.self) { slot in
                         if let definition = craft.appearance[slot].flatMap(craft.item(id:))?.blueprint {
-                            MacBlueprintIcon(definition: definition, size: 36)
+                            MacBlueprintIcon(definition: definition, size: 36, asItem: true)
                         } else {
                             Image(systemName: "nosign").font(.system(size: 12)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
                                 .frame(width: 36, height: 36)
@@ -421,7 +421,7 @@ struct MacWardrobeCloset: View {
                 switch value {
                 case .item(let id):
                     if let item = craft.item(id: id), let definition = item.blueprint {
-                        MacBlueprintIcon(definition: definition, size: 42)
+                        MacBlueprintIcon(definition: definition, size: 42, asItem: true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(GameStrings.text(definition.nameKey)).font(.system(size: 14, weight: .heavy))
                             Text(Self.summary(item)).font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
@@ -431,7 +431,7 @@ struct MacWardrobeCloset: View {
                     }
                 case .tryOn(let id):
                     if let definition = CraftCatalog.blueprint(id: id) {
-                        MacBlueprintIcon(definition: definition, size: 42).opacity(0.7)
+                        MacBlueprintIcon(definition: definition, size: 42, asItem: true).opacity(0.7)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(GameStrings.text(definition.nameKey)).font(.system(size: 14, weight: .heavy))
                             Text(GameStrings.text("wardrobe.blueprintOnly")).font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)

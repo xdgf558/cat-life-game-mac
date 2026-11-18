@@ -23,19 +23,19 @@ struct MacCraftTable: View {
     private var definition: BlueprintDefinition? { selected.flatMap(CraftCatalog.blueprint(id:)).flatMap { state.hasEverHeld($0.id) && $0.isCraftable ? $0 : nil } }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            listColumn.frame(width: 270)
+        HStack(alignment: .top, spacing: 12) {
+            listColumn.frame(width: 236)
             Group {
                 if let definition { detail(definition) } else { emptyDetail }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
             ScrollView {
-                VStack(spacing: 14) {
-                    MacCraftSkillCard(craft: state)
+                VStack(spacing: 10) {
+                    MacCraftSkillCard(craft: state, compact: true)
                     MacMaterialBag(craft: state, highlight: Set(definition.map { state.shortfall(for: $0).map(\.material) } ?? []),
-                                   picked: shownMaterial, pick: { sourceMaterial = $0 })
+                                   picked: shownMaterial, pick: { sourceMaterial = $0 }, compact: true)
                     if let material = shownMaterial { sources(material) }
                 }
-            }.scrollIndicators(.never).frame(width: 300)
+            }.scrollIndicators(.never).frame(width: 272)
         }
         .onChange(of: selected) { _, _ in sourceMaterial = nil }
     }
@@ -48,24 +48,24 @@ struct MacCraftTable: View {
 
     private var listColumn: some View {
         let list = Self.list(state)
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(GameStrings.text("craft.table.title")).font(.system(size: 18, weight: .black))
+                Text(GameStrings.text("craft.table.title")).font(.system(size: 16, weight: .black))
                 Spacer()
                 Text(GameStrings.format("craft.table.held", list.filter { state.usesLeft($0.id) > 0 }.count))
                     .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
             }
             ScrollView {
-                VStack(spacing: 6) { ForEach(list) { row($0) } }.padding(.vertical, 2)
+                VStack(spacing: 4) { ForEach(list) { row($0) } }.padding(.vertical, 2)
             }
             Button(action: openBook) {
                 HStack {
                     Label(GameStrings.format("craft.table.all", CraftCatalog.blueprints.count), systemImage: "book.closed.fill")
                     Spacer()
                     Text(GameStrings.text("craft.book.title") + " ›").foregroundStyle(RoomTheme.darkMint)
-                }.font(.system(size: 12.5, weight: .heavy)).padding(12).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+                }.font(.system(size: 12, weight: .heavy)).padding(10).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
             }.buttonStyle(.plain).accessibilityIdentifier("craftOpenBook")
-        }.macContentCard69(padding: 16).frame(maxHeight: .infinity)
+        }.macContentCard69(padding: 12).frame(maxHeight: .infinity)
     }
 
     private func row(_ definition: BlueprintDefinition) -> some View {
@@ -83,11 +83,11 @@ struct MacCraftTable: View {
                 + GameStrings.format("craft.usesLeftShort", state.usesLeft(definition.id))
         }
         return Button { selected = definition.id } label: {
-            HStack(spacing: 10) {
-                MacBlueprintIcon(definition: definition, size: 40, dim: false).opacity(muted ? 0.55 : 1)
-                VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                MacBlueprintIcon(definition: definition, size: 36).opacity(muted ? 0.55 : 1)
+                VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 5) {
-                        Text(GameStrings.text(definition.nameKey)).font(.system(size: 14, weight: .heavy)).lineLimit(1)
+                        Text(GameStrings.text(definition.nameKey)).font(.system(size: 13.5, weight: .heavy)).lineLimit(1)
                         MacTierChip(tier: definition.tier)
                     }
                     Text(line).font(.system(size: 11, weight: .bold)).lineLimit(1)
@@ -101,10 +101,10 @@ struct MacCraftTable: View {
                     Image(systemName: "pin.fill").font(.system(size: 11)).foregroundStyle(RoomTheme.coralDeep)
                 }
             }
-            .padding(8).frame(maxWidth: .infinity, alignment: .leading)
-            .background(chosen ? RoomTheme.gold.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(chosen ? RoomTheme.gold : .clear, lineWidth: 2))
-            .contentShape(RoundedRectangle(cornerRadius: 14))
+            .padding(6).frame(maxWidth: .infinity, alignment: .leading)
+            .background(chosen ? RoomTheme.gold.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(chosen ? RoomTheme.gold : .clear, lineWidth: 2))
+            .contentShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain).accessibilityAddTraits(chosen ? .isSelected : [])
         .accessibilityIdentifier("craftRow_\(definition.id)")
@@ -129,103 +129,82 @@ struct MacCraftTable: View {
 
     private func detail(_ definition: BlueprintDefinition) -> some View {
         let readiness = state.readiness(for: definition)
-        return VStack(spacing: 12) {
+        return VStack(spacing: 10) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(alignment: .top, spacing: 14) {
-                        MacBlueprintIcon(definition: definition, size: 84)
-                        VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .center, spacing: 12) {
+                        MacBlueprintIcon(definition: definition, size: 64, asItem: true)
+                        VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                Text(GameStrings.text(definition.nameKey)).font(.system(size: 24, weight: .black))
-                                MacTierChip(tier: definition.tier)
+                                Text(GameStrings.text(definition.nameKey)).font(.system(size: 20, weight: .black))
+                                MacBlueprintTags(definition: definition)
                             }
-                            MacBlueprintTags(definition: definition)
-                            Text(GameStrings.text(definition.detailKey)).font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                            Text(GameStrings.text(definition.detailKey)).font(.system(size: 12.5, weight: .semibold))
+                                .foregroundStyle(RoomTheme.secondary).lineLimit(2).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     if readiness == .usedUp {
                         usedUp(definition)
                     } else {
                         sectionTitle("craft.detail.materials")
-                        HStack(spacing: 8) { ForEach(definition.costs) { costTile($0) } }
-                        usesCard(definition)
-                        rateCard(definition)
+                        HStack(spacing: 6) { ForEach(definition.costs) { costTile($0) } }
+                        odds(definition)
                         sectionTitle("craft.detail.attributes")
-                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible())], spacing: 8) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 6)], spacing: 6) {
                             ForEach(CraftCatalog.attributes(for: definition.tier), id: \.self) { attribute in
-                                HStack {
-                                    Image(systemName: MacCraftStyle.symbol(attribute)).foregroundStyle(MacCraftStyle.tint(attribute))
-                                    Text(GameStrings.text(attribute.titleKey)).font(.system(size: 12.5, weight: .heavy)).lineLimit(1)
+                                HStack(spacing: 6) {
+                                    Image(systemName: MacCraftStyle.symbol(attribute)).font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(MacCraftStyle.tint(attribute))
+                                    Text(GameStrings.text(attribute.titleKey)).font(.system(size: 11.5, weight: .heavy)).lineLimit(1)
                                     Spacer(minLength: 4)
-                                    Text(MacCraftStyle.rangeText(attribute)).font(.system(size: 12.5, weight: .black)).monospacedDigit()
-                                }.padding(.horizontal, 12).padding(.vertical, 9).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
+                                    Text(MacCraftStyle.rangeText(attribute)).font(.system(size: 11.5, weight: .black)).monospacedDigit()
+                                }.padding(.horizontal, 10).padding(.vertical, 6).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 10))
                             }
                         }
                         qualityRow(definition)
                     }
-                }.padding(.bottom, 4)
+                }.padding(.bottom, 2)
             }.scrollIndicators(.never)
             craftButton(definition, readiness: readiness)
-        }.macContentCard69(padding: 20).frame(maxHeight: .infinity)
+        }.macContentCard69(padding: 14).frame(maxHeight: .infinity)
     }
 
     private func sectionTitle(_ key: String) -> some View {
-        Text(GameStrings.text(key)).font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+        Text(GameStrings.text(key)).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
     }
 
     private func costTile(_ cost: CraftCost) -> some View {
         let have = state.count(of: cost.material), enough = have >= cost.count
-        return HStack(spacing: 8) {
-            MacMaterialArt(material: cost.material, size: 32)
-            Text(GameStrings.text(cost.material.titleKey)).font(.system(size: 13, weight: .heavy)).lineLimit(1)
+        return HStack(spacing: 6) {
+            MacMaterialArt(material: cost.material, size: 26)
+            Text(GameStrings.text(cost.material.titleKey)).font(.system(size: 12.5, weight: .heavy)).lineLimit(1)
             Spacer(minLength: 4)
-            Text(verbatim: "\(have)/\(cost.count)").font(.system(size: 14, weight: .black)).monospacedDigit()
+            Text(verbatim: "\(have)/\(cost.count)").font(.system(size: 13.5, weight: .black)).monospacedDigit()
                 .foregroundStyle(enough ? RoomTheme.darkMint : RoomTheme.coralDeep)
         }
-        .padding(10).frame(maxWidth: .infinity)
-        .background((enough ? RoomTheme.paleMint : RoomTheme.paleCoral).opacity(0.55), in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(enough ? RoomTheme.mint.opacity(0.4) : RoomTheme.coral, lineWidth: 1.5))
+        .padding(.horizontal, 10).padding(.vertical, 6).frame(maxWidth: .infinity)
+        .background((enough ? RoomTheme.paleMint : RoomTheme.paleCoral).opacity(0.55), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(enough ? RoomTheme.mint.opacity(0.4) : RoomTheme.coral, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
     }
 
-    private func usesCard(_ definition: BlueprintDefinition) -> some View {
-        let left = state.usesLeft(definition.id), cap = definition.tier.usesPerCopy
-        return HStack(spacing: 10) {
-            Image(systemName: "scroll.fill").foregroundStyle(ExchangePalette.goldInk)
-            Text(GameStrings.text("craft.detail.usesLeft")).font(.system(size: 13, weight: .heavy))
-            HStack(spacing: 3) {
-                ForEach(0..<max(cap, left), id: \.self) { index in
-                    Image(systemName: index < left ? "diamond.fill" : "diamond").font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(index < left ? ExchangePalette.goldInk : RoomTheme.secondary.opacity(0.5))
-                }
-            }.accessibilityHidden(true)
-            Text(verbatim: "\(left)").font(.system(size: 16, weight: .black)).monospacedDigit().foregroundStyle(RoomTheme.coralDeep)
-            Spacer(minLength: 4)
-            Text(GameStrings.format("craft.detail.usesRule", GameStrings.text(definition.tier.titleKey), cap))
-                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.trailing)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(12).background(RoomTheme.paleCoral.opacity(0.35), in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.coralBorder, lineWidth: 1.5))
-        .accessibilityElement(children: .combine)
-    }
-
-    private func rateCard(_ definition: BlueprintDefinition) -> some View {
+    /// Success rate and the uses left on this copy, in one card.
+    private func odds(_ definition: BlueprintDefinition) -> some View {
         let base = definition.tier.baseSuccessPercent
         let skill = state.skillLevel
         let streak = (state.blueprints[definition.id]?.failureStreak ?? 0) * CraftCatalog.failureBonusPercent
         let total = state.successPercent(for: definition)
         let skillPart = max(0, min(skill.successBonus, total - base))
         let streakPart = max(0, total - base - skillPart)
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(GameStrings.text("craft.detail.rate")).font(.system(size: 13, weight: .heavy))
-                Text(verbatim: "\(total)%").font(.system(size: 28, weight: .black)).monospacedDigit().foregroundStyle(RoomTheme.darkMint)
-                Spacer()
+        let left = state.usesLeft(definition.id), cap = definition.tier.usesPerCopy
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(GameStrings.text("craft.detail.rate")).font(.system(size: 12.5, weight: .heavy))
+                Text(verbatim: "\(total)%").font(.system(size: 22, weight: .black)).monospacedDigit().foregroundStyle(RoomTheme.darkMint)
+                Spacer(minLength: 6)
                 Text(GameStrings.format("craft.detail.rateParts", GameStrings.text(definition.tier.titleKey), base, skill.level, skillPart)
                      + (streak > 0 ? " " + GameStrings.format("craft.detail.rateStreak", streakPart) : ""))
-                    .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.trailing)
+                    .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.8)
             }
             GeometryReader { geometry in
                 let width = geometry.size.width
@@ -235,27 +214,44 @@ struct MacCraftTable: View {
                     Rectangle().fill(RoomTheme.gold.opacity(0.6)).frame(width: width * CGFloat(streakPart) / 100)
                     Rectangle().fill(RoomTheme.paleCoral)
                 }.clipShape(Capsule())
-            }.frame(height: 12).accessibilityHidden(true)
+            }.frame(height: 8).accessibilityHidden(true)
             Text(GameStrings.format("craft.detail.ifFail", CraftCatalog.failureBonusPercent))
-                .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.coralDeep).fixedSize(horizontal: false, vertical: true)
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.coralDeep).fixedSize(horizontal: false, vertical: true)
+            Divider().overlay(RoomTheme.rewardBorder.opacity(0.5))
+            HStack(spacing: 8) {
+                Image(systemName: "scroll.fill").font(.system(size: 12)).foregroundStyle(ExchangePalette.goldInk)
+                Text(GameStrings.text("craft.detail.usesLeft")).font(.system(size: 12, weight: .heavy))
+                HStack(spacing: 2) {
+                    ForEach(0..<max(cap, left), id: \.self) { index in
+                        Image(systemName: index < left ? "diamond.fill" : "diamond").font(.system(size: 8, weight: .bold))
+                            .foregroundStyle(index < left ? ExchangePalette.goldInk : RoomTheme.secondary.opacity(0.5))
+                    }
+                }.accessibilityHidden(true)
+                Text(verbatim: "\(left)").font(.system(size: 14, weight: .black)).monospacedDigit().foregroundStyle(RoomTheme.coralDeep)
+                Spacer(minLength: 4)
+                Text(GameStrings.format("craft.detail.usesRule", GameStrings.text(definition.tier.titleKey), cap)
+                        .replacingOccurrences(of: "\n", with: " · "))
+                    .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1).minimumScaleFactor(0.75)
+            }.accessibilityElement(children: .combine)
         }
-        .padding(14).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(RoomTheme.rewardBorder, lineWidth: 2))
+        .padding(12).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.rewardBorder, lineWidth: 1.5))
         .accessibilityElement(children: .combine).accessibilityIdentifier("craftRate")
     }
 
     private func qualityRow(_ definition: BlueprintDefinition) -> some View {
         let odds = CraftCatalog.qualityOdds(tier: definition.tier, skillLevel: state.skillLevel.level)
-        return HStack(spacing: 8) {
+        return HStack(spacing: 6) {
             ForEach(OutingDecorQuality.allCases, id: \.self) { quality in
-                VStack(spacing: 3) {
-                    Text(GameStrings.text(quality.titleKey) + " · \(odds[quality] ?? 0)%").font(.system(size: 12.5, weight: .heavy))
+                HStack(spacing: 4) {
+                    Text(GameStrings.text(quality.titleKey) + " · \(odds[quality] ?? 0)%").font(.system(size: 11.5, weight: .heavy))
                     Text(GameStrings.format("craft.detail.attributeCount", CraftCatalog.attributeCount(tier: definition.tier, quality: quality)))
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                 }
-                .foregroundStyle(MacCraftStyle.tint(quality)).padding(.vertical, 9).frame(maxWidth: .infinity)
-                .background(MacCraftStyle.tint(quality).opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(MacCraftStyle.tint(quality).opacity(0.4), lineWidth: 1.5))
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .foregroundStyle(MacCraftStyle.tint(quality)).padding(.vertical, 6).padding(.horizontal, 4).frame(maxWidth: .infinity)
+                .background(MacCraftStyle.tint(quality).opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(MacCraftStyle.tint(quality).opacity(0.4), lineWidth: 1.2))
             }
         }.accessibilityElement(children: .combine)
     }
@@ -317,7 +313,7 @@ struct MacCraftTable: View {
                 routeRow("scroll.fill", GameStrings.text("craft.route.overflow"), action: nil)
             }
             routeRow("circle.dashed.inset.filled", GameStrings.text("craft.route.wheel"), action: openWheel)
-        }.macContentCard69(padding: 16).accessibilityIdentifier("craftSources")
+        }.macContentCard69(padding: 12).accessibilityIdentifier("craftSources")
     }
 
     private func routeRow(_ symbol: String, _ text: String, action: (() -> Void)?) -> some View {
@@ -346,6 +342,8 @@ struct MacTierChip: View {
 /// The craft skill: level, proficiency to the next level, and what each level unlocks.
 struct MacCraftSkillCard: View {
     let craft: CraftState
+    /// Only the current and the next level instead of all five.
+    var compact = false
     var body: some View {
         let level = craft.skillLevel
         let next = CraftCatalog.nextSkillLevel(experience: craft.experience)
@@ -365,7 +363,7 @@ struct MacCraftSkillCard: View {
             }
             Text(GameStrings.text("craft.skill.rule")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            ForEach(CraftCatalog.skillLevels) { item in
+            ForEach(compact ? CraftCatalog.skillLevels.filter { $0.level == level.level || $0.level == level.level + 1 } : CraftCatalog.skillLevels) { item in
                 let reached = craft.experience >= item.minimumExperience
                 HStack(spacing: 8) {
                     Text("\(item.level)").font(.system(size: 11, weight: .black)).foregroundStyle(.white)
@@ -379,7 +377,7 @@ struct MacCraftSkillCard: View {
                 .padding(.vertical, 3).padding(.horizontal, 6)
                 .background(item.level == level.level ? RoomTheme.gold.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 8))
             }
-        }.macContentCard69(padding: 16).accessibilityElement(children: .combine).accessibilityIdentifier("craftSkill")
+        }.macContentCard69(padding: compact ? 12 : 16).accessibilityElement(children: .combine).accessibilityIdentifier("craftSkill")
     }
 }
 
@@ -500,7 +498,15 @@ struct MacBlueprintBook: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
-                        MacBlueprintIcon(definition: definition, size: 70, dim: false)
+                        // The pattern, with a peek at what it makes in the corner.
+                        MacBlueprintIcon(definition: definition, size: 70)
+                            .overlay(alignment: .bottomTrailing) {
+                                MacBlueprintIcon(definition: definition, size: 30, asItem: true)
+                                    .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 9))
+                                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.white, lineWidth: 1.5))
+                                    .offset(x: 8, y: 8)
+                            }
+                            .padding(.trailing, 8).padding(.bottom, 8)
                         VStack(alignment: .leading, spacing: 5) {
                             Text(GameStrings.text(definition.nameKey)).font(.system(size: 20, weight: .black))
                             MacBlueprintTags(definition: definition)
@@ -594,7 +600,7 @@ struct MacCraftResultCard: View {
     private func success(_ attempt: CraftAttemptResult, definition: BlueprintDefinition, item: HandmadeItem) -> some View {
         VStack(spacing: 12) {
             Text(GameStrings.text("craft.success.kicker")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).tracking(1.2)
-            MacBlueprintIcon(definition: definition, size: 96)
+            MacBlueprintIcon(definition: definition, size: 96, asItem: true)
                 .padding(6).overlay(Circle().strokeBorder(MacCraftStyle.tint(item.quality), lineWidth: 4).padding(-6))
             Text(GameStrings.format("craft.success.title", GameStrings.text(definition.nameKey))).font(.system(size: 21, weight: .heavy))
                 .accessibilityAddTraits(.isHeader)

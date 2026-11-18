@@ -197,7 +197,7 @@ struct MacMagicCottage: View {
             }
             if let goal {
                 HStack(spacing: 10) {
-                    MacBlueprintIcon(definition: goal, size: 46)
+                    MacBlueprintIcon(definition: goal, size: 46, asItem: true)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(GameStrings.text(goal.nameKey)).font(.system(size: 15, weight: .black))
                         MacBlueprintTags(definition: goal)
@@ -514,18 +514,71 @@ enum MacCraftStyle {
     }
 }
 
-/// A blueprint's icon on its theme colour. Art arrives later as `blueprint-<id>`; until then the symbol stands in.
+/// A blueprint drawn as blueprint paper: a blue grid with the item sketched on it in white, so the book and
+/// the wheel show the pattern rather than the finished piece. `asItem` shows the finished piece instead
+/// (crafting result, wardrobe, the goal you are making). Art is `blueprint-<id>`; the symbol stands in without it.
 struct MacBlueprintIcon: View {
     let definition: BlueprintDefinition
     var size: CGFloat = 44
     var dim = false
+    var asItem = false
+    private var asset: String { "blueprint-\(definition.id)" }
+    private var hasArt: Bool { UIImage(named: asset) != nil }
+
     var body: some View {
-        GameIcon(asset: "blueprint-\(definition.id)", symbol: dim ? "questionmark" : definition.symbol, size: size * 0.5,
+        Group {
+            if asItem { item } else { paper }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    private var item: some View {
+        GameIcon(asset: asset, symbol: dim ? "questionmark" : definition.symbol, size: size * 0.5,
                  tint: dim ? RoomTheme.secondary.opacity(0.45) : MacCraftStyle.tint(definition.theme))
             .frame(width: size, height: size)
             .background((dim ? RoomTheme.track : MacCraftStyle.tint(definition.theme)).opacity(dim ? 0.5 : 0.16),
                         in: RoundedRectangle(cornerRadius: size * 0.3))
-            .accessibilityHidden(true)
+    }
+
+    private var paper: some View {
+        let corner = size * 0.24
+        let top = dim ? Color(red: 0.55, green: 0.62, blue: 0.72) : Color(red: 0.30, green: 0.55, blue: 0.86)
+        let bottom = dim ? Color(red: 0.45, green: 0.52, blue: 0.62) : Color(red: 0.17, green: 0.37, blue: 0.70)
+        return ZStack {
+            LinearGradient(colors: [top, bottom], startPoint: .topLeading, endPoint: .bottomTrailing)
+            BlueprintGrid(step: max(4, size / 8)).stroke(.white.opacity(0.17), lineWidth: max(0.5, size / 120))
+            if hasArt {
+                // A pale silhouette for the shape, then the art in greys screened on top for the pen lines.
+                Image(asset).renderingMode(.template).resizable().scaledToFit()
+                    .foregroundStyle(.white.opacity(0.28)).padding(size * 0.15)
+                Image(asset).resizable().scaledToFit().padding(size * 0.15)
+                    .grayscale(1).contrast(1.25).brightness(0.12).blendMode(.screen)
+            } else {
+                Image(systemName: definition.symbol).font(.system(size: size * 0.4, weight: .bold)).foregroundStyle(.white.opacity(0.9))
+            }
+            RoundedRectangle(cornerRadius: corner * 0.6)
+                .strokeBorder(.white.opacity(0.6), style: StrokeStyle(lineWidth: max(0.8, size * 0.018), dash: [max(2, size * 0.05), max(2, size * 0.035)]))
+                .padding(size * 0.06)
+        }
+        .compositingGroup()
+        .clipShape(RoundedRectangle(cornerRadius: corner))
+        .overlay(RoundedRectangle(cornerRadius: corner).strokeBorder(.white.opacity(0.85), lineWidth: max(1, size * 0.03)))
+        .shadow(color: .black.opacity(0.12), radius: 0, y: max(1, size * 0.03))
+        .opacity(dim ? 0.6 : 1)
+    }
+}
+
+/// Faint squares on blueprint paper.
+private struct BlueprintGrid: Shape {
+    let step: CGFloat
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        var x = rect.minX + step
+        while x < rect.maxX { path.move(to: CGPoint(x: x, y: rect.minY)); path.addLine(to: CGPoint(x: x, y: rect.maxY)); x += step }
+        var y = rect.minY + step
+        while y < rect.maxY { path.move(to: CGPoint(x: rect.minX, y: y)); path.addLine(to: CGPoint(x: rect.maxX, y: y)); y += step }
+        return path
     }
 }
 
@@ -573,17 +626,18 @@ struct MacMaterialBag: View {
     var highlight: Set<CraftMaterial> = []
     var picked: CraftMaterial? = nil
     var pick: ((CraftMaterial) -> Void)? = nil
+    var compact = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: compact ? 8 : 10) {
             Label(GameStrings.text("craft.bag.title"), systemImage: "shippingbox.fill").font(.system(size: 15, weight: .heavy))
             HStack(spacing: 6) {
                 ForEach(CraftMaterial.allCases) { material in
                     let tile = VStack(spacing: 4) {
-                        MacMaterialArt(material: material, size: 34)
+                        MacMaterialArt(material: material, size: compact ? 28 : 34)
                         Text(GameStrings.text(material.titleKey)).font(.system(size: 10.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                         Text("\(craft.count(of: material))").font(.system(size: 15, weight: .black)).monospacedDigit()
                     }
-                    .padding(.vertical, 8).frame(maxWidth: .infinity)
+                    .padding(.vertical, compact ? 6 : 8).frame(maxWidth: .infinity)
                     .background(highlight.contains(material) ? RoomTheme.paleCoral : RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
                     .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(
                         picked == material ? RoomTheme.gold : highlight.contains(material) ? RoomTheme.coral : .clear, lineWidth: 2))
@@ -596,7 +650,7 @@ struct MacMaterialBag: View {
                     }
                 }
             }
-        }.macContentCard69(padding: 16).accessibilityIdentifier("magicMaterialBag")
+        }.macContentCard69(padding: compact ? 12 : 16).accessibilityIdentifier("magicMaterialBag")
     }
 }
 

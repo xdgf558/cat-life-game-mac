@@ -43,7 +43,8 @@ struct MacDesktopRoot: View {
     @State private var gardenPuzzleKeys = false
     /// 3.0: the magic cottage page inside the town, and the profile opening on its wardrobe.
     @State private var showsMagic = false
-    @State private var profileOpensWardrobe = false
+    /// 3.0: 我的档案 has two tabs, the profile and the wardrobe.
+    @State private var profileTab = "profile"
     @State private var catsTab = "cats"
     /// 2.15: set when the home decor bonus card opens the album, so it starts on the bonus page.
     @State private var albumOpensBonus = false
@@ -334,14 +335,24 @@ struct MacDesktopRoot: View {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
             case .profile:
-                MacProfilePage(store: store, exits: MacProfileExits(
-                    work: { select(.work) }, bag: { auxiliary = .bag },
-                    shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves },
-                    magic: openMagic),
-                    isNested: $profileNested, startsInWardrobe: profileOpensWardrobe)
-                    // A fresh page per save, so an imported save never inherits a rename draft or open wardrobe.
-                    .id(store.saveSceneGeneration)
-                    .onChange(of: store.saveSceneGeneration) { _, _ in profileNested = false }
+                VStack(alignment: .leading, spacing: 14) {
+                    MacSegmented(selection: Binding(get: { profileTab }, set: { profileTab = $0; profileNested = false; store.playNavigationSound() }),
+                                 options: [("profile", GameStrings.text("wardrobe.tab.profile")), ("wardrobe", GameStrings.text("wardrobe.tab.wardrobe"))])
+                        .fixedSize().accessibilityIdentifier("macProfileTabs")
+                    if profileTab == "wardrobe" {
+                        MacWardrobePage(store: store, openMagic: openMagic,
+                                        back: { profileTab = "profile"; profileNested = false }, isNested: $profileNested)
+                    } else {
+                        MacProfilePage(store: store, exits: MacProfileExits(
+                            work: { select(.work) }, bag: { auxiliary = .bag },
+                            shopEquipment: { store.shopCategory = .equipment; select(.shop) }, saves: { auxiliary = .saves },
+                            wardrobe: { profileTab = "wardrobe" }),
+                            isNested: $profileNested)
+                    }
+                }
+                // A fresh page per save, so an imported save never inherits a rename draft, a try-on or an open wardrobe.
+                .id(store.saveSceneGeneration)
+                .onChange(of: store.saveSceneGeneration) { _, _ in profileNested = false }
             case .settings:
                 if let windowController { MacSettingsView(store: store, preferences: preferences, windowController: windowController, onTitle: { titleVisible = true },
                                                                   onReplayTour: replayTour) }
@@ -464,7 +475,7 @@ struct MacDesktopRoot: View {
         }
         titleVisible = false; page = next; showsCafe = false; showsGarden = false; gardenTakesNumbers = false; gardenPuzzleKeys = false
         showsMagic = false
-        if next != .profile { profileOpensWardrobe = false }
+        if next != .profile { profileTab = "profile" }
         if next != .cats { catsTab = "cats" }
         store.playNavigationSound()
         store.activeSheet = next == .shop ? .shop : next == .town ? .town : next == .work ? .work : nil
@@ -509,8 +520,8 @@ struct MacDesktopRoot: View {
     }
     /// The cottage's wardrobe lives on the profile page, on its appearance closet.
     private func openWardrobe() {
-        profileOpensWardrobe = true
-        select(.profile)
+        profileTab = "wardrobe"
+        if page != .profile { select(.profile) }
     }
     /// The garden opens on the town page; a cat chosen from the room is preselected.
     private func openGarden(catID: String?) {

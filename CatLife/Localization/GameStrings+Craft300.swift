@@ -3,6 +3,12 @@ import Foundation
 /// 3.0 魔法小屋与手作工坊: the cottage, the wheel, the crafting table, the blueprint book and the wardrobe.
 extension GameStrings {
     static let craft300Chinese: [String: String] = [
+        "wardrobe.tab.profile": "档案", "wardrobe.tab.wardrobe": "衣柜",
+        "wardrobe.now": "现在的样子",
+        "wardrobe.tryOnBanner": "试穿中：%@ · 不会保存",
+        "wardrobe.gearHint": "工作装备在档案页里换，打工加成只来自工作装备。",
+        "wardrobe.toProfile": "去档案页",
+        "wardrobe.entryDetail": "手作的衣服在这里穿戴和试穿，不影响打工加成。",
         "town.place.magic": "魔法小屋",
         "town.description.magic": "转盘、制作台和衣柜。用出游带回的材料，照着蓝图做出能穿在身上的手作。",
         "craft.enter": "进小屋",
@@ -128,7 +134,7 @@ extension GameStrings {
         "craft.route.go": "去看看", "craft.route.goGarden": "去花园",
         // Wheel
         "craft.wheel.odds": "奖池和概率", "craft.wheel.always": "每次都有东西",
-        "craft.wheel.blueprint": "一张蓝图", "craft.wheel.blueprintShort": "蓝图",
+        "craft.wheel.blueprint": "一张蓝图",
         "craft.wheel.blueprintNote": "从能穿的蓝图里抽；手里已有的会加次数，满了的部分换成星尘。",
         "craft.wheel.free": "免费转一次", "craft.wheel.paid": "转一次 · %d 金币",
         "craft.wheel.freeNote": "今天第 1 次免费 · 之后每次 %d 金币，最多再转 %d 次",
@@ -188,7 +194,6 @@ extension GameStrings {
         "wardrobe.title": "衣柜", "wardrobe.madeCount": "做好 %d 件",
         "wardrobe.lookTitle": "外观", "wardrobe.lookDetail": "手作的衣服，带手作加成",
         "wardrobe.gearTitle": "工作装备", "wardrobe.gearDetail": "打工加成，和原来一样",
-        "wardrobe.separate": "两边各选各的，互不影响",
         "wardrobe.showGear": "没选外观的部位，显示工作装备的样子",
         "wardrobe.followGear": "跟随工作装备：显示「%@」的样子",
         "wardrobe.ownClothes": "显示原本的衣服",
@@ -200,7 +205,6 @@ extension GameStrings {
         "wardrobe.bonusNote": "手作加成只在穿着时生效；打工加成只来自工作装备。",
         "wardrobe.tryOnTitle": "试穿中：%@",
         "wardrobe.tryOnNote": "试穿不会保存，离开衣柜就还原。做出来以后才能真正穿上。",
-        "wardrobe.tryingOn": "试穿中",
         "wardrobe.takeOff": "脱下", "wardrobe.wear": "穿上", "wardrobe.alreadyOn": "已经穿着了", "wardrobe.wearNone": "不戴",
         "wardrobe.goCraft": "去制作台看看",
         "wardrobe.noneMade": "这个部位还没有做好的衣服。",
@@ -212,6 +216,12 @@ extension GameStrings {
     ]
 
     static let craft300Traditional: [String: String] = [
+        "wardrobe.tab.profile": "檔案", "wardrobe.tab.wardrobe": "衣櫃",
+        "wardrobe.now": "現在的樣子",
+        "wardrobe.tryOnBanner": "試穿中：%@ · 不會保存",
+        "wardrobe.gearHint": "工作裝備在檔案頁裡換，打工加成只來自工作裝備。",
+        "wardrobe.toProfile": "去檔案頁",
+        "wardrobe.entryDetail": "手作的衣服在這裡穿戴和試穿，不影響打工加成。",
         "town.place.magic": "魔法小屋",
         "town.description.magic": "轉盤、製作台和衣櫃。用出遊帶回的材料，照著藍圖做出能穿在身上的手作。",
         "craft.enter": "進小屋",
@@ -327,7 +337,7 @@ extension GameStrings {
         "craft.route.later": "之後開放",
         "craft.route.go": "去看看", "craft.route.goGarden": "去花園",
         "craft.wheel.odds": "獎池和機率", "craft.wheel.always": "每次都有東西",
-        "craft.wheel.blueprint": "一張藍圖", "craft.wheel.blueprintShort": "藍圖",
+        "craft.wheel.blueprint": "一張藍圖",
         "craft.wheel.blueprintNote": "從能穿的藍圖裡抽；手裡已有的會加次數，滿了的部分換成星塵。",
         "craft.wheel.free": "免費轉一次", "craft.wheel.paid": "轉一次 · %d 金幣",
         "craft.wheel.freeNote": "今天第 1 次免費 · 之後每次 %d 金幣，最多再轉 %d 次",
@@ -382,7 +392,6 @@ extension GameStrings {
         "wardrobe.title": "衣櫃", "wardrobe.madeCount": "做好 %d 件",
         "wardrobe.lookTitle": "外觀", "wardrobe.lookDetail": "手作的衣服，帶手作加成",
         "wardrobe.gearTitle": "工作裝備", "wardrobe.gearDetail": "打工加成，和原來一樣",
-        "wardrobe.separate": "兩邊各選各的，互不影響",
         "wardrobe.showGear": "沒選外觀的部位，顯示工作裝備的樣子",
         "wardrobe.followGear": "跟隨工作裝備：顯示「%@」的樣子",
         "wardrobe.ownClothes": "顯示原本的衣服",
@@ -394,7 +403,6 @@ extension GameStrings {
         "wardrobe.bonusNote": "手作加成只在穿著時生效；打工加成只來自工作裝備。",
         "wardrobe.tryOnTitle": "試穿中：%@",
         "wardrobe.tryOnNote": "試穿不會保存，離開衣櫃就還原。做出來以後才能真正穿上。",
-        "wardrobe.tryingOn": "試穿中",
         "wardrobe.takeOff": "脫下", "wardrobe.wear": "穿上", "wardrobe.alreadyOn": "已經穿著了", "wardrobe.wearNone": "不戴",
         "wardrobe.goCraft": "去製作台看看",
         "wardrobe.noneMade": "這個部位還沒有做好的衣服。",
@@ -406,6 +414,12 @@ extension GameStrings {
     ]
 
     static let craft300English: [String: String] = [
+        "wardrobe.tab.profile": "Profile", "wardrobe.tab.wardrobe": "Wardrobe",
+        "wardrobe.now": "How you look now",
+        "wardrobe.tryOnBanner": "Trying on %@ · not saved",
+        "wardrobe.gearHint": "Work gear is changed on the profile tab; work bonuses come only from work gear.",
+        "wardrobe.toProfile": "Profile tab",
+        "wardrobe.entryDetail": "Wear and try on your handmade clothes. Work bonuses stay the same.",
         "town.place.magic": "Magic Cottage",
         "town.description.magic": "A wheel, a crafting table and a wardrobe. Turn materials from your outings into handmade clothes you can wear.",
         "craft.enter": "Step inside",
@@ -521,7 +535,7 @@ extension GameStrings {
         "craft.route.later": "opens later",
         "craft.route.go": "Go", "craft.route.goGarden": "Go to the garden",
         "craft.wheel.odds": "Prizes and odds", "craft.wheel.always": "Every spin wins",
-        "craft.wheel.blueprint": "A blueprint", "craft.wheel.blueprintShort": "Blueprint",
+        "craft.wheel.blueprint": "A blueprint",
         "craft.wheel.blueprintNote": "Drawn from the wearable blueprints; one you hold gets more uses, and anything above the cap becomes stardust.",
         "craft.wheel.free": "Free spin", "craft.wheel.paid": "Spin · %d coins",
         "craft.wheel.freeNote": "Today's first spin is free · then %d coins each, up to %d more",
@@ -576,7 +590,6 @@ extension GameStrings {
         "wardrobe.title": "Wardrobe", "wardrobe.madeCount": "%d made",
         "wardrobe.lookTitle": "Look", "wardrobe.lookDetail": "Handmade clothes, with handmade bonuses",
         "wardrobe.gearTitle": "Work gear", "wardrobe.gearDetail": "Work bonuses, as before",
-        "wardrobe.separate": "Each side is chosen on its own",
         "wardrobe.showGear": "Show work gear where no look is picked",
         "wardrobe.followGear": "Following work gear: shows “%@”",
         "wardrobe.ownClothes": "Shows your own clothes",
@@ -588,7 +601,6 @@ extension GameStrings {
         "wardrobe.bonusNote": "Handmade bonuses count while worn; work bonuses come only from work gear.",
         "wardrobe.tryOnTitle": "Trying on: %@",
         "wardrobe.tryOnNote": "Trying on isn't saved and ends when you leave the wardrobe. Make it to wear it for real.",
-        "wardrobe.tryingOn": "Trying on",
         "wardrobe.takeOff": "Take off", "wardrobe.wear": "Wear", "wardrobe.alreadyOn": "Already wearing", "wardrobe.wearNone": "Wear none",
         "wardrobe.goCraft": "See the crafting table",
         "wardrobe.noneMade": "Nothing made for this slot yet.",

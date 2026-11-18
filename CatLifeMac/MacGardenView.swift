@@ -871,8 +871,7 @@ struct MacGardenView: View {
         let finds = CraftMaterial.allCases.filter { (settlement.craftFinds?[$0.rawValue] ?? 0) > 0 }
         ForEach(finds) { material in
             HStack(spacing: 8) {
-                Image(systemName: material.symbol).font(.system(size: 12, weight: .bold)).foregroundStyle(MacCraftStyle.tint(material))
-                    .frame(width: 28, height: 28).background(MacCraftStyle.tint(material).opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+                MacMaterialArt(material: material, size: 28)
                 Text(GameStrings.text(material.titleKey)).font(.system(size: 12.5, weight: .heavy))
                 Spacer(minLength: 4)
                 Text(verbatim: "×\(settlement.craftFinds?[material.rawValue] ?? 0)").font(.system(size: 13, weight: .black)).monospacedDigit()

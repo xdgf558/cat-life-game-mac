@@ -88,8 +88,19 @@ struct MacMagicCottage: View {
     }
 
     private var hubScene: some View {
-        ZStack(alignment: .bottom) {
-            MacCottageBackdrop()
+        GeometryReader { geometry in
+            // The stations shrink with the scene, so a small window still shows all three and the loop strip.
+            let icon = max(64, min(112, geometry.size.height * 0.17))
+            ZStack(alignment: .bottom) {
+                MacCottageBackdrop()
+                hubContent(icon: icon)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(.white, lineWidth: 3))
+    }
+
+    private func hubContent(icon: CGFloat) -> some View {
             VStack(spacing: 0) {
                 HStack {
                     Label(GameStrings.format("craft.hub.summary", craft.blueprints.values.filter { $0.usesLeft > 0 }.count,
@@ -102,18 +113,15 @@ struct MacMagicCottage: View {
                 Spacer(minLength: 0)
                 HStack(alignment: .bottom, spacing: 14) {
                     station(title: "craft.station.wheel", detail: "craft.station.wheel.detail", key: "W", symbol: "circle.dashed.inset.filled",
-                            tint: RoomTheme.lilac, tag: wheelTag, id: "magicStationWheel") { open(.wheel) }
+                            tint: RoomTheme.lilac, tag: wheelTag, id: "magicStationWheel", icon: icon) { open(.wheel) }
                     station(title: "craft.station.table", detail: "craft.station.table.detail", key: "C", symbol: "hammer.fill",
                             tint: RoomTheme.gold, tag: craft.readyCount > 0 ? GameStrings.format("craft.tag.ready", craft.readyCount) : nil,
-                            id: "magicStationTable") { open(.craft) }
+                            id: "magicStationTable", icon: icon) { open(.craft) }
                     station(title: "craft.station.wardrobe", detail: "craft.station.wardrobe.detail", key: "R", symbol: "hanger",
-                            tint: RoomTheme.friendship, tag: newClothesTag, id: "magicStationWardrobe", action: exits.wardrobe)
+                            tint: RoomTheme.friendship, tag: newClothesTag, id: "magicStationWardrobe", icon: icon, action: exits.wardrobe)
                 }.padding(.horizontal, 16)
                 loopStrip.padding(16)
             }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(.white, lineWidth: 3))
     }
 
     private var wheelTag: String? {
@@ -126,15 +134,15 @@ struct MacMagicCottage: View {
     }
 
     private func station(title: String, detail: String, key: String, symbol: String, tint: Color, tag: String?, id: String,
-                         action: @escaping () -> Void) -> some View {
+                         icon: CGFloat, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 10) {
                 Text(tag ?? " ").font(.system(size: 12, weight: .heavy)).foregroundStyle(.white)
                     .padding(.horizontal, 12).padding(.vertical, 5)
                     .background(RoomTheme.coral, in: Capsule()).overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                     .opacity(tag == nil ? 0 : 1)
-                Image(systemName: symbol).font(.system(size: 54, weight: .bold)).foregroundStyle(tint)
-                    .frame(width: 112, height: 112)
+                Image(systemName: symbol).font(.system(size: icon * 0.48, weight: .bold)).foregroundStyle(tint)
+                    .frame(width: icon, height: icon)
                     .background(RoomTheme.paper.opacity(0.95), in: Circle())
                     .overlay(Circle().strokeBorder(tint.opacity(0.35), lineWidth: 4))
                 HStack(spacing: 10) {
@@ -571,8 +579,7 @@ struct MacMaterialBag: View {
             HStack(spacing: 6) {
                 ForEach(CraftMaterial.allCases) { material in
                     let tile = VStack(spacing: 4) {
-                        Image(systemName: material.symbol).font(.system(size: 14, weight: .bold)).foregroundStyle(MacCraftStyle.tint(material))
-                            .frame(width: 32, height: 32).background(MacCraftStyle.tint(material).opacity(0.15), in: RoundedRectangle(cornerRadius: 9))
+                        MacMaterialArt(material: material, size: 34)
                         Text(GameStrings.text(material.titleKey)).font(.system(size: 10.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                         Text("\(craft.count(of: material))").font(.system(size: 15, weight: .black)).monospacedDigit()
                     }
@@ -598,8 +605,11 @@ struct MacMaterialBag: View {
 struct MacCottageBackdrop: View {
     var body: some View {
         if UIImage(named: "magic-cottage-interior") != nil {
-            Image("magic-cottage-interior").resizable().scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+            // A fill-mode image reports its own (huge) size; hosting it in an overlay of an empty view keeps
+            // the backdrop exactly the size it is given, so the page shrinks with the window.
+            Color.clear
+                .overlay { Image("magic-cottage-interior").resizable().scaledToFill() }
+                .clipped()
                 .accessibilityHidden(true)
         } else {
             placeholder

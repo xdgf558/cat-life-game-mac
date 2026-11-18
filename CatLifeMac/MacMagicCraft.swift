@@ -177,8 +177,7 @@ struct MacCraftTable: View {
     private func costTile(_ cost: CraftCost) -> some View {
         let have = state.count(of: cost.material), enough = have >= cost.count
         return HStack(spacing: 8) {
-            Image(systemName: cost.material.symbol).font(.system(size: 13, weight: .bold)).foregroundStyle(MacCraftStyle.tint(cost.material))
-                .frame(width: 30, height: 30).background(MacCraftStyle.tint(cost.material).opacity(0.15), in: RoundedRectangle(cornerRadius: 9))
+            MacMaterialArt(material: cost.material, size: 32)
             Text(GameStrings.text(cost.material.titleKey)).font(.system(size: 13, weight: .heavy)).lineLimit(1)
             Spacer(minLength: 4)
             Text(verbatim: "\(have)/\(cost.count)").font(.system(size: 14, weight: .black)).monospacedDigit()

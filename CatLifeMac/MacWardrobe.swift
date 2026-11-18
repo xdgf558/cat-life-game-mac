@@ -42,14 +42,6 @@ struct MacAvatarFigure: View {
                     .foregroundStyle(RoomTheme.darkMint.opacity(0.7))
             }
         }
-        .overlay(alignment: .top) {
-            if tryOn != nil {
-                Label(GameStrings.text("wardrobe.tryingOn"), systemImage: "eye.fill").font(.system(size: 12, weight: .heavy))
-                    .foregroundStyle(.white).padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(RoomTheme.friendship, in: Capsule()).padding(.top, 6)
-                    .accessibilityIdentifier("wardrobeTryOnBadge")
-            }
-        }
     }
 
     @ViewBuilder private func layer(_ definition: BlueprintDefinition, slot: EquipmentSlot, size: CGSize) -> some View {
@@ -125,50 +117,253 @@ struct MacAvatarFigure: View {
     }
 }
 
-/// One appearance slot in the profile's middle column.
-struct MacAppearanceRow: View {
-    let slot: EquipmentSlot
-    let craft: CraftState
-    let workGear: EquipmentItem?
-    let selected: Bool
-    let open: () -> Void
+/// 3.0 衣柜: its own page under 我的档案. The figure on the left (a try-on is announced under it, never
+/// on the clothes), the four appearance slots in the middle, the closet for the chosen slot on the right.
+/// Esc ends a try-on first, then goes back to the profile tab.
+@MainActor
+struct MacWardrobePage: View {
+    let store: GameStore
+    let openMagic: () -> Void
+    let back: () -> Void
+    @Binding var isNested: Bool
+    @State private var slot: EquipmentSlot = .head
+    @State private var pick: MacClosetPick = .none
+    @FocusState private var focused: Bool
+
+    private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
+    private var profile: PlayerProfile { store.snapshot?.player.profile ?? PlayerProfile() }
+    private var avatar: PlayerAvatar? { profile.avatarID.flatMap(PlayerCatalog.avatar(id:)) }
+    private var tryOn: String? {
+        guard case .tryOn(let id) = pick else { return nil }
+        return id
+    }
 
     var body: some View {
-        let item = craft.appearance[slot].flatMap(craft.item(id:))
-        let definition = item?.blueprint
-        let fallback = craft.showsWorkGearWhenEmpty
-            ? GameStrings.format("wardrobe.followGear", workGear.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
-            : GameStrings.text("wardrobe.ownClothes")
-        return Button(action: open) {
-            HStack(spacing: 12) {
-                Group {
-                    if let definition {
-                        MacBlueprintIcon(definition: definition, size: 46)
-                    } else {
-                        Image(systemName: "nosign").font(.system(size: 17)).foregroundStyle(RoomTheme.secondary.opacity(0.6))
-                            .frame(width: 46, height: 46)
-                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
+        GeometryReader { geometry in
+            let narrow = geometry.size.width < 1240
+            HStack(alignment: .top, spacing: 16) {
+                stageColumn.frame(width: narrow ? 340 : 400)
+                slotsColumn.frame(maxWidth: .infinity)
+                MacWardrobeCloset(store: store, slot: slot, pick: $pick, selectSlot: { select($0) }, openMagic: openMagic)
+                    .frame(width: narrow ? 320 : 360)
+            }
+        }
+        .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
+        .focusable().focusEffectDisabled().focused($focused)
+        .onKeyPress(phases: .down) { handleKey($0) }
+        .onAppear { select(.head); focused = true; isNested = true }
+        .onDisappear { isNested = false }
+        .onReceive(NotificationCenter.default.publisher(for: .macProfileEscape)) { _ in escape() }
+        .accessibilityElement(children: .contain).accessibilityIdentifier("macWardrobePage")
+    }
+
+    // MARK: Figure
+
+    private var stageColumn: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(GameStrings.text("wardrobe.now"), systemImage: "person.fill").font(.system(size: 16, weight: .heavy))
+            ZStack {
+                RadialGradient(colors: [RoomTheme.paper, RoomTheme.friendshipPaper, RoomTheme.wood.opacity(0.3)],
+                               center: .center, startRadius: 20, endRadius: 360)
+                Ellipse().fill(RoomTheme.ink.opacity(0.09)).frame(width: 190, height: 24)
+                    .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, tryOn == nil ? 22 : 64)
+                MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
+                    .padding(.top, 40).padding(.bottom, tryOn == nil ? 16 : 58).padding(.horizontal, 12)
+            }
+            .overlay(alignment: .bottom) {
+                if let id = tryOn, let definition = CraftCatalog.blueprint(id: id) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "eye.fill")
+                        Text(GameStrings.format("wardrobe.tryOnBanner", GameStrings.text(definition.nameKey))).lineLimit(1).minimumScaleFactor(0.8)
+                        Spacer(minLength: 4)
+                        MacKeyCap(value: "esc")
+                    }
+                    .font(.system(size: 12.5, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
+                    .padding(.horizontal, 12).padding(.vertical, 9)
+                    .background(RoomTheme.paper.opacity(0.96), in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
+                    .padding(12)
+                    .accessibilityIdentifier("wardrobeTryOnBadge")
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+            handmadeBonuses
+        }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
+    }
+
+    private var handmadeBonuses: some View {
+        let active = HandmadeAttribute.allCases.filter { craft.bonus($0) > 0 }
+        return VStack(alignment: .leading, spacing: 6) {
+            Text(GameStrings.text("wardrobe.handmadeBonus")).font(.system(size: 12, weight: .heavy))
+            if active.isEmpty {
+                Text(GameStrings.text("wardrobe.noHandmadeBonus")).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible())], alignment: .leading, spacing: 6) {
+                    ForEach(active, id: \.self) { attribute in
+                        Label(GameStrings.text(attribute.titleKey) + " " + MacCraftStyle.valueText(attribute, craft.bonus(attribute)),
+                              systemImage: MacCraftStyle.symbol(attribute))
+                            .font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep).lineLimit(1).minimumScaleFactor(0.8)
                     }
                 }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(GameStrings.text("craft.slot.\(slot.rawValue)")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                    Text(definition.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("wardrobe.none"))
-                        .font(.system(size: 15, weight: .black)).lineLimit(1)
-                    Text(item.map(MacWardrobeCloset.summary) ?? fallback).font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(item == nil ? RoomTheme.secondary : RoomTheme.darkMint).lineLimit(1)
+            }
+        }
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoomTheme.friendshipPaper.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: Slots
+
+    private var slotsColumn: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Label(GameStrings.text("wardrobe.lookTitle"), systemImage: "hanger").font(.system(size: 18, weight: .heavy))
+                    .foregroundStyle(RoomTheme.friendshipDeep)
+                Text(GameStrings.text("wardrobe.lookDetail")).font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
+                ForEach(EquipmentSlot.allCases, id: \.self) { item in slotCard(item) }
+            }
+            Toggle(isOn: Binding(get: { craft.showsWorkGearWhenEmpty },
+                                 set: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })) {
+                Text(GameStrings.text("wardrobe.showGear")).font(.system(size: 12.5, weight: .heavy))
+            }
+            .toggleStyle(.switch).tint(RoomTheme.mint).disabled(store.isBusy)
+            .padding(.horizontal, 14).padding(.vertical, 10).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+            .accessibilityIdentifier("wardrobeShowGear")
+            Spacer(minLength: 0)
+            Button(action: back) {
+                HStack(spacing: 10) {
+                    Image(systemName: "briefcase.fill").foregroundStyle(RoomTheme.sky)
+                    Text(GameStrings.text("wardrobe.gearHint")).font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
+                    Spacer(minLength: 6)
+                    Text(GameStrings.text("wardrobe.toProfile") + " ›").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
                 }
-                Spacer(minLength: 4)
+                .padding(12).background(RoomTheme.sky.opacity(0.07), in: RoundedRectangle(cornerRadius: 14))
+                .contentShape(RoundedRectangle(cornerRadius: 14))
+            }.buttonStyle(.plain).accessibilityIdentifier("wardrobeToProfile")
+        }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
+    }
+
+    private func slotCard(_ item: EquipmentSlot) -> some View {
+        let worn = craft.appearance[item].flatMap(craft.item(id:))
+        let definition = worn?.blueprint
+        let chosen = slot == item
+        let gear = profile.equipped[item].flatMap(PlayerCatalog.item(id:))
+        let fallback = craft.showsWorkGearWhenEmpty
+            ? GameStrings.format("wardrobe.followGear", gear.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
+            : GameStrings.text("wardrobe.ownClothes")
+        return Button { select(item) } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(GameStrings.text("craft.slot.\(item.rawValue)")).font(.system(size: 12, weight: .heavy))
+                        .foregroundStyle(chosen ? RoomTheme.friendshipDeep : RoomTheme.secondary)
+                    Spacer()
+                    if worn != nil {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(RoomTheme.mint)
+                    }
+                }
+                Group {
+                    if let definition {
+                        MacBlueprintIcon(definition: definition, size: 72)
+                    } else {
+                        Image(systemName: "nosign").font(.system(size: 24)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
+                            .frame(width: 72, height: 72)
+                            .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
+                    }
+                }.frame(maxWidth: .infinity)
+                Text(definition.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("wardrobe.none"))
+                    .font(.system(size: 15, weight: .black)).lineLimit(1).frame(maxWidth: .infinity)
+                Text(worn.map(MacWardrobeCloset.summary) ?? fallback).font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(worn == nil ? RoomTheme.secondary : RoomTheme.darkMint)
+                    .lineLimit(2).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+            }
+            .padding(12).frame(maxWidth: .infinity)
+            .background(chosen ? RoomTheme.friendshipPaper : RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(chosen ? RoomTheme.friendship : RoomTheme.track, lineWidth: chosen ? 3 : 2))
+            .contentShape(RoundedRectangle(cornerRadius: 18))
+        }
+        .buttonStyle(.plain).accessibilityAddTraits(chosen ? .isSelected : [])
+        .accessibilityLabel(GameStrings.text("craft.slot.\(item.rawValue)"))
+        .accessibilityValue(definition.map { GameStrings.text($0.nameKey) } ?? fallback)
+        .accessibilityIdentifier("wardrobeSlot_\(item.rawValue)")
+    }
+
+    // MARK: Actions
+
+    private func select(_ next: EquipmentSlot) {
+        slot = next
+        pick = craft.appearance[next].map { .item($0) } ?? MacWardrobeCloset.picks(craft, slot: next).first ?? .none
+        focused = true
+    }
+
+    /// Esc: a try-on goes back to what is worn; otherwise back to the profile tab.
+    private func escape() {
+        if tryOn != nil { pick = craft.appearance[slot].map { .item($0) } ?? .none } else { back() }
+        focused = true
+    }
+
+    /// Arrows pick and switch slots, ↩ wears, ⌫ takes off.
+    private func handleKey(_ key: KeyPress) -> KeyPress.Result {
+        let list = MacWardrobeCloset.picks(craft, slot: slot)
+        let index = list.firstIndex(of: pick) ?? 0
+        switch key.key {
+        case .upArrow: if !list.isEmpty { pick = list[max(0, index - 1)] }; return .handled
+        case .downArrow: if !list.isEmpty { pick = list[min(list.count - 1, index + 1)] }; return .handled
+        case .leftArrow, .rightArrow:
+            let all = EquipmentSlot.allCases, at = all.firstIndex(of: slot) ?? 0
+            select(all[(at + (key.key == .leftArrow ? all.count - 1 : 1)) % all.count]); return .handled
+        case .return:
+            if case .item(let id) = pick, craft.appearance[slot] != id, !store.isBusy {
+                Task { await store.setAppearance(slot: slot, itemID: id) }
+            }
+            return .handled
+        case .delete, .deleteForward:
+            if craft.appearance[slot] != nil, !store.isBusy { Task { await store.setAppearance(slot: slot, itemID: nil) } }
+            return .handled
+        case .escape: escape(); return .handled
+        default: return .ignored
+        }
+    }
+}
+
+/// The wardrobe's front door on the profile page: what is worn in each slot, and a way in.
+struct MacWardrobeEntry: View {
+    let craft: CraftState
+    let open: () -> Void
+    var body: some View {
+        Button(action: open) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(GameStrings.text("wardrobe.title"), systemImage: "hanger").font(.system(size: 15, weight: .heavy))
+                        .foregroundStyle(RoomTheme.friendshipDeep)
+                    Text(GameStrings.text("wardrobe.entryDetail")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 6)
+                HStack(spacing: 6) {
+                    ForEach(EquipmentSlot.allCases, id: \.self) { slot in
+                        if let definition = craft.appearance[slot].flatMap(craft.item(id:))?.blueprint {
+                            MacBlueprintIcon(definition: definition, size: 36)
+                        } else {
+                            Image(systemName: "nosign").font(.system(size: 12)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
+                                .frame(width: 36, height: 36)
+                                .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+                        }
+                    }
+                }
                 Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             }
-            .padding(9).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(selected ? RoomTheme.friendship : RoomTheme.track, lineWidth: selected ? 3 : 2))
-            .contentShape(RoundedRectangle(cornerRadius: 16))
+            .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.friendshipPaper.opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
+            .contentShape(RoundedRectangle(cornerRadius: 18))
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(GameStrings.text("craft.slot.\(slot.rawValue)"))
-        .accessibilityValue(definition.map { GameStrings.text($0.nameKey) } ?? fallback)
-        .accessibilityIdentifier("profileLook_\(slot.rawValue)")
+        .buttonStyle(.plain).accessibilityIdentifier("profileOpenWardrobe")
     }
 }
 

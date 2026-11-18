@@ -8,8 +8,8 @@ struct MacProfileExits {
     var bag: () -> Void = {}
     var shopEquipment: () -> Void = {}
     var saves: () -> Void = {}
-    /// 3.0: the magic cottage (to make clothes for the wardrobe).
-    var magic: () -> Void = {}
+    /// 3.0: the wardrobe tab of this page.
+    var wardrobe: () -> Void = {}
 }
 
 /// "My Profile" on the desktop: character on the left, what you wear in the middle, your numbers on the right.
@@ -20,13 +20,9 @@ struct MacProfilePage: View {
     var exits = MacProfileExits()
     /// True while a nested state is open, so the root can send Esc here instead of to the title.
     @Binding var isNested: Bool
-    /// 3.0: opened from the cottage's wardrobe, so the page starts on the appearance closet.
-    var startsInWardrobe = false
 
-    private enum Mode: Equatable { case overview, wardrobe(EquipmentSlot), sources, appearance(EquipmentSlot) }
+    private enum Mode: Equatable { case overview, wardrobe(EquipmentSlot), sources }
     @State private var mode: Mode = .overview
-    /// What the appearance closet has picked; a blueprint pick is a try-on that is never saved.
-    @State private var closetPick: MacClosetPick = .none
     @State private var picked: String?
     @State private var renaming = false
     @State private var nameDraft = ""
@@ -65,7 +61,6 @@ struct MacProfilePage: View {
         .onKeyPress(phases: .down) { key in handleKey(key) }
         .onAppear {
             pageFocused = true
-            if startsInWardrobe, mode == .overview { openAppearance(.head) }
             syncNested()
         }
         .onChange(of: mode) { _, _ in syncNested() }
@@ -85,7 +80,6 @@ struct MacProfilePage: View {
             if renaming { nameEditor } else { nameRow }
             levelRow
             stage
-            bonusStrip
             meter("player.stamina", symbol: "bolt.fill", value: player?.stamina ?? 0, tint: RoomTheme.mint)
             meter("player.mood", symbol: "face.smiling.fill", value: player?.mood ?? 0, tint: RoomTheme.friendship)
         }.macContentCard69(padding: 20).frame(maxHeight: .infinity)
@@ -151,7 +145,7 @@ struct MacProfilePage: View {
                            center: .center, startRadius: 20, endRadius: 360)
             Ellipse().fill(RoomTheme.ink.opacity(0.09)).frame(width: 200, height: 26)
                 .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 26)
-            MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOnBlueprint)
+            MacAvatarFigure(avatar: avatar, craft: craft)
                 .padding(.top, avatar == nil ? 0 : 44).padding(.bottom, avatar == nil ? 0 : 20)
         }
         .overlay(alignment: .topLeading) {
@@ -187,43 +181,24 @@ struct MacProfilePage: View {
         if case .wardrobe(let slot) = mode { wardrobe(slot) } else { outfit }
     }
 
-    /// 3.0: appearance on top (handmade clothes), work gear below; each side is chosen on its own.
+    /// Work gear (work bonuses), what the bonuses add up to, and the way into the wardrobe.
     private var outfit: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
-                    sectionHeader("wardrobe.lookTitle", detail: "wardrobe.lookDetail", symbol: "hanger", tint: RoomTheme.friendshipDeep)
-                    ForEach(slots, id: \.self) { slot in
-                        MacAppearanceRow(slot: slot, craft: craft, workGear: profile.equipped[slot].flatMap(PlayerCatalog.item(id:)),
-                                         selected: mode == .appearance(slot)) { openAppearance(slot) }
-                    }
-                    HStack(spacing: 8) {
-                        Rectangle().fill(RoomTheme.track).frame(height: 1.5)
-                        Text(GameStrings.text("wardrobe.separate")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                            .fixedSize()
-                        Rectangle().fill(RoomTheme.track).frame(height: 1.5)
-                    }.padding(.vertical, 4)
-                    sectionHeader("wardrobe.gearTitle", detail: "wardrobe.gearDetail", symbol: "briefcase.fill", tint: RoomTheme.sky)
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible())], spacing: 8) {
-                        ForEach(slots, id: \.self) { slot in gearTile(slot) }
-                    }
-                }.padding(.vertical, 2)
-            }.scrollIndicators(.never)
-            Toggle(isOn: Binding(get: { craft.showsWorkGearWhenEmpty },
-                                 set: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })) {
-                Text(GameStrings.text("wardrobe.showGear")).font(.system(size: 12.5, weight: .heavy))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                sectionHeader("wardrobe.gearTitle", detail: "wardrobe.gearDetail", symbol: "briefcase.fill", tint: RoomTheme.sky)
+                Text(GameStrings.format("mac.profile.wornCount", profile.equipped.count, slots.count))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary).fixedSize()
             }
-            .toggleStyle(.switch).tint(RoomTheme.mint).disabled(store.isBusy)
-            .padding(.horizontal, 12).padding(.vertical, 8).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
-            .accessibilityIdentifier("wardrobeShowGear")
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                ForEach(slots, id: \.self) { slot in gearTile(slot) }
+            }
+            bonusStrip
+            Spacer(minLength: 0)
+            MacWardrobeEntry(craft: craft, open: exits.wardrobe)
         }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
     }
 
     private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
-    private var tryOnBlueprint: String? {
-        guard case .appearance = mode, case .tryOn(let id) = closetPick else { return nil }
-        return id
-    }
 
     private func sectionHeader(_ title: String, detail: String, symbol: String, tint: Color) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -373,8 +348,6 @@ struct MacProfilePage: View {
         case .overview: overviewColumn
         case .wardrobe(let slot): compareColumn(slot)
         case .sources: sourcesColumn
-        case .appearance(let slot):
-            MacWardrobeCloset(store: store, slot: slot, pick: $closetPick, selectSlot: openAppearance, openMagic: exits.magic)
         }
     }
 
@@ -691,12 +664,6 @@ struct MacProfilePage: View {
         pageFocused = true
     }
 
-    private func openAppearance(_ slot: EquipmentSlot) {
-        mode = .appearance(slot)
-        closetPick = craft.appearance[slot].map { .item($0) } ?? MacWardrobeCloset.picks(craft, slot: slot).first ?? .none
-        pageFocused = true
-    }
-
     private func equipPicked() {
         guard let picked, profile.ownedEquipmentIDs.contains(picked), !store.isBusy else { return }
         store.equipItem(picked)
@@ -706,7 +673,7 @@ struct MacProfilePage: View {
     private func back() {
         if showsAvatars { showsAvatars = false }
         else if renaming { if !savingName { renaming = false } }
-        else if mode != .overview { mode = .overview; picked = nil; closetPick = .none }
+        else if mode != .overview { mode = .overview; picked = nil }
         pageFocused = true
     }
 
@@ -723,7 +690,6 @@ struct MacProfilePage: View {
             default: return .ignored
             }
         }
-        if case .appearance(let slot) = mode { return closetKey(key, slot: slot) }
         guard case .wardrobe(let slot) = mode else { return key.key == .escape && mode != .overview ? { back(); return .handled }() : .ignored }
         let list = items(for: slot).map(\.id)
         let index = picked.flatMap { list.firstIndex(of: $0) } ?? 0
@@ -734,29 +700,6 @@ struct MacProfilePage: View {
             let all = slots, at = all.firstIndex(of: slot) ?? 0
             openWardrobe(all[(at + (key.key == .leftArrow ? all.count - 1 : 1)) % all.count]); return .handled
         case .return: equipPicked(); return .handled
-        case .escape: back(); return .handled
-        default: return .ignored
-        }
-    }
-
-    /// Arrows pick and switch slots, ↩ wears, ⌫ takes off, Esc leaves (and ends a try-on).
-    private func closetKey(_ key: KeyPress, slot: EquipmentSlot) -> KeyPress.Result {
-        let list = MacWardrobeCloset.picks(craft, slot: slot)
-        let index = list.firstIndex(of: closetPick) ?? 0
-        switch key.key {
-        case .upArrow: if !list.isEmpty { closetPick = list[max(0, index - 1)] }; return .handled
-        case .downArrow: if !list.isEmpty { closetPick = list[min(list.count - 1, index + 1)] }; return .handled
-        case .leftArrow, .rightArrow:
-            let at = slots.firstIndex(of: slot) ?? 0
-            openAppearance(slots[(at + (key.key == .leftArrow ? slots.count - 1 : 1)) % slots.count]); return .handled
-        case .return:
-            if case .item(let id) = closetPick, craft.appearance[slot] != id, !store.isBusy {
-                Task { await store.setAppearance(slot: slot, itemID: id) }
-            }
-            return .handled
-        case .delete, .deleteForward:
-            if craft.appearance[slot] != nil, !store.isBusy { Task { await store.setAppearance(slot: slot, itemID: nil) } }
-            return .handled
         case .escape: back(); return .handled
         default: return .ignored
         }

@@ -40,6 +40,10 @@ struct MacMagicWheelPage: View {
     private var stage: some View {
         ZStack {
             MacCottageBackdrop()
+            // Dim the room a little so the wheel is the bright thing on stage.
+            LinearGradient(colors: [Color(red: 0.16, green: 0.12, blue: 0.30).opacity(0.45), Color(red: 0.16, green: 0.12, blue: 0.30).opacity(0.2)],
+                           startPoint: .top, endPoint: .bottom)
+                .allowsHitTesting(false)
             VStack(spacing: 12) {
                 HStack {
                     Button(action: back) {
@@ -110,10 +114,7 @@ struct MacMagicWheelPage: View {
             }
             ForEach(CraftCatalog.wheel) { slice in
                 HStack(spacing: 10) {
-                    Image(systemName: slice.prize.material?.symbol ?? "scroll.fill").font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(slice.prize.material.map(MacCraftStyle.tint) ?? RoomTheme.gold)
-                        .frame(width: 32, height: 32)
-                        .background((slice.prize.material.map(MacCraftStyle.tint) ?? RoomTheme.gold).opacity(0.15), in: RoundedRectangle(cornerRadius: 9))
+                    MacPrizeArt(prize: slice.prize, size: 34)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(Self.prizeName(slice.prize, count: slice.count)).font(.system(size: 13, weight: .heavy))
                         if slice.prize == .blueprint {
@@ -186,58 +187,156 @@ struct MacMagicWheelPage: View {
     }
 }
 
-/// The disc itself, turned by `angle` degrees clockwise. The pointer stays at the top.
+/// The disc itself, turned by `angle` degrees clockwise; the pointer stays at the top. Each wedge shows
+/// its prize as a picture (`material-<prize>`), no words; the odds table beside it names them.
 struct MacWheelDisc: View {
     let angle: Double
     var body: some View {
         GeometryReader { geometry in
             let side = min(geometry.size.width, geometry.size.height)
-            let radius = side / 2 - 10
+            let outer = side / 2 - 6
+            let rim = outer * 0.11
+            let radius = outer - rim
             let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
             let count = MacMagicWheelPage.wedges.count
+            let step = 360 / Double(count)
             ZStack {
-                Circle().fill(Color(red: 0.84, green: 0.62, blue: 0.36)).frame(width: radius * 2 + 20, height: radius * 2 + 20)
+                // Soft shadow under the wheel.
+                Ellipse().fill(Color.black.opacity(0.18)).frame(width: outer * 1.7, height: outer * 0.22).blur(radius: 10)
+                    .position(x: center.x, y: center.y + outer * 0.98)
+                // Gold rim.
+                Circle()
+                    .fill(AngularGradient(colors: [Self.goldLight, Self.goldDeep, Self.goldLight, Self.goldDeep, Self.goldLight],
+                                          center: .center))
+                    .frame(width: outer * 2, height: outer * 2)
+                    .overlay(Circle().strokeBorder(Color.white.opacity(0.7), lineWidth: 2))
+                    .shadow(color: Self.goldDeep.opacity(0.5), radius: 0, y: 5)
                     .position(center)
+                // Little lights around the rim.
+                ForEach(0..<16, id: \.self) { index in
+                    let theta = (Double(index) * 22.5 - 90) * .pi / 180
+                    Circle().fill(index.isMultiple(of: 2) ? Color.white : Color(red: 1, green: 0.88, blue: 0.55))
+                        .frame(width: rim * 0.42, height: rim * 0.42)
+                        .shadow(color: Color(red: 1, green: 0.85, blue: 0.4).opacity(0.9), radius: rim * 0.3)
+                        .position(x: center.x + (outer - rim / 2) * cos(theta), y: center.y + (outer - rim / 2) * sin(theta))
+                }
+                // The turning part: wedges and their pictures.
                 ZStack {
                     ForEach(0..<count, id: \.self) { index in
                         let prize = MacMagicWheelPage.wedges[index]
-                        let middle = Double(index) * 360 / Double(count)
-                        WheelWedge(center: center, radius: radius, start: middle - 180 / Double(count), end: middle + 180 / Double(count))
-                            .fill(Self.fill(prize))
-                        WheelWedge(center: center, radius: radius, start: middle - 180 / Double(count), end: middle + 180 / Double(count))
-                            .stroke(.white.opacity(0.8), lineWidth: 2)
-                        Text(Self.label(prize)).font(.system(size: max(12, radius * 0.13), weight: .black, design: .rounded))
-                            .foregroundStyle(Self.ink(prize))
-                            .position(x: center.x + radius * 0.66 * cos((middle - 90) * .pi / 180),
-                                      y: center.y + radius * 0.66 * sin((middle - 90) * .pi / 180))
+                        let middle = Double(index) * step
+                        WheelWedge(center: center, radius: radius, start: middle - step / 2, end: middle + step / 2)
+                            .fill(RadialGradient(colors: [Color.white, Self.fill(prize)], center: UnitPoint(x: center.x / max(1, geometry.size.width),
+                                                                                                         y: center.y / max(1, geometry.size.height)),
+                                                 startRadius: radius * 0.15, endRadius: radius))
+                        MacPrizeArt(prize: prize, size: radius * 0.42)
+                            .rotationEffect(.degrees(middle))
+                            .position(x: center.x + radius * 0.63 * cos((middle - 90) * .pi / 180),
+                                      y: center.y + radius * 0.63 * sin((middle - 90) * .pi / 180))
                     }
+                    ForEach(0..<count, id: \.self) { index in
+                        let edge = (Double(index) * step - step / 2 - 90) * .pi / 180
+                        Path { path in
+                            path.move(to: center)
+                            path.addLine(to: CGPoint(x: center.x + radius * cos(edge), y: center.y + radius * sin(edge)))
+                        }.stroke(Color.white, style: StrokeStyle(lineWidth: max(2, radius * 0.018), lineCap: .round))
+                    }
+                    Circle().strokeBorder(Color.white.opacity(0.9), lineWidth: max(2, radius * 0.02))
+                        .frame(width: radius * 2, height: radius * 2).position(center)
                 }
                 .rotationEffect(.degrees(angle))
-                Circle().fill(RoomTheme.lilac).frame(width: radius * 0.34, height: radius * 0.34)
-                    .overlay(Image(systemName: "star.fill").font(.system(size: radius * 0.13)).foregroundStyle(RoomTheme.gold))
-                    .overlay(Circle().strokeBorder(.white, lineWidth: 4)).position(center)
-                Image(systemName: "arrowtriangle.down.fill").font(.system(size: max(22, radius * 0.16)))
-                    .foregroundStyle(RoomTheme.coral).shadow(color: .black.opacity(0.2), radius: 0, y: 2)
-                    .position(x: center.x, y: center.y - radius - 4)
+                // Hub.
+                Circle()
+                    .fill(RadialGradient(colors: [Color(red: 0.72, green: 0.56, blue: 0.86), RoomTheme.lilac], center: UnitPoint(x: 0.35, y: 0.3),
+                                         startRadius: 2, endRadius: radius * 0.22))
+                    .frame(width: radius * 0.36, height: radius * 0.36)
+                    .overlay(Image(systemName: "star.fill").font(.system(size: radius * 0.15, weight: .bold))
+                        .foregroundStyle(LinearGradient(colors: [Color(red: 1, green: 0.9, blue: 0.5), RoomTheme.gold], startPoint: .top, endPoint: .bottom)))
+                    .overlay(Circle().strokeBorder(Self.goldLight, lineWidth: max(3, radius * 0.035)))
+                    .shadow(color: .black.opacity(0.25), radius: 0, y: 3)
+                    .position(center)
+                // Pointer at the top.
+                WheelPointer()
+                    .fill(LinearGradient(colors: [Color(red: 0.98, green: 0.52, blue: 0.42), RoomTheme.coralDeep], startPoint: .top, endPoint: .bottom))
+                    .overlay(WheelPointer().stroke(Color.white, lineWidth: 3))
+                    .frame(width: rim * 2.3, height: rim * 3)
+                    .shadow(color: .black.opacity(0.25), radius: 0, y: 3)
+                    .overlay(alignment: .top) {
+                        Circle().fill(Self.goldLight).frame(width: rim * 0.9, height: rim * 0.9)
+                            .overlay(Circle().strokeBorder(Color.white, lineWidth: 2)).offset(y: rim * 0.35)
+                    }
+                    .position(x: center.x, y: center.y - outer + rim * 0.9)
             }
         }
         .accessibilityHidden(true)
     }
-    static func label(_ prize: WheelPrize) -> String {
-        prize.material.map { GameStrings.text($0.titleKey) } ?? GameStrings.text("craft.wheel.blueprintShort")
-    }
+    private static let goldLight = Color(red: 0.98, green: 0.82, blue: 0.45)
+    private static let goldDeep = Color(red: 0.80, green: 0.55, blue: 0.22)
+
     static func fill(_ prize: WheelPrize) -> Color {
         switch prize {
-        case .fabric: Color(red: 0.97, green: 0.85, blue: 0.79)
-        case .thread: Color(red: 0.99, green: 0.91, blue: 0.93)
-        case .wood: Color(red: 0.95, green: 0.89, blue: 0.79)
-        case .dye: Color(red: 0.85, green: 0.91, blue: 0.96)
-        case .stardust: Color(red: 0.91, green: 0.87, blue: 0.96)
-        case .blueprint: Color(red: 1.0, green: 0.92, blue: 0.66)
+        case .fabric: Color(red: 0.98, green: 0.76, blue: 0.70)
+        case .thread: Color(red: 0.99, green: 0.80, blue: 0.86)
+        case .wood: Color(red: 0.93, green: 0.80, blue: 0.62)
+        case .dye: Color(red: 0.72, green: 0.85, blue: 0.97)
+        case .stardust: Color(red: 0.82, green: 0.74, blue: 0.96)
+        case .blueprint: Color(red: 1.0, green: 0.86, blue: 0.48)
         }
     }
-    static func ink(_ prize: WheelPrize) -> Color {
-        prize.material.map(MacCraftStyle.tint) ?? Color(red: 0.70, green: 0.45, blue: 0.10)
+}
+
+/// A teardrop pointing down.
+private struct WheelPointer: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let w = rect.width, h = rect.height
+        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addCurve(to: CGPoint(x: rect.minX, y: rect.minY + w / 2),
+                      control1: CGPoint(x: rect.midX - w * 0.15, y: rect.maxY - h * 0.25),
+                      control2: CGPoint(x: rect.minX, y: rect.minY + w * 0.95))
+        path.addArc(center: CGPoint(x: rect.midX, y: rect.minY + w / 2), radius: w / 2,
+                    startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+        path.addCurve(to: CGPoint(x: rect.midX, y: rect.maxY),
+                      control1: CGPoint(x: rect.maxX, y: rect.minY + w * 0.95),
+                      control2: CGPoint(x: rect.midX + w * 0.15, y: rect.maxY - h * 0.25))
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// A prize or material as a little picture: `material-<name>` once drawn, a coloured badge until then.
+struct MacPrizeArt: View {
+    let prize: WheelPrize
+    var size: CGFloat = 40
+    static func asset(_ prize: WheelPrize) -> String { "material-\(prize.rawValue)" }
+    static func symbol(_ prize: WheelPrize) -> String { prize.material?.symbol ?? "scroll.fill" }
+    static func tint(_ prize: WheelPrize) -> Color { prize.material.map { MacCraftStyle.tint($0) } ?? Color(red: 0.70, green: 0.45, blue: 0.10) }
+    var body: some View {
+        if UIImage(named: Self.asset(prize)) != nil {
+            Image(Self.asset(prize)).resizable().scaledToFit().frame(width: size, height: size)
+                .shadow(color: .black.opacity(0.15), radius: 0, y: 2)
+        } else {
+            Image(systemName: Self.symbol(prize)).font(.system(size: size * 0.42, weight: .bold)).foregroundStyle(.white)
+                .frame(width: size * 0.82, height: size * 0.82)
+                .background(Self.tint(prize), in: Circle())
+                .overlay(Circle().strokeBorder(.white, lineWidth: max(2, size * 0.06)))
+                .shadow(color: .black.opacity(0.15), radius: 0, y: 2)
+                .frame(width: size, height: size)
+        }
+    }
+}
+
+/// A material as a picture (same art as the wheel).
+struct MacMaterialArt: View {
+    let material: CraftMaterial
+    var size: CGFloat = 32
+    var body: some View {
+        if let prize = WheelPrize(rawValue: material.rawValue), UIImage(named: MacPrizeArt.asset(prize)) != nil {
+            Image(MacPrizeArt.asset(prize)).resizable().scaledToFit().frame(width: size, height: size)
+        } else {
+            Image(systemName: material.symbol).font(.system(size: size * 0.44, weight: .bold)).foregroundStyle(MacCraftStyle.tint(material))
+                .frame(width: size, height: size).background(MacCraftStyle.tint(material).opacity(0.15), in: RoundedRectangle(cornerRadius: size * 0.28))
+        }
     }
 }
 
@@ -286,9 +385,8 @@ struct MacWheelResultCard: View {
             Group {
                 if let blueprint {
                     MacBlueprintIcon(definition: blueprint, size: 86)
-                } else if let material = result.prize.material {
-                    Image(systemName: material.symbol).font(.system(size: 40, weight: .bold)).foregroundStyle(MacCraftStyle.tint(material))
-                        .frame(width: 86, height: 86).background(MacCraftStyle.tint(material).opacity(0.15), in: RoundedRectangle(cornerRadius: 26))
+                } else {
+                    MacPrizeArt(prize: result.prize, size: 96)
                 }
             }
             if let blueprint {

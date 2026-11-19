@@ -143,6 +143,8 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
     public var pendingPuzzle: OutingPuzzle? = nil
     /// 2.5: the Station Cat is waiting at this spot; exploring waits until the player decides.
     public var pendingStationCat: OutingSpot? = nil
+    /// 3.0: crafting materials found on this trip (material raw value → count).
+    public var craftFinds: [String: Int]? = nil
     public var metStationCat: Bool { log.contains { $0.kind == .stationCat || $0.eventID == StationCatRules.logEventID } }
     /// Puzzles met on this trip, waiting or done.
     public var puzzleCount: Int { log.filter { $0.kind == .puzzle || $0.puzzleKind != nil }.count }
@@ -168,6 +170,7 @@ public struct OutingTrip: Codable, Equatable, Sendable, Identifiable {
             && (pendingEventID == nil) == (pendingSpot == nil) && seenEventIDs.count <= 32
             && (pendingPuzzle == nil || pendingEventID == nil) && (pendingPuzzle?.isValid ?? true)
             && (pendingStationCat == nil || (pendingEventID == nil && pendingPuzzle == nil))
+            && OutingState.validFinds(craftFinds)
     }
 }
 
@@ -187,8 +190,12 @@ public struct OutingSettlement: Codable, Equatable, Sendable, Identifiable {
     public let gold: Int
     public let neighborsMet: [String]
     public var acknowledged: Bool
+    /// 3.0: materials found and blueprints learned on this trip.
+    public var craftFinds: [String: Int]? = nil
+    public var learnedBlueprintIDs: [String]? = nil
     var isValid: Bool {
         OutingState.validID(id) && OutingState.validID(catID) && endedAt.timeIntervalSince1970.isFinite
+            && OutingState.validFinds(craftFinds) && (learnedBlueprintIDs?.count ?? 0) <= CraftCatalog.blueprints.count
             && (0...footprintsTotal).contains(footprintsUsed) && loot.count <= 64 && loot.allSatisfy(\.isValid)
             && (0...10_000).contains(catMood) && (0...10_000).contains(bond) && (0...100_000).contains(gold)
     }
@@ -246,6 +253,10 @@ public struct OutingState: Codable, Equatable, Sendable {
     /// Copies waiting for a compare across all decor (a decor can hold one per attribute).
     public var pendingCopyCount: Int { decor.values.reduce(0) { $0 + $1.waitingDuplicates.count } }
     public var unacknowledgedSettlement: OutingSettlement? { lastSettlement.flatMap { $0.acknowledged ? nil : $0 } }
+
+    static func validFinds(_ finds: [String: Int]?) -> Bool {
+        (finds ?? [:]).allSatisfy { CraftMaterial(rawValue: $0.key) != nil && (0...CraftCatalog.maximumMaterial).contains($0.value) }
+    }
 
     static func validID(_ value: String) -> Bool {
         !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.utf8.count <= 120

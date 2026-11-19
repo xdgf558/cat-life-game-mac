@@ -81,6 +81,9 @@ enum GameActionNotice {
                  .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped,
                  .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen:
                 return GameStrings.text(success.rawValue)
+            case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
+                 .appearanceSettingSaved, .blueprintGrantsSeen:
+                return GameStrings.text(success.rawValue)
             }
         }
         switch outcome.failure {
@@ -103,8 +106,12 @@ enum GameActionNotice {
               .outingNoFootprints, .outingEventPending, .outingEventMissing, .outingDuplicateMissing,
               .outingKeepsakeMissing, .outingShelfMissing, .outingShelfFull,
               .outingPuzzlePending, .outingPuzzleMissing, .outingPuzzleInvalid,
-              .stationCatMissing, .stationCatGrassRequired, .stationCatPending:
+              .stationCatMissing, .stationCatGrassRequired, .stationCatPending,
+              .wheelDailyLimit, .craftBlueprintMissing, .craftNotOpen, .craftUsesFull, .craftUsedUp,
+              .craftMaterialsRequired, .craftInventoryFull, .craftItemMissing, .craftSlotMismatch:
             return GameStrings.text(outcome.messageKey)
+        case .craftStardustRequired, .craftSkillRequired:
+            return GameStrings.format(outcome.messageKey, outcome.amount)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired, .supplyCarryLimit, .recoveryWouldWaste:
             return GameStrings.format(outcome.messageKey, outcome.amount)

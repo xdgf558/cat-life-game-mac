@@ -312,6 +312,10 @@ struct MacWorkView: View {
                 HStack(spacing: 6) {
                     rewardChip("+\(result.goldReward)", symbol: "dollarsign.circle.fill", tint: RoomTheme.gold)
                     rewardChip("+\(result.expReward)", symbol: "star.fill", tint: RoomTheme.lilac)
+                    if let fabric = result.fabric, fabric > 0 {
+                        rewardChip(GameStrings.text(CraftMaterial.fabric.titleKey) + " +\(fabric)", symbol: CraftMaterial.fabric.symbol,
+                                   tint: RoomTheme.coral)
+                    }
                 }
             } else {
                 Text(GameStrings.text("mac.work.noResult")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
@@ -322,7 +326,7 @@ struct MacWorkView: View {
     /// Stamina still missing for the selected, unlocked job (0 when it can be afforded or is locked).
     /// 2.5: the wage a shift started now would pay (doubled while the Station Cat lives here).
     private func wage(_ job: WorkJob) -> Int {
-        store.snapshot.map { StationCatRules.wage(job.goldReward, in: $0) } ?? job.goldReward
+        store.snapshot.map { CraftRules.wage(StationCatRules.wage(job.goldReward, in: $0), in: $0) } ?? job.goldReward
     }
 
     private var staminaShort: Int {

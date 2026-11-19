@@ -210,7 +210,7 @@ struct MacHomeUpgradeView: View {
     }
 }
 
-/// 2.64: the upgrade confirmation, in place of the grey system dialog. The home now and after side by side
+/// 3.01: the upgrade confirmation, in place of the grey system dialog. The home now and after side by side
 /// on a sunny strip, what grows, what it costs and what is left, then 再想想 (Esc) and 确认升级 (Return).
 @MainActor
 private struct MacHomeUpgradeConfirmSheet: View {

@@ -1085,4 +1085,5 @@ extension GameStrings {
         .merging(macAlbum252English) { _, new in new }
         .merging(intro260English) { _, new in new }
         .merging(restInvite261English) { _, new in new }
+        .merging(craft300English) { _, new in new }
 }

@@ -16,6 +16,8 @@ struct MacGardenExits {
     let album: () -> Void
     /// Enter arrange mode with this furniture item selected.
     let arrange: (String) -> Void
+    /// 3.0: the magic cottage, from a settlement that learned a blueprint.
+    var magic: () -> Void = {}
 }
 
 /// 猫町花园 (2.0): pick a cat, walk three spots with six footprints, bring finds home.
@@ -373,17 +375,18 @@ struct MacGardenView: View {
         if state.player.activeNap != nil { return "outing.error.napping" }
         if departuresLeft == 0 { return "outing.error.dailyLimit" }
         if let blocker = OutingCatalog.blocker(for: cat, in: state) { return blocker.messageKey }
-        if state.player.stamina < OutingCatalog.staminaCost { return "outing.error.stamina" }
+        if state.player.stamina < CraftRules.outingStaminaCost(in: state) { return "outing.error.stamina" }
         return nil
     }
 
     private var costsCard: some View {
         let stamina = state?.player.stamina ?? 0
-        let footprints = OutingCatalog.footprints + (state.map { OutingBonuses.value(.footprint, in: $0) } ?? 0)
+        let footprints = OutingCatalog.footprints + (state.map { OutingBonuses.value(.footprint, in: $0) + $0.craft.bonus(.footprint) } ?? 0)
+        let staminaCost = state.map(CraftRules.outingStaminaCost(in:)) ?? OutingCatalog.staminaCost
         return VStack(alignment: .leading, spacing: 12) {
             Text(GameStrings.text("outing.prep.title")).font(.system(size: 15, weight: .heavy))
             VStack(spacing: 8) {
-                costRow("outing.prep.stamina", symbol: "bolt.heart.fill", from: stamina, to: max(0, stamina - OutingCatalog.staminaCost), tint: RoomTheme.coral)
+                costRow("outing.prep.stamina", symbol: "bolt.heart.fill", from: stamina, to: max(0, stamina - staminaCost), tint: RoomTheme.coral)
                 if let cat = chosenCat {
                     costRow("outing.prep.energy", symbol: "moon.zzz.fill", from: cat.energy,
                             to: max(0, cat.energy - OutingCatalog.energyCost), tint: RoomTheme.lilac,
@@ -863,6 +866,19 @@ struct MacGardenView: View {
         }
     }
 
+    /// 3.0: crafting materials picked up on the walk, listed like any other find.
+    @ViewBuilder private func craftFinds(_ settlement: OutingSettlement) -> some View {
+        let finds = CraftMaterial.allCases.filter { (settlement.craftFinds?[$0.rawValue] ?? 0) > 0 }
+        ForEach(finds) { material in
+            HStack(spacing: 8) {
+                MacMaterialArt(material: material, size: 28)
+                Text(GameStrings.text(material.titleKey)).font(.system(size: 12.5, weight: .heavy))
+                Spacer(minLength: 4)
+                Text(verbatim: "×\(settlement.craftFinds?[material.rawValue] ?? 0)").font(.system(size: 13, weight: .black)).monospacedDigit()
+            }.accessibilityElement(children: .combine)
+        }
+    }
+
     private func settlementModal(_ settlement: OutingSettlement) -> some View {
         let cat = state?.cats.first { $0.id == settlement.catID }
         let name = cat.map(GameStrings.catName) ?? (settlement.catID == CatCatalog.stationCatID ? GameStrings.text("cat.stationName") : "")
@@ -873,6 +889,7 @@ struct MacGardenView: View {
                     if let cat { CatCollectionPortrait(appearance: cat.appearance, size: 56) }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(GameStrings.format("outing.settle.title", name)).font(.system(size: 20, weight: .heavy))
+                            .accessibilityAddTraits(.isHeader)
                         Text(GameStrings.format("outing.settle.reason.\(settlement.reason.rawValue)", settlement.footprintsUsed, settlement.footprintsTotal))
                             .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
                     }
@@ -882,10 +899,11 @@ struct MacGardenView: View {
                         Text(GameStrings.text("outing.loot.title")).font(.system(size: 13, weight: .heavy))
                         ScrollView {
                             VStack(alignment: .leading, spacing: 6) {
-                                if settlement.loot.isEmpty {
+                                if settlement.loot.isEmpty && (settlement.craftFinds ?? [:]).isEmpty {
                                     Text(GameStrings.text("outing.loot.empty")).font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
                                 }
                                 ForEach(settlement.loot) { loot in MacOutingLootRow(loot: loot) }
+                                craftFinds(settlement)
                             }.frame(maxWidth: .infinity, alignment: .leading)
                         }.frame(maxHeight: 230).scrollIndicators(.never)
                     }
@@ -914,6 +932,20 @@ struct MacGardenView: View {
                     }
                     .padding(12).frame(width: 260, alignment: .leading)
                     .background(RoomTheme.cream.opacity(0.7), in: RoundedRectangle(cornerRadius: 16))
+                }
+                ForEach(settlement.learnedBlueprintIDs ?? [], id: \.self) { id in
+                    if let definition = CraftCatalog.blueprint(id: id) {
+                        HStack(spacing: 10) {
+                            MacBlueprintIcon(definition: definition, size: 36)
+                            Text(GameStrings.format("craft.grants.line", GameStrings.text(definition.nameKey))).font(.system(size: 14, weight: .heavy))
+                            Spacer(minLength: 6)
+                            Button { Task { if await store.acknowledgeOutingSettlement() { exits.magic() } } } label: {
+                                Label(GameStrings.text("craft.goMagic"), systemImage: "wand.and.stars").font(.system(size: 12.5, weight: .heavy))
+                            }.buttonStyle(SoftButtonStyle()).fixedSize().accessibilityIdentifier("outingGoMagic")
+                        }
+                        .padding(10).background(RoomTheme.gold.opacity(0.14), in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.gold.opacity(0.5), lineWidth: 2))
+                    }
                 }
                 HStack(spacing: 8) {
                     Text(GameStrings.format("outing.settle.departuresLeft", departuresLeft)).font(.system(size: 12, weight: .bold))

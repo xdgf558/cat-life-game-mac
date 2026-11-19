@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 18
+    public static let currentSchemaVersion = 19
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -19,6 +19,8 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var outing: OutingState
     /// 2.5: the Station Cat's hunger clock and run-away notice.
     public var stationCat: StationCatState = StationCatState()
+    /// 3.0: the magic cottage — materials, blueprints, the craft skill, handmade clothes and appearance.
+    public var craft: CraftState = CraftState()
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
@@ -41,7 +43,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay, outing, stationCat
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay, outing, stationCat, craft
     }
 
     public init(from decoder: Decoder) throws {
@@ -104,6 +106,8 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         catPlay = version < 12 && !values.contains(.catPlay) ? CatPlayState() : try values.decode(CatPlayState.self, forKey: .catPlay)
         outing = version < 18 && !values.contains(.outing) ? OutingState() : try values.decode(OutingState.self, forKey: .outing)
         stationCat = (try? values.decodeIfPresent(StationCatState.self, forKey: .stationCat)) ?? StationCatState()
+        // Crafting progress is real progress: a damaged record fails the load (and restores a backup) instead of vanishing.
+        craft = try values.decodeIfPresent(CraftState.self, forKey: .craft) ?? CraftState()
         // Reflow only untouched starter rooms; in-use and player-authored places remain authoritative.
         if version < 13, home.bowlPosition == NormalizedPoint(x: 0.76, y: 0.79), home.upperBowlPosition == nil,
            home.furniture.sorted(by: { $0.itemID < $1.itemID })

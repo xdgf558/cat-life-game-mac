@@ -9,7 +9,7 @@ extension GameStore {
     }
     var arrangementSelection68: Bool { selectedFurnitureID != nil || arrangement68.bowlSelected }
     var canEditArrangement68: Bool {
-        isDecorating && !isCommitting && !isSavingLayout && !isResolvingLayout
+        isDecorating && !isBusy && !isSavingLayout && !isResolvingLayout
             && placingFurnitureID == nil && arrangement68.pendingRequest == nil
     }
     func canDropArrangementFurniture68(id: String, generation: UUID, floor: HomeFloor) -> Bool {

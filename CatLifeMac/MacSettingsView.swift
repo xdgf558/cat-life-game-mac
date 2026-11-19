@@ -277,7 +277,7 @@ struct MacSettingsView: View {
                         notificationDenied = !preferences.notificationsEnabled
                         requestingNotifications = false
                     }
-                })).labelsHidden().toggleStyle(.switch).disabled(requestingNotifications).accessibilityIdentifier("macNotifications")
+                })).labelsHidden().toggleStyle(.switch).controlSize(.small).disabled(requestingNotifications).accessibilityIdentifier("macNotifications")
             }
         }
             if notificationDenied { Text(GameStrings.text("mac.settings.notificationDenied")).foregroundStyle(RoomTheme.coral) }

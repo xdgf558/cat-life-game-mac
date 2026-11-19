@@ -31,6 +31,7 @@ final class GameStore {
     private(set) var isBackgroundSaving = false
     /// What the interface treats as "saving": the player's own actions, never the silent background save.
     var isBusy: Bool { isCommitting && !isBackgroundSaving }
+    @ObservationIgnored private var backgroundSaveWaiters: [CheckedContinuation<Void, Never>] = []
     private(set) var saveTransferInProgress = false
     private(set) var saveSceneGeneration = UUID()
     private(set) var visibleHomeFloor: HomeFloor = .ground {
@@ -422,7 +423,7 @@ final class GameStore {
 
     var canStoreSelectedFurniture: Bool {
         isDecorating && selectedFurniture != nil && placingFurnitureID == nil
-            && !isCommitting && !isSavingLayout && !isResolvingLayout
+            && !isBusy && !isSavingLayout && !isResolvingLayout
     }
 
     var canFlipSelectedFurniture: Bool {
@@ -961,7 +962,7 @@ final class GameStore {
         } else { feed(supply: .food) }
     }
     func feed(supply: SupplyKind) {
-        guard !isDecorating, !isCommitting, let cat else { return }
+        guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.count(supply) ?? 0) >= foodRequired else { showNotice(GameStrings.text(supply == .premiumFood ? "care.premiumFoodRequired" : "care.needFood")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -976,13 +977,13 @@ final class GameStore {
     }
 
     func openSupplyPicker(for supply: SupplyKind) {
-        guard !isCommitting, !isDecorating, cat != nil, supply != .toy else { return }
+        guard !isBusy, !isDecorating, cat != nil, supply != .toy else { return }
         supplyPicker = supply == .food || supply == .premiumFood ? .food : .litter
     }
 
     func useSupplyFromPicker(_ supply: SupplyKind) async -> Bool {
         let family: SupplyKind = supply == .food || supply == .premiumFood ? .food : .litter
-        guard supply != .toy, supplyPicker == family, !isCommitting, !isDecorating, let cat else { return false }
+        guard supply != .toy, supplyPicker == family, !isBusy, !isDecorating, let cat else { return false }
         let generation = saveSceneGeneration
         var effects: [String] = []
         var actionKind: ActionKind = .none
@@ -1010,7 +1011,7 @@ final class GameStore {
         return true
     }
     func clean(supply: SupplyKind) {
-        guard !isDecorating, !isCommitting, let cat else { return }
+        guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.count(supply) ?? 0) > 0 else { showNotice(GameStrings.text(supply == .premiumLitter ? "care.premiumLitterRequired" : "care.needLitter")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -1020,7 +1021,7 @@ final class GameStore {
 
     func play() {
         guard !isShowingPlayTogether else { return }
-        guard !isDecorating, !isCommitting, let cat else { return }
+        guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.toys ?? 0) > 0 else { showNotice(GameStrings.text("care.needToy")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -1109,7 +1110,7 @@ final class GameStore {
     }
 
     var canChangeHomeFloor: Bool {
-        snapshot?.home.availableFloors.count == 2 && !isCommitting && !isDecorating
+        snapshot?.home.availableFloors.count == 2 && !isBusy && !isDecorating
             && !isChangingHomeFloor && !saveTransferInProgress && roomFloorTravelReady
     }
 
@@ -1143,7 +1144,7 @@ final class GameStore {
         }
     }
     func openHomeUpgrade() {
-        guard !isCommitting, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
         activeSheet = .upgrade
     }
     func startWork(jobID: String = "job_flyer") {
@@ -1157,7 +1158,7 @@ final class GameStore {
     func wakeUp() { perform { GameEngine.wakeUp(&$0, now: $1) } }
 
     func beginDecorating() {
-        guard !isCommitting, let snapshot else { return }
+        guard !isBusy, let snapshot else { return }
         guard !isDecorating else { return }
         arrangement68.reset()
         draftBowlPosition = snapshot.home.bowlPosition(on: visibleHomeFloor)
@@ -1183,6 +1184,7 @@ final class GameStore {
 
     @discardableResult
     func renamePlayer(to rawName: String?) async -> Bool {
+        guard await waitForBackgroundSave() else { return false }
         guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
         var candidate = context.candidate
         let name: String?
@@ -1213,6 +1215,7 @@ final class GameStore {
 
     @discardableResult
     func renameCat(id: String, to rawName: String?) async -> Bool {
+        guard await waitForBackgroundSave() else { return false }
         guard !isCommitting, !isDecorating, var context = saveContext(),
               let index = context.candidate.cats.firstIndex(where: { $0.id == id }) else { return false }
         let name: String?
@@ -1254,11 +1257,15 @@ final class GameStore {
     }
 
     func openSettings() {
-        guard !isCommitting, !isDecorating else { return }
+        guard !isBusy, !isDecorating else { return }
         isShowingSettings = true
     }
 
     func setLanguage(_ language: GameLanguage) {
+        if isBackgroundSaving {
+            Task { if await waitForBackgroundSave() { setLanguage(language) } }
+            return
+        }
         guard !isCommitting, var context = saveContext(),
               context.candidate.settings.language != language else { return }
         var candidate = context.candidate
@@ -1283,6 +1290,7 @@ final class GameStore {
 
     @discardableResult
     func setHomeName(_ rawName: String?) async -> Bool {
+        guard await waitForBackgroundSave() else { return false }
         guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
         var candidate = context.candidate
         let name: String?
@@ -1369,7 +1377,7 @@ final class GameStore {
     }
 
     func openNeighbors() {
-        guard !isCommitting, !isDecorating, snapshot != nil else { return }
+        guard !isBusy, !isDecorating, snapshot != nil else { return }
         inspectedCatID = nil
         isShowingSettings = false
         activeSheet = .town
@@ -1502,7 +1510,7 @@ final class GameStore {
 
     func performPersistedAction(playsSound: Bool = true, showsSuccessNotice: Bool = true,
                                         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
-        await waitForBackgroundSave()
+        guard await waitForBackgroundSave() else { return false }
         guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
         isCommitting = true
         defer { isCommitting = false; drainPendingSynchronization() }
@@ -1529,7 +1537,7 @@ final class GameStore {
         // A click during the silent background save runs right after it instead of being dropped.
         if isBackgroundSaving {
             return Task {
-                await waitForBackgroundSave()
+                guard await waitForBackgroundSave() else { return false }
                 guard let next = perform(finishesLayout: finishesLayout, returnsToRoom: returnsToRoom,
                                          presentSuccess: presentSuccess, action) else { return false }
                 return await next.value
@@ -1574,12 +1582,14 @@ final class GameStore {
     }
 
     /// Lets a player action start right after the silent background save (a local write, usually a few ms).
-    func waitForBackgroundSave() async {
-        var waited = 0
-        while isBackgroundSaving, waited < 200 {
-            try? await Task.sleep(for: .milliseconds(10))
-            waited += 1
-        }
+    /// The save hands the lock straight to the waiting actions (queued syncs run after them). False when a
+    /// save import or restore replaced the game meanwhile, so an action is never applied to another save.
+    @discardableResult
+    func waitForBackgroundSave() async -> Bool {
+        guard isBackgroundSaving else { return true }
+        let generation = saveSceneGeneration
+        await withCheckedContinuation { backgroundSaveWaiters.append($0) }
+        return generation == saveSceneGeneration
     }
 
     private func synchronize(userInitiated: Bool = false, playsProgressFeedback: Bool = true) {
@@ -1625,7 +1635,14 @@ final class GameStore {
             } catch { recordSaveFailure(userInitiated: userInitiated) }
             isCommitting = false
             isBackgroundSaving = false
-            drainPendingSynchronization()
+            // Waiting player actions go first; each one drains queued syncs when it finishes.
+            let waiters = backgroundSaveWaiters
+            backgroundSaveWaiters = []
+            if waiters.isEmpty { drainPendingSynchronization() } else {
+                waiters.forEach { $0.resume() }
+                // If none of them took the lock (refused, or the save changed), queued syncs still run.
+                Task { [weak self] in await Task.yield(); self?.drainPendingSynchronization() }
+            }
         }
     }
 

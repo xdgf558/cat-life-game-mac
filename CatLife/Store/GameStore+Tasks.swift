@@ -8,7 +8,7 @@ struct TaskClaimReceipt: Equatable {
 
 extension GameStore {
     func goToTaskDestination(_ destination: GameTaskDestination) {
-        guard !isCommitting, !isDecorating else { return }
+        guard !isBusy, !isDecorating else { return }
         isShowingSettings = false
         switch destination {
         case .work: activeSheet = .work

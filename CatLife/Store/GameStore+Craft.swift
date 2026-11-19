@@ -42,6 +42,18 @@ extension GameStore {
         return await performCraft { GameEngine.markBlueprintGrantsSeen(&$0, now: $1) }
     }
 
+    /// 3.1: mend a handmade piece.
+    @discardableResult
+    func repairHandmade(_ itemID: String) async -> Bool {
+        await performCraft(showsNotice: true) { GameEngine.repairHandmade(&$0, itemID: itemID, now: $1) }
+    }
+
+    /// 3.1: the goodbye card was read, or (nil) this morning's "about to break" notice was shown.
+    @discardableResult
+    func acknowledgeHandmadeNotices(farewellID: String?) async -> Bool {
+        await performCraft { GameEngine.acknowledgeHandmadeNotices(&$0, farewellID: farewellID, now: $1) }
+    }
+
     private func performCraft(showsNotice: Bool = false, _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         let generation = saveSceneGeneration
         let succeeded = await performPersistedAction(playsSound: false, showsSuccessNotice: showsNotice, action)

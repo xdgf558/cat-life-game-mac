@@ -26,13 +26,80 @@ public struct HandmadeItem: Codable, Equatable, Sendable, Identifiable {
     public let quality: OutingDecorQuality
     public let attributes: [HandmadeAttributeRoll]
     public let madeAt: Date
+    /// 3.1: days of wear left, and the most it can hold (lowered by each repair).
+    public var durability: Int
+    public var durabilityCap: Int
+    public var repairs: Int
+    /// Mornings it was worn on.
+    public var daysWorn: Int
+
+    public init(id: String, blueprintID: String, quality: OutingDecorQuality, attributes: [HandmadeAttributeRoll],
+                madeAt: Date, durability: Int, durabilityCap: Int, repairs: Int = 0, daysWorn: Int = 0) {
+        self.id = id; self.blueprintID = blueprintID; self.quality = quality; self.attributes = attributes; self.madeAt = madeAt
+        self.durability = durability; self.durabilityCap = durabilityCap; self.repairs = repairs; self.daysWorn = daysWorn
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, blueprintID, quality, attributes, madeAt, durability, durabilityCap, repairs, daysWorn
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        blueprintID = try values.decode(String.self, forKey: .blueprintID)
+        let decodedQuality = try values.decode(OutingDecorQuality.self, forKey: .quality)
+        quality = decodedQuality
+        attributes = try values.decode([HandmadeAttributeRoll].self, forKey: .attributes)
+        madeAt = try values.decode(Date.self, forKey: .madeAt)
+        // Pieces made in 3.0 start 3.1 like new, at the top of their range.
+        let full = CraftCatalog.blueprint(id: blueprintID)
+            .map { CraftCatalog.durabilityRange(tier: $0.tier, quality: decodedQuality).upperBound } ?? CraftCatalog.minimumDurabilityCap
+        let decodedCap = try values.decodeIfPresent(Int.self, forKey: .durabilityCap) ?? full
+        durabilityCap = decodedCap
+        durability = try values.decodeIfPresent(Int.self, forKey: .durability) ?? decodedCap
+        repairs = try values.decodeIfPresent(Int.self, forKey: .repairs) ?? 0
+        daysWorn = try values.decodeIfPresent(Int.self, forKey: .daysWorn) ?? 0
+    }
 
     public var blueprint: BlueprintDefinition? { CraftCatalog.blueprint(id: blueprintID) }
+    public var stage: DurabilityStage { .of(durability: durability, cap: durabilityCap) }
+    /// Where a repair would bring it: about two thirds of the cap it would have afterwards.
+    public func repairTarget(skillLevel: Int) -> (durability: Int, cap: Int) {
+        let cap = skillLevel >= CraftCatalog.repairMasterLevel ? durabilityCap
+            : max(CraftCatalog.minimumDurabilityCap, durabilityCap - CraftCatalog.repairCapLoss)
+        return (min(cap, max(durability, (cap * 2 + 2) / 3)), cap)
+    }
 
     var isValid: Bool {
         guard let blueprint, OutingState.validID(id), madeAt.timeIntervalSince1970.isFinite,
-              (1...2).contains(attributes.count), Set(attributes.map(\.attribute)).count == attributes.count else { return false }
+              (1...2).contains(attributes.count), Set(attributes.map(\.attribute)).count == attributes.count,
+              (CraftCatalog.minimumDurabilityCap...CraftCatalog.maximumDurability).contains(durabilityCap),
+              (1...durabilityCap).contains(durability), (0...CraftCatalog.maximumRepairs).contains(repairs),
+              (0...CraftCatalog.maximumExperience).contains(daysWorn) else { return false }
         return attributes.allSatisfy { $0.isValid && CraftCatalog.attributes(for: blueprint.tier).contains($0.attribute) }
+    }
+}
+
+/// 3.1: a worn piece that reached zero on a new morning. The goodbye card reads this; the piece is gone.
+public struct HandmadeFarewell: Codable, Equatable, Sendable, Identifiable {
+    /// The piece's own ID.
+    public let id: String
+    public let blueprintID: String
+    public let quality: OutingDecorQuality
+    public let attributes: [HandmadeAttributeRoll]
+    public let madeAt: Date
+    public let daysWorn: Int
+    public let repairs: Int
+    /// The one material handed back, if the bag had room.
+    public let refunded: CraftMaterial?
+    /// The blueprint's uses that morning.
+    public let usesLeft: Int
+    public let brokeAt: Date
+
+    var isValid: Bool {
+        CraftCatalog.blueprint(id: blueprintID) != nil && OutingState.validID(id) && madeAt.timeIntervalSince1970.isFinite
+            && brokeAt.timeIntervalSince1970.isFinite && (0...CraftCatalog.maximumExperience).contains(daysWorn)
+            && (0...CraftCatalog.maximumRepairs).contains(repairs) && attributes.count <= 2 && usesLeft >= 0
     }
 }
 
@@ -122,16 +189,21 @@ public struct CraftState: Codable, Equatable, Sendable {
     public var grants: [BlueprintGrant]
     /// Saves from before 3.0 are checked once for blueprints their earlier walks earned.
     public var legacyChecked: Bool
+    /// 3.1: goodbye cards for pieces that broke, oldest first, and pieces that became fragile this morning.
+    public var farewells: [HandmadeFarewell]
+    public var fragileNotices: [String]
 
     public init() {
         materials = [:]; blueprints = [:]; grantedSources = []; experience = 0; wheel = WheelDay()
         goalBlueprintID = nil; handmade = []; appearance = [:]; showsWorkGearWhenEmpty = true
         nextSerial = 1; cafeNaps = 0; lastSpin = nil; lastAttempt = nil; grants = []; legacyChecked = false
+        farewells = []; fragileNotices = []
     }
 
     private enum CodingKeys: String, CodingKey {
         case materials, blueprints, grantedSources, experience, wheel, goalBlueprintID, handmade, appearance
         case showsWorkGearWhenEmpty, nextSerial, cafeNaps, lastSpin, lastAttempt, grants, legacyChecked
+        case farewells, fragileNotices
     }
 
     public init(from decoder: Decoder) throws {
@@ -159,6 +231,8 @@ public struct CraftState: Codable, Equatable, Sendable {
         lastAttempt = try? values.decodeIfPresent(CraftAttemptResult.self, forKey: .lastAttempt)
         grants = try values.decodeIfPresent([BlueprintGrant].self, forKey: .grants) ?? []
         legacyChecked = try values.decodeIfPresent(Bool.self, forKey: .legacyChecked) ?? false
+        farewells = try values.decodeIfPresent([HandmadeFarewell].self, forKey: .farewells) ?? []
+        fragileNotices = try values.decodeIfPresent([String].self, forKey: .fragileNotices) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -178,6 +252,8 @@ public struct CraftState: Codable, Equatable, Sendable {
         try values.encodeIfPresent(lastAttempt, forKey: .lastAttempt)
         try values.encode(grants, forKey: .grants)
         try values.encode(legacyChecked, forKey: .legacyChecked)
+        try values.encode(farewells, forKey: .farewells)
+        try values.encode(fragileNotices, forKey: .fragileNotices)
     }
 
     // MARK: Reading
@@ -247,7 +323,11 @@ public struct CraftState: Codable, Equatable, Sendable {
               (1...CraftCatalog.maximumExperience).contains(nextSerial),
               (0...CraftCatalog.maximumExperience).contains(cafeNaps),
               grants.count <= CraftCatalog.blueprints.count, Set(grants.map(\.blueprintID)).count == grants.count,
-              grants.allSatisfy({ CraftCatalog.blueprint(id: $0.blueprintID) != nil && $0.at.timeIntervalSince1970.isFinite })
+              grants.allSatisfy({ CraftCatalog.blueprint(id: $0.blueprintID) != nil && $0.at.timeIntervalSince1970.isFinite }),
+              farewells.count <= CraftCatalog.maximumFarewells, farewells.allSatisfy(\.isValid),
+              Set(farewells.map(\.id)).count == farewells.count,
+              fragileNotices.count <= CraftCatalog.maximumHandmade, Set(fragileNotices).count == fragileNotices.count,
+              fragileNotices.allSatisfy({ item(id: $0) != nil })
         else { return false }
         return appearance.allSatisfy { slot, itemID in item(id: itemID)?.blueprint?.product.slot == slot }
     }

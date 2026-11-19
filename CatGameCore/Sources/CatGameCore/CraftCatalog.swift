@@ -305,4 +305,47 @@ public enum CraftCatalog {
     public static func attributes(for tier: CraftTier) -> [HandmadeAttribute] {
         HandmadeAttribute.allCases.filter { $0 != .workGold || tier == .advanced }
     }
+
+    // MARK: 3.1 durability
+
+    /// Days of wear a new piece has, by tier and quality. Mid is the design's table; basic is
+    /// about four days shorter; advanced spreads 30–50 over the three qualities.
+    public static func durabilityRange(tier: CraftTier, quality: OutingDecorQuality) -> ClosedRange<Int> {
+        switch (tier, quality) {
+        case (.basic, .common): 16...22
+        case (.basic, .fine): 23...30
+        case (.basic, .treasured): 31...36
+        case (.mid, .common): 20...26
+        case (.mid, .fine): 27...34
+        case (.mid, .treasured): 35...40
+        case (.advanced, .common): 30...36
+        case (.advanced, .fine): 37...44
+        case (.advanced, .treasured): 45...50
+        }
+    }
+    public static let maximumDurability = 50
+    /// Each repair lowers the cap by this much, until the craft skill reaches `repairMasterLevel`.
+    public static let repairCapLoss = 4
+    public static let repairMasterLevel = 5
+    /// A cap never drops below this, so an often-mended piece can still be worn for a while.
+    public static let minimumDurabilityCap = 8
+    /// Morning goodbye cards waiting to be read are kept to this many.
+    public static let maximumFarewells = 12
+    public static let maximumRepairs = 99
+
+    /// What a repair uses: one each of the first two non-stardust materials of the blueprint.
+    public static func repairCosts(for definition: BlueprintDefinition) -> [CraftCost] {
+        definition.costs.filter { $0.material != .stardust }.prefix(2).map { CraftCost(material: $0.material, count: 1) }
+    }
+}
+
+/// How worn a handmade piece looks. Attributes keep their full value until it breaks.
+public enum DurabilityStage: String, CaseIterable, Sendable {
+    case fresh, handy, worn, fragile
+    public var titleKey: String { "gear.stage.\(rawValue)" }
+    /// 80% and up is like new, 50–80% handy, 20–50% worn, under 20% about to break.
+    public static func of(durability: Int, cap: Int) -> Self {
+        let percent = cap > 0 ? durability * 100 / cap : 0
+        return percent >= 80 ? .fresh : percent >= 50 ? .handy : percent >= 20 ? .worn : .fragile
+    }
 }

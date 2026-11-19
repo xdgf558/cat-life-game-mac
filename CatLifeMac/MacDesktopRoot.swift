@@ -43,6 +43,8 @@ struct MacDesktopRoot: View {
     @State private var gardenPuzzleKeys = false
     /// 3.0: the magic cottage page inside the town, and the profile opening on its wardrobe.
     @State private var showsMagic = false
+    /// 3.1: the blueprint a goodbye card's "去再做一件" opens the cottage on.
+    @State private var magicOpening: String?
     /// 3.0: 我的档案 has two tabs, the profile and the wardrobe.
     @State private var profileTab = "profile"
     @State private var catsTab = "cats"
@@ -206,6 +208,29 @@ struct MacDesktopRoot: View {
         .saveRecoveryAlert(store: store, isActive: auxiliary == nil && !store.showsPlayChoices && !store.isShowingPlayTogether && store.supplyPicker == nil && !store.isPresentingHabitGuide && !store.isPresentingHabitMemory)
     }
     private var celebrationPresented: Bool { store.homeUpgradeCelebration != nil && auxiliary == nil && !titleVisible }
+    /// 3.1: a piece wore out this morning. One goodbye card at a time, over the game, never over a sheet.
+    private var farewell: HandmadeFarewell? {
+        guard !titleVisible, auxiliary == nil, !celebrationPresented else { return nil }
+        return store.snapshot?.craft.farewells.first
+    }
+    private func dismissFarewell(_ farewell: HandmadeFarewell, makeAnother: Bool) {
+        guard !store.isBusy else { return }
+        Task {
+            guard await store.acknowledgeHandmadeNotices(farewellID: farewell.id), makeAnother else { return }
+            magicOpening = farewell.blueprintID
+            openMagic()
+        }
+    }
+    /// 3.1: pieces that became fragile this morning are announced once in the toast.
+    private func announceFragile(_ ids: [String]) {
+        guard !ids.isEmpty, !store.isBusy, let craft = store.snapshot?.craft else { return }
+        let names = ids.compactMap { craft.item(id: $0)?.blueprint }.map { GameStrings.text($0.nameKey) }
+        if let first = names.first {
+            store.showNotice(names.count == 1 ? GameStrings.format("gear.fragileNotice", first)
+                                              : GameStrings.format("gear.fragileNoticeMany", names.count))
+        }
+        Task { await store.acknowledgeHandmadeNotices(farewellID: nil) }
+    }
     /// The upgrade happens inside its sheet; close it so the celebration plays over the room.
     /// The overlay sits outside `baseContent`, so it gets the in-game reduce-motion setting explicitly.
     private var celebratedContent: some View {
@@ -221,6 +246,21 @@ struct MacDesktopRoot: View {
             }
             .onChange(of: store.homeUpgradeCelebration?.id) { _, id in
                 if id != nil, auxiliary == .upgrade { auxiliary = nil }
+            }
+            .overlay {
+                if let farewell {
+                    MacHandmadeFarewellCard(farewell: farewell, usesLeft: store.snapshot?.craft.usesLeft(farewell.blueprintID) ?? 0,
+                                            busy: store.isBusy,
+                                            makeAnother: { dismissFarewell(farewell, makeAnother: true) },
+                                            dismiss: { dismissFarewell(farewell, makeAnother: false) })
+                        .environment(\.locale, Locale(identifier: store.language.rawValue))
+                        .transaction { if preferences.reduceMotion || systemReduceMotion { $0.disablesAnimations = true } }
+                        .transition(.opacity)
+                }
+            }
+            // Empty while busy, so notices written by a save are announced once that save has finished.
+            .onChange(of: titleVisible || store.isBusy ? [] : store.snapshot?.craft.fragileNotices ?? [], initial: true) { _, ids in
+                announceFragile(ids)
             }
     }
     private var observedContent: some View {
@@ -330,7 +370,8 @@ struct MacDesktopRoot: View {
                         town: { showsMagic = false; store.playNavigationSound() },
                         wardrobe: openWardrobe,
                         garden: { openGarden(catID: nil) },
-                        work: { select(.work) }))
+                        work: { select(.work) }),
+                        opening: magicOpening, opened: { magicOpening = nil })
                 } else {
                     MacTownView(store: store, onEnter: enterPlace, preferences: preferences, onNeighbor: openNeighbor)
                 }
@@ -607,6 +648,12 @@ struct MacDesktopRoot: View {
         if celebrationPresented {
             // The celebration covers the room: Esc / ↩ close it, every game shortcut waits.
             if command == .escape || command == .confirm { store.homeUpgradeCelebration = nil }
+            return true
+        }
+        if let farewell {
+            // The goodbye card covers the game: Esc reads it, ↩ goes to make another; other shortcuts wait.
+            if command == .escape { dismissFarewell(farewell, makeAnother: false) }
+            else if command == .confirm { dismissFarewell(farewell, makeAnother: true) }
             return true
         }
         // An open garden puzzle reads its own keys (letters such as R, numbers, arrows, ↩) before any

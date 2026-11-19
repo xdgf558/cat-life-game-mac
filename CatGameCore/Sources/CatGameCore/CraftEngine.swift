@@ -121,6 +121,40 @@ public enum CraftRules {
         trip.craftFinds = finds
     }
 
+    /// 3.1: a new morning. Every worn piece loses one day; one that becomes fragile is announced once,
+    /// one that reaches zero is gone (its slot falls back to the work gear look), hands back one material
+    /// and leaves a goodbye card. Pieces in the closet don't wear.
+    static func wearOneDay(_ state: inout GameSnapshot, at timestamp: Date) {
+        var craft = state.craft
+        let worn = Set(craft.appearance.values)
+        guard !worn.isEmpty else { return }
+        for index in craft.handmade.indices.reversed() where worn.contains(craft.handmade[index].id) {
+            var item = craft.handmade[index]
+            let wasFragile = item.stage == .fragile
+            item.durability -= 1
+            item.daysWorn = min(CraftCatalog.maximumExperience, item.daysWorn + 1)
+            guard item.durability <= 0 else {
+                craft.handmade[index] = item
+                if !wasFragile, item.stage == .fragile, !craft.fragileNotices.contains(item.id) { craft.fragileNotices.append(item.id) }
+                continue
+            }
+            craft.handmade.remove(at: index)
+            for (slot, id) in craft.appearance where id == item.id { craft.appearance[slot] = nil }
+            craft.fragileNotices.removeAll { $0 == item.id }
+            let material = item.blueprint.flatMap { CraftCatalog.repairCosts(for: $0).first?.material }
+            let refunded = material.flatMap { add($0, 1, to: &craft) > 0 ? $0 : nil }
+            craft.farewells.append(HandmadeFarewell(
+                id: item.id, blueprintID: item.blueprintID, quality: item.quality, attributes: item.attributes,
+                madeAt: item.madeAt, daysWorn: item.daysWorn, repairs: item.repairs, refunded: refunded,
+                usesLeft: craft.usesLeft(item.blueprintID), brokeAt: timestamp))
+        }
+        // Only the newest cards are kept if the player stays away for a very long time.
+        if craft.farewells.count > CraftCatalog.maximumFarewells {
+            craft.farewells.removeFirst(craft.farewells.count - CraftCatalog.maximumFarewells)
+        }
+        state.craft = craft
+    }
+
     /// The wheel's slice for a 0...99 roll.
     static func slice(for roll: Int) -> WheelSlice {
         var total = 0
@@ -250,8 +284,9 @@ extension GameEngine {
                 attributes.append(HandmadeAttributeRoll(attribute: attribute, value: random.int(attribute.range(for: quality))))
             }
             let id = "handmade-\(serial)"
+            let days = random.int(CraftCatalog.durabilityRange(tier: definition.tier, quality: quality))
             craft.handmade.append(HandmadeItem(id: id, blueprintID: definition.id, quality: quality,
-                                               attributes: attributes, madeAt: timestamp))
+                                               attributes: attributes, madeAt: timestamp, durability: days, durabilityCap: days))
             itemID = id
         } else {
             for cost in definition.costs {
@@ -316,6 +351,45 @@ extension GameEngine {
         guard state.craft.showsWorkGearWhenEmpty != value else { return ActionOutcome() }
         state.craft.showsWorkGearWhenEmpty = value
         return .init(success: .appearanceSettingSaved)
+    }
+
+    /// 3.1: mend a handmade piece with one each of up to two of its materials. Never fails, keeps the
+    /// attributes, brings it to about two thirds of its new cap; the cap drops by 4 until craft Lv5.
+    public static func repairHandmade(_ state: inout GameSnapshot, itemID: String, now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let index = state.craft.handmade.firstIndex(where: { $0.id == itemID }),
+              let definition = state.craft.handmade[index].blueprint else { return .init(failure: .craftItemMissing) }
+        var item = state.craft.handmade[index]
+        let target = item.repairTarget(skillLevel: state.craft.skillLevel.level)
+        guard target.durability > item.durability, item.repairs < CraftCatalog.maximumRepairs else {
+            return .init(failure: .craftRepairNotNeeded)
+        }
+        let costs = CraftCatalog.repairCosts(for: definition)
+        guard costs.allSatisfy({ state.craft.count(of: $0.material) >= $0.count }) else { return .init(failure: .craftRepairMaterials) }
+        var candidate = state
+        for cost in costs {
+            candidate.craft.materials[cost.material.rawValue] = candidate.craft.count(of: cost.material) - cost.count
+        }
+        item.durabilityCap = target.cap
+        item.durability = target.durability
+        item.repairs += 1
+        candidate.craft.handmade[index] = item
+        if item.stage != .fragile { candidate.craft.fragileNotices.removeAll { $0 == item.id } }
+        guard candidate.isValid else { return .init(failure: .gameInvalidState) }
+        state = candidate
+        return .init(success: .handmadeRepaired)
+    }
+
+    /// 3.1: the oldest goodbye card was read (nil `farewellID` only clears this morning's fragile notices).
+    public static func acknowledgeHandmadeNotices(_ state: inout GameSnapshot, farewellID: String?, now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        var craft = state.craft
+        if let farewellID { craft.farewells.removeAll { $0.id == farewellID } } else { craft.fragileNotices = [] }
+        guard craft != state.craft else { return ActionOutcome() }
+        state.craft = craft
+        return .init(success: .handmadeNoticesSeen)
     }
 
     /// The "学会了新蓝图" notices have been shown.

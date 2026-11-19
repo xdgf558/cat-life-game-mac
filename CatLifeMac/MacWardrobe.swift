@@ -64,12 +64,6 @@ struct MacAvatarFigure: View {
             let scale = size.width / Self.canvas
             Image(asset).resizable().scaledToFit()
                 .frame(width: place.width * scale, height: place.width * scale)
-                .mask {
-                    // A headband's ends fade where they would tuck behind the hair.
-                    LinearGradient(stops: [.init(color: .black, location: place.fadeFrom),
-                                           .init(color: .black.opacity(place.fadeFrom < 1 ? 0 : 1), location: min(1, place.fadeFrom + 0.12))],
-                                   startPoint: .top, endPoint: .bottom)
-                }
                 .position(x: place.center.x * scale, y: place.center.y * scale)
         } else if part.isEmpty {
             let anchor = Self.anchor(slot)
@@ -85,7 +79,7 @@ struct MacAvatarFigure: View {
 
     private static let canvas: CGFloat = 1254
     /// Room above the art for hat crowns, as a fraction of its width.
-    static let headroom: CGFloat = 0.12
+    static let headroom: CGFloat = 0.16
 
     /// Where each avatar's head sits, measured on its art: head centre x, the top of the hair, the hair's
     /// width a little below the top, the neck (scarf / necklace) and the wearer's left chest (brooch).
@@ -106,19 +100,20 @@ struct MacAvatarFigure: View {
     /// The wear image's square frame (side and centre, in avatar canvas pixels), checked against all six
     /// avatars. Hats are sized so the crown (not the brim) matches the head, and the brim sits about a
     /// third of the way down it, so the hat is worn rather than perched; `pin` is the point of the wear
-    /// canvas that lands on the body point. `fadeFrom` fades a headband's ends from that height down.
-    static func placement(_ blueprintID: String, avatarID: String) -> (width: CGFloat, center: CGPoint, fadeFrom: CGFloat)? {
+    /// canvas that lands on the body point.
+    static func placement(_ blueprintID: String, avatarID: String) -> (width: CGFloat, center: CGPoint)? {
         guard let body = bodies[avatarID] else { return nil }
         let width: CGFloat, pin: CGPoint, point: CGPoint
-        var fadeFrom: CGFloat = 1
         func head(_ depth: CGFloat) -> CGPoint { CGPoint(x: body.headX, y: body.headTop + body.headWidth * depth) }
         switch blueprintID {
+        // Hats and the headband come in two layers (back behind the avatar, front in front), drawn so the
+        // crown's bottom ring is 46% of the canvas wide and centred at (50%, 66%).
         case "gardenHat":
-            width = body.headWidth * 1.9; pin = CGPoint(x: 0.5, y: 0.66); point = head(0.3)
+            width = body.headWidth * 2.0; pin = CGPoint(x: 0.5, y: 0.66); point = head(0.28)
         case "rainHat":
-            width = body.headWidth * 1.5; pin = CGPoint(x: 0.5, y: 0.68); point = head(0.34)
+            width = body.headWidth * 1.65; pin = CGPoint(x: 0.5, y: 0.66); point = head(0.3)
         case "catEarBand":
-            width = body.headWidth * 1.6; pin = CGPoint(x: 0.5, y: 0.25); point = head(0); fadeFrom = 0.46
+            width = body.headWidth * 1.6; pin = CGPoint(x: 0.5, y: 0.25); point = head(0.02)
         case "butterflyBrooch":
             width = body.headWidth * 0.38; pin = CGPoint(x: 0.5, y: 0.5); point = body.chest
         case "woolScarf":
@@ -129,7 +124,7 @@ struct MacAvatarFigure: View {
         default:
             return nil
         }
-        return (width, CGPoint(x: point.x + (0.5 - pin.x) * width, y: point.y + (0.5 - pin.y) * width), fadeFrom)
+        return (width, CGPoint(x: point.x + (0.5 - pin.x) * width, y: point.y + (0.5 - pin.y) * width))
     }
 
     /// Badge spots for pieces without wear art: head top, chest, left chest and feet.
@@ -169,13 +164,13 @@ struct MacWardrobePage: View {
         GeometryReader { geometry in
             let narrow = geometry.size.width < 1240
             HStack(alignment: .top, spacing: 14) {
-                stageColumn.frame(width: narrow ? 300 : 360)
+                stageColumn.frame(width: narrow ? 240 : 300)
                 MacWardrobeCabinet(craft: craft, slot: slot, pick: pick, busy: store.isBusy,
                                    choose: { next, value in slot = next; pick = value; focused = true },
                                    setShowsGear: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 MacWardrobeCloset(store: store, slot: slot, pick: $pick, openMagic: openMagic, back: back)
-                    .frame(width: narrow ? 300 : 340)
+                    .frame(width: narrow ? 270 : 310)
             }
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
@@ -192,39 +187,54 @@ struct MacWardrobePage: View {
     private var stageColumn: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(GameStrings.text("wardrobe.now"), systemImage: "person.fill").font(.system(size: 16, weight: .heavy))
-            ZStack {
-                // The mirror: soft glass, one diagonal sheen, the figure standing on a small rug.
-                LinearGradient(colors: [Color(red: 0.93, green: 0.96, blue: 0.97), RoomTheme.paper, RoomTheme.friendshipPaper],
-                               startPoint: .top, endPoint: .bottom)
-                LinearGradient(colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
-                    .frame(width: 70).rotationEffect(.degrees(24)).offset(x: -70, y: -40).allowsHitTesting(false)
-                Ellipse().fill(MacWardrobePalette.rug.opacity(0.35)).frame(width: 200, height: 26)
-                    .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, tryOn == nil ? 18 : 60)
-                MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
-                    .padding(.top, 24).padding(.bottom, tryOn == nil ? 12 : 54).padding(.horizontal, 18)
-            }
-            .overlay(alignment: .bottom) {
-                if let id = tryOn, let definition = CraftCatalog.blueprint(id: id) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "eye.fill")
-                        Text(GameStrings.format("wardrobe.tryOnBanner", GameStrings.text(definition.nameKey))).lineLimit(1).minimumScaleFactor(0.8)
-                        Spacer(minLength: 4)
-                        MacKeyCap(value: "esc")
+            // The standing mirror (`wardrobe-mirror`): its glass is see-through, so the glass tint and the figure
+            // are drawn behind it, clipped to the arch the art leaves open (x 10–90%, y 6–92%).
+            Color.clear.aspectRatio(900 / 1500, contentMode: .fit)
+                .overlay {
+                    GeometryReader { geometry in
+                        let size = geometry.size
+                        let glass = CGRect(x: size.width * 0.1, y: size.height * 0.06, width: size.width * 0.8, height: size.height * 0.86)
+                        ZStack {
+                            LinearGradient(colors: [Color(red: 0.93, green: 0.96, blue: 0.97), RoomTheme.paper, RoomTheme.friendshipPaper],
+                                           startPoint: .top, endPoint: .bottom)
+                            LinearGradient(colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
+                                .frame(width: glass.width * 0.22).rotationEffect(.degrees(24)).offset(x: -glass.width * 0.25, y: -glass.height * 0.1)
+                                .allowsHitTesting(false)
+                            Ellipse().fill(MacWardrobePalette.rug.opacity(0.35)).frame(width: glass.width * 0.7, height: glass.width * 0.09)
+                                .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, tryOn == nil ? glass.height * 0.03 : 54)
+                            MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
+                                .padding(.top, glass.width * 0.22).padding(.bottom, tryOn == nil ? glass.height * 0.02 : 52)
+                                .padding(.horizontal, glass.width * 0.04)
+                        }
+                        .overlay(alignment: .bottom) { tryOnBanner }
+                        .frame(width: glass.width, height: glass.height)
+                        .clipShape(UnevenRoundedRectangle(topLeadingRadius: glass.width / 2, bottomLeadingRadius: 6,
+                                                          bottomTrailingRadius: 6, topTrailingRadius: glass.width / 2))
+                        .position(x: glass.midX, y: glass.midY)
+                        Image("wardrobe-mirror").resizable().scaledToFit().frame(width: size.width, height: size.height)
+                            .allowsHitTesting(false).accessibilityHidden(true)
                     }
-                    .font(.system(size: 12.5, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-                    .padding(.horizontal, 12).padding(.vertical, 9)
-                    .background(RoomTheme.paper.opacity(0.96), in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
-                    .padding(12)
-                    .accessibilityIdentifier("wardrobeTryOnBadge")
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipShape(MacWardrobePalette.mirror)
-            .overlay(MacWardrobePalette.mirror.strokeBorder(MacWardrobePalette.brass.opacity(0.8), lineWidth: 2).padding(7))
-            .overlay(MacWardrobePalette.mirror.strokeBorder(MacWardrobePalette.frame, lineWidth: 8))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             handmadeBonuses
         }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
+    }
+
+    @ViewBuilder private var tryOnBanner: some View {
+        if let id = tryOn, let definition = CraftCatalog.blueprint(id: id) {
+            HStack(spacing: 8) {
+                Image(systemName: "eye.fill")
+                Text(GameStrings.format("wardrobe.tryOnBanner", GameStrings.text(definition.nameKey))).lineLimit(1).minimumScaleFactor(0.7)
+                Spacer(minLength: 4)
+                MacKeyCap(value: "esc")
+            }
+            .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
+            .padding(.horizontal, 10).padding(.vertical, 8)
+            .background(RoomTheme.paper.opacity(0.96), in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
+            .padding(8)
+            .accessibilityIdentifier("wardrobeTryOnBadge")
+        }
     }
 
     private var handmadeBonuses: some View {
@@ -520,9 +530,11 @@ enum MacWardrobePalette {
     }
 }
 
-/// The wardrobe itself: a wooden cabinet with its doors open. Tops hang on the rail on the left; hats on
-/// the top shelf, accessories in the drawer and shoes on the rack on the right. Each piece (made, a
-/// blueprint to try on, or "none") is a tile; the worn one has a tick, a fragile one a red dot.
+/// The wardrobe itself, drawn on `wardrobe-cabinet` (an open wooden wardrobe). Its art leaves fixed areas
+/// free (fractions of the picture): the rail on the left for tops, and on the right the hat shelf, the
+/// accessory drawer and the shoe rack. Each piece (made, a blueprint to try on, or "none") is a tile set
+/// into its area; the worn one has a tick, a fragile one a red dot. The name plate and the bottom drawer
+/// carry the title and the "show work gear" switch.
 @MainActor
 struct MacWardrobeCabinet: View {
     let craft: CraftState
@@ -532,90 +544,101 @@ struct MacWardrobeCabinet: View {
     let choose: (EquipmentSlot, MacClosetPick) -> Void
     let setShowsGear: (Bool) -> Void
 
+    /// Areas of the 2000 × 1400 art, as fractions (see ArtSource/Wardrobe312/README.md).
+    private static let areas: [EquipmentSlot: CGRect] = [
+        .body: CGRect(x: 0.06, y: 0.12, width: 0.43, height: 0.74),
+        .head: CGRect(x: 0.51, y: 0.12, width: 0.43, height: 0.24),
+        .accessory: CGRect(x: 0.51, y: 0.38, width: 0.43, height: 0.23),
+        .feet: CGRect(x: 0.51, y: 0.63, width: 0.43, height: 0.23)
+    ]
+    /// Where tiles stand inside each area: below the rail, on the shelf, in the drawer tray, on the rack.
+    private static let floors: [EquipmentSlot: (top: CGFloat, bottom: CGFloat)] = [
+        .body: (0.08, 0.02), .head: (0.18, 0.03), .accessory: (0.16, 0.06), .feet: (0.16, 0.12)
+    ]
+
     var body: some View {
         let made = craft.handmade.filter { $0.blueprint?.product.slot != nil }.count
-        VStack(spacing: 0) {
-            // The crown moulding with the brass name plate.
-            HStack(spacing: 8) {
-                Label(GameStrings.text("wardrobe.title"), systemImage: "cabinet.fill").font(.system(size: 17, weight: .heavy))
-                    .foregroundStyle(MacWardrobePalette.frameDark)
-                    .padding(.horizontal, 14).padding(.vertical, 6)
-                    .background(MacWardrobePalette.brass.opacity(0.35), in: Capsule())
-                    .overlay(Capsule().strokeBorder(MacWardrobePalette.brass, lineWidth: 1.5))
-                Spacer()
-                Text(GameStrings.format("wardrobe.madeCount", made)).font(.system(size: 12, weight: .heavy))
-                    .foregroundStyle(MacWardrobePalette.inner)
+        Color.clear.aspectRatio(2000 / 1400, contentMode: .fit)
+            .overlay {
+                GeometryReader { geometry in
+                    let size = geometry.size
+                    Image("wardrobe-cabinet").resizable().frame(width: size.width, height: size.height).accessibilityHidden(true)
+                    // The brass name plate in the cornice (x 39–61%, y 2–8%).
+                    Text(GameStrings.text("wardrobe.title") + " · " + GameStrings.format("wardrobe.madeCount", made))
+                        .font(.system(size: max(11, size.height * 0.03), weight: .heavy)).foregroundStyle(MacWardrobePalette.frameDark)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                        .frame(width: size.width * 0.18, height: size.height * 0.05)
+                        .position(x: size.width * 0.5, y: size.height * 0.05)
+                    ForEach(EquipmentSlot.allCases, id: \.self) { part in
+                        if let area = Self.areas[part] {
+                            let frame = CGRect(x: area.minX * size.width, y: area.minY * size.height,
+                                               width: area.width * size.width, height: area.height * size.height)
+                            compartment(part, in: frame.size).frame(width: frame.width, height: frame.height)
+                                .position(x: frame.midX, y: frame.midY)
+                        }
+                    }
+                    // The bottom drawer, left of its handle (y 88–100%).
+                    Toggle(isOn: Binding(get: { craft.showsWorkGearWhenEmpty }, set: setShowsGear)) {
+                        Text(GameStrings.text("wardrobe.showGear")).font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.ink)
+                            .lineLimit(1).minimumScaleFactor(0.7)
+                    }
+                    .toggleStyle(.switch).controlSize(.mini).tint(RoomTheme.mint).disabled(busy)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(MacWardrobePalette.inner.opacity(0.92), in: Capsule())
+                    .frame(width: size.width * 0.36)
+                    .position(x: size.width * 0.24, y: size.height * 0.94)
+                    .accessibilityIdentifier("wardrobeShowGear")
+                }
             }
-            .padding(.horizontal, 16).padding(.vertical, 10)
-            HStack(alignment: .top, spacing: 10) {
-                compartment(.body, hanging: true).frame(maxWidth: .infinity, maxHeight: .infinity)
-                VStack(spacing: 10) {
-                    compartment(.head, hanging: false)
-                    compartment(.accessory, hanging: false)
-                    compartment(.feet, hanging: false)
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .padding(10)
-            .background(MacWardrobePalette.back, in: RoundedRectangle(cornerRadius: 14))
-            .padding(.horizontal, 12)
-            // The bottom drawer: what an empty slot shows.
-            Toggle(isOn: Binding(get: { craft.showsWorkGearWhenEmpty }, set: setShowsGear)) {
-                Text(GameStrings.text("wardrobe.showGear")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.ink)
-            }
-            .toggleStyle(.switch).controlSize(.small).tint(RoomTheme.mint).disabled(busy)
-            .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(MacWardrobePalette.inner, in: RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .top) { Capsule().fill(MacWardrobePalette.brass).frame(width: 46, height: 5).offset(y: -2) }
-            .padding(12)
-            .accessibilityIdentifier("wardrobeShowGear")
-        }
-        .background {
-            // The shadow belongs to the cabinet body only; on the whole view it doubled every label.
-            UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 14, bottomTrailingRadius: 14, topTrailingRadius: 30,
-                                   style: .continuous)
-                .fill(LinearGradient(colors: [MacWardrobePalette.frame, MacWardrobePalette.frameDark], startPoint: .top, endPoint: .bottom))
-                .shadow(color: MacWardrobePalette.frameDark.opacity(0.3), radius: 0, y: 6)
-        }
-        .accessibilityElement(children: .contain).accessibilityIdentifier("wardrobeCabinet")
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .accessibilityElement(children: .contain).accessibilityIdentifier("wardrobeCabinet")
     }
 
-    /// One part of the cabinet. The rail compartment draws a rod and hooks; shelves draw a board below.
-    private func compartment(_ part: EquipmentSlot, hanging: Bool) -> some View {
+    /// One area of the cabinet: its name tag and its tiles. The rail area wraps tiles in rows; shelves
+    /// line them up in one row that scrolls sideways when there are more than fit.
+    private func compartment(_ part: EquipmentSlot, in size: CGSize) -> some View {
         let picks = MacWardrobeCloset.picks(craft, slot: part)
         let chosen = part == slot
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 5) {
-                Image(systemName: MacWardrobePalette.symbol(part)).font(.system(size: 10, weight: .bold))
-                Text(GameStrings.text("craft.slot.\(part.rawValue)")).font(.system(size: 11.5, weight: .heavy))
+        let hanging = part == .body
+        let floor = Self.floors[part] ?? (0.1, 0.05)
+        let tileHeight = hanging ? min(108, size.width * 0.3) : max(52, size.height * (1 - floor.top - floor.bottom))
+        return ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 8).strokeBorder(chosen ? RoomTheme.friendship : .clear, lineWidth: 3)
+            Group {
+                if hanging {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: tileHeight * 0.8), spacing: 8)], alignment: .leading, spacing: 10) {
+                            ForEach(picks, id: \.self) { value in tile(value, part: part, hanging: true, icon: tileHeight * 0.48).frame(height: tileHeight) }
+                        }.padding(.horizontal, 8)
+                    }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .bottom, spacing: 8) {
+                            ForEach(picks, id: \.self) { value in
+                                tile(value, part: part, hanging: false, icon: tileHeight * 0.5).frame(width: tileHeight * 0.86, height: tileHeight)
+                            }
+                        }.padding(.horizontal, 8)
+                    }
+                }
+            }
+            .padding(.top, size.height * floor.top).padding(.bottom, size.height * floor.bottom)
+            HStack(spacing: 4) {
+                Image(systemName: MacWardrobePalette.symbol(part)).font(.system(size: 9.5, weight: .bold))
+                Text(GameStrings.text("craft.slot.\(part.rawValue)")).font(.system(size: 11, weight: .heavy))
             }
             .foregroundStyle(MacWardrobePalette.frameDark)
-            .padding(.horizontal, 9).padding(.vertical, 3)
-            .background(MacWardrobePalette.brass.opacity(chosen ? 0.55 : 0.3), in: Capsule())
+            .padding(.horizontal, 8).padding(.vertical, 2)
+            .background(MacWardrobePalette.inner.opacity(chosen ? 1 : 0.85), in: Capsule())
+            .overlay(Capsule().strokeBorder(chosen ? RoomTheme.friendship : MacWardrobePalette.brass.opacity(0.7), lineWidth: 1.2))
+            .padding(6)
             .accessibilityAddTraits(.isHeader)
-            if hanging {
-                Capsule().fill(LinearGradient(colors: [Color(white: 0.85), Color(white: 0.6)], startPoint: .top, endPoint: .bottom))
-                    .frame(height: 6).padding(.horizontal, 2)
-            }
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: hanging ? 84 : 70), spacing: 8)], alignment: .leading, spacing: hanging ? 12 : 8) {
-                    ForEach(picks, id: \.self) { value in tile(value, part: part, hanging: hanging) }
-                }.padding(.vertical, 2)
-            }
-            if !hanging {
-                // The shelf board.
-                RoundedRectangle(cornerRadius: 2).fill(MacWardrobePalette.shelf).frame(height: 5)
-            }
         }
-        .padding(10).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(MacWardrobePalette.inner, in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(chosen ? RoomTheme.friendship : MacWardrobePalette.shelf.opacity(0.45),
-                                                                 lineWidth: chosen ? 2.5 : 1))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(GameStrings.text("craft.slot.\(part.rawValue)"))
         .accessibilityIdentifier("wardrobeSlot_\(part.rawValue)")
     }
 
-    private func tile(_ value: MacClosetPick, part: EquipmentSlot, hanging: Bool) -> some View {
+    private func tile(_ value: MacClosetPick, part: EquipmentSlot, hanging: Bool, icon: CGFloat = 52) -> some View {
         let picked = part == slot && pick == value
         let item: HandmadeItem? = { if case .item(let id) = value { return craft.item(id: id) } else { return nil } }()
         let definition: BlueprintDefinition? = {
@@ -637,10 +660,10 @@ struct MacWardrobeCabinet: View {
                 ZStack(alignment: .topTrailing) {
                     Group {
                         if let definition {
-                            MacBlueprintIcon(definition: definition, size: 52, asItem: true).opacity(isTryOn ? 0.55 : 1)
+                            MacBlueprintIcon(definition: definition, size: icon, asItem: true).opacity(isTryOn ? 0.55 : 1)
                         } else {
                             Image(systemName: "nosign").font(.system(size: 18)).foregroundStyle(RoomTheme.secondary.opacity(0.55))
-                                .frame(width: 52, height: 52)
+                                .frame(width: icon, height: icon)
                                 .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
                         }
                     }

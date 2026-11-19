@@ -109,6 +109,17 @@ public enum ActionFailure: String, Equatable, Sendable {
     case stationCatMissing = "stationCat.error.missing"
     case stationCatGrassRequired = "stationCat.error.grass"
     case stationCatPending = "stationCat.error.pending"
+    case wheelDailyLimit = "craft.error.wheelLimit"
+    case craftBlueprintMissing = "craft.error.blueprintMissing"
+    case craftNotOpen = "craft.error.notOpen"
+    case craftUsesFull = "craft.error.usesFull"
+    case craftStardustRequired = "craft.error.stardust"
+    case craftUsedUp = "craft.error.usedUp"
+    case craftSkillRequired = "craft.error.skill"
+    case craftMaterialsRequired = "craft.error.materials"
+    case craftInventoryFull = "craft.error.inventoryFull"
+    case craftItemMissing = "craft.error.itemMissing"
+    case craftSlotMismatch = "craft.error.slot"
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
@@ -166,6 +177,15 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case stationCatCaught = "stationCat.caught"
     case stationCatLeft = "stationCat.left"
     case stationCatNoticeSeen = "stationCat.noticeSeen"
+    case wheelSpun = "craft.wheel.spun"
+    case stardustExchanged = "craft.exchange.done"
+    case crafted = "craft.crafted"
+    case craftMissed = "craft.missed"
+    case craftGoalSet = "craft.goal.saved"
+    case appearanceWorn = "wardrobe.worn"
+    case appearanceCleared = "wardrobe.cleared"
+    case appearanceSettingSaved = "wardrobe.settingSaved"
+    case blueprintGrantsSeen = "craft.grants.seen"
 
     public var kind: ActionKind {
         switch self {
@@ -180,6 +200,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
         case .outingStarted, .outingExplored, .outingEventChosen, .outingEnded, .outingAcknowledged,
              .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped,
              .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen: return .none
+        case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
+             .appearanceSettingSaved, .blueprintGrantsSeen: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

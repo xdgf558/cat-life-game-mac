@@ -79,20 +79,22 @@ extension GameEngine {
         guard let today = state.tasks.dailyDayKey else { return .init(failure: .gameInvalidState) }
         guard state.outing.departuresLeft(today: today) > 0 else { return .init(failure: .outingDailyLimit) }
         if let blocker = OutingCatalog.blocker(for: state.cats[index], in: state) { return .init(failure: blocker.failure) }
-        guard state.player.stamina >= OutingCatalog.staminaCost else { return .init(failure: .outingStaminaRequired) }
+        let staminaCost = CraftRules.outingStaminaCost(in: state)
+        guard state.player.stamina >= staminaCost else { return .init(failure: .outingStaminaRequired) }
         let timestamp = effectiveTime(state, now: now)
         var candidate = state
         finishCatRest(&candidate, index: index, now: timestamp)
         if candidate.player.stamina == 100 {
             candidate.player.staminaUpdatedAt = max(candidate.player.staminaUpdatedAt, timestamp)
         }
-        candidate.player.stamina -= OutingCatalog.staminaCost
+        candidate.player.stamina -= staminaCost
         candidate.cats[index].energy = max(0, candidate.cats[index].energy - OutingCatalog.energyCost)
         candidate.cats[index].decayTracker.energy = max(candidate.cats[index].decayTracker.energy, timestamp)
         if candidate.outing.dayKey != today { candidate.outing.dayKey = today; candidate.outing.departuresToday = 0 }
         candidate.outing.departuresToday += 1
         candidate.outing.totalDepartures = min(GameSnapshot.maximumGold, candidate.outing.totalDepartures + 1)
         let footprints = OutingCatalog.footprints + OutingBonuses.value(.footprint, in: candidate)
+            + candidate.craft.bonus(.footprint)
         candidate.outing.lastSettlement?.acknowledged = true
         candidate.outing.trip = OutingTrip(
             id: "outing-\(Int(timestamp.timeIntervalSince1970))-\(candidate.outing.totalDepartures)", catID: catID,
@@ -163,6 +165,7 @@ extension GameEngine {
                                   reactionKey: "outing.reaction.nothing", catMood: mood, bond: 0, friendship: 0,
                                   neighborID: nil, gold: 0, refundedFootprint: false))
         }
+        CraftRules.outingMaterial(&trip, spot: spot, in: &candidate)
         candidate.outing.trip = trip
         guard candidate.isValid else { return .init(failure: .gameInvalidState) }
         state = candidate
@@ -257,6 +260,8 @@ extension GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard state.outing.lastSettlement?.acknowledged == false else { return ActionOutcome() }
         state.outing.lastSettlement?.acknowledged = true
+        // The settlement listed the blueprints it taught; the cottage doesn't announce them again.
+        state.craft.markGrantsSeen(state.outing.lastSettlement?.learnedBlueprintIDs ?? [])
         return .init(success: .outingAcknowledged)
     }
 
@@ -311,10 +316,12 @@ extension GameEngine {
         }
         // A Station Cat left waiting wanders off.
         if trip.pendingStationCat != nil { StationCatRules.resolveSighting(&trip, caught: false) }
+        let learned = CraftRules.grantOutingBlueprints(&state, trip: trip, at: timestamp)
         state.outing.lastSettlement = OutingSettlement(
             id: trip.id, catID: trip.catID, endedAt: timestamp, reason: reason,
             footprintsTotal: trip.footprintsTotal, footprintsUsed: trip.footprintsUsed, loot: trip.loot,
-            catMood: trip.catMood, bond: trip.bond, gold: trip.gold, neighborsMet: trip.neighborsMet, acknowledged: false)
+            catMood: trip.catMood, bond: trip.bond, gold: trip.gold, neighborsMet: trip.neighborsMet, acknowledged: false,
+            craftFinds: trip.craftFinds, learnedBlueprintIDs: learned.isEmpty ? nil : learned)
         state.outing.trip = nil
     }
 

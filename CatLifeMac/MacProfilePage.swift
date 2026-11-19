@@ -8,6 +8,8 @@ struct MacProfileExits {
     var bag: () -> Void = {}
     var shopEquipment: () -> Void = {}
     var saves: () -> Void = {}
+    /// 3.0: the wardrobe tab of this page.
+    var wardrobe: () -> Void = {}
 }
 
 /// "My Profile" on the desktop: character on the left, what you wear in the middle, your numbers on the right.
@@ -57,7 +59,10 @@ struct MacProfilePage: View {
         .overlay { if showsAvatars { avatarSheet } }
         .focusable().focusEffectDisabled().focused($pageFocused)
         .onKeyPress(phases: .down) { key in handleKey(key) }
-        .onAppear { pageFocused = true; syncNested() }
+        .onAppear {
+            pageFocused = true
+            syncNested()
+        }
         .onChange(of: mode) { _, _ in syncNested() }
         .onChange(of: renaming) { _, _ in syncNested() }
         .onChange(of: showsAvatars) { _, _ in syncNested(); if !showsAvatars { pageFocused = true } }
@@ -140,13 +145,8 @@ struct MacProfilePage: View {
                            center: .center, startRadius: 20, endRadius: 360)
             Ellipse().fill(RoomTheme.ink.opacity(0.09)).frame(width: 200, height: 26)
                 .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 26)
-            if let avatar {
-                Image(avatar.assetName).resizable().scaledToFit().padding(.top, 44).padding(.bottom, 20)
-                    .accessibilityLabel(GameStrings.text(avatar.nameKey))
-            } else {
-                Image(systemName: "person.crop.circle.badge.plus").font(.system(size: 72, weight: .light))
-                    .foregroundStyle(RoomTheme.darkMint.opacity(0.7))
-            }
+            MacAvatarFigure(avatar: avatar, craft: craft)
+                .padding(.top, avatar == nil ? 0 : 44).padding(.bottom, avatar == nil ? 0 : 20)
         }
         .overlay(alignment: .topLeading) {
             Label(avatar.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("player.avatar.unselected"), systemImage: "person.fill")
@@ -181,88 +181,95 @@ struct MacProfilePage: View {
         if case .wardrobe(let slot) = mode { wardrobe(slot) } else { outfit }
     }
 
+    /// Work gear (work bonuses), what the bonuses add up to, and the way into the wardrobe.
     private var outfit: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label(GameStrings.text("mac.profile.wearing"), systemImage: "tshirt.fill").font(.system(size: 17, weight: .heavy))
-                Spacer()
+            HStack(alignment: .firstTextBaseline) {
+                sectionHeader("wardrobe.gearTitle", detail: "wardrobe.gearDetail", symbol: "briefcase.fill", tint: RoomTheme.sky)
                 Text(GameStrings.format("mac.profile.wornCount", profile.equipped.count, slots.count))
-                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary).fixedSize()
             }
-            ForEach(slots, id: \.self) { slot in slotRow(slot) }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10) {
+                ForEach(slots, id: \.self) { slot in gearTile(slot) }
+            }
+            bonusStrip
             Spacer(minLength: 0)
-            bonusCard
-        }.macContentCard69(padding: 20).frame(maxHeight: .infinity)
+            MacWardrobeEntry(craft: craft, open: exits.wardrobe)
+        }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
     }
 
-    private func slotRow(_ slot: EquipmentSlot) -> some View {
+    private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
+
+    private func sectionHeader(_ title: String, detail: String, symbol: String, tint: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Label(GameStrings.text(title), systemImage: symbol).font(.system(size: 16, weight: .heavy)).foregroundStyle(tint)
+            Text(GameStrings.text(detail)).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
+            Spacer(minLength: 0)
+        }
+    }
+
+    /// A compact work-gear tile; opening it shows the existing work-gear wardrobe.
+    private func gearTile(_ slot: EquipmentSlot) -> some View {
         let item = profile.equipped[slot].flatMap(PlayerCatalog.item(id:))
+        let selected = mode == .wardrobe(slot)
         return Button { openWardrobe(slot) } label: {
-            HStack(spacing: 14) {
-                Group {
-                    if let item {
-                        GameIcon(asset: item.displayAssetName, symbol: Self.symbol(slot), size: 50, tint: RoomTheme.darkMint)
-                            .frame(width: 62, height: 62).background(RoomTheme.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
-                    } else {
-                        Image(systemName: Self.symbol(slot)).font(.system(size: 22)).foregroundStyle(RoomTheme.secondary.opacity(0.6))
-                            .frame(width: 62, height: 62)
-                            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
-                    }
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(GameStrings.text("gear.slot.\(slot.rawValue)")).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+            HStack(spacing: 8) {
+                GameIcon(asset: item?.displayAssetName ?? "", symbol: Self.symbol(slot), size: 30, tint: RoomTheme.darkMint)
+                    .frame(width: 40, height: 40).background(RoomTheme.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 2) {
                     Text(item.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("mac.profile.notWearing"))
-                        .font(.system(size: 16, weight: .black)).lineLimit(1)
-                    if let item { bonusPill(item.bonuses) }
+                        .font(.system(size: 13, weight: .black)).lineLimit(1)
+                    Text(item.flatMap { Self.bonusText($0.bonuses) } ?? GameStrings.text("gear.slot.\(slot.rawValue)"))
+                        .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Spacer(minLength: 6)
-                Text(GameStrings.text(item == nil ? "mac.profile.pickOne" : "mac.profile.change") + " ›")
-                    .font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                Spacer(minLength: 0)
             }
-            .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(RoomTheme.track, lineWidth: 2))
-            .contentShape(RoundedRectangle(cornerRadius: 20))
+            .padding(8).frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.sky.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(selected ? RoomTheme.sky : RoomTheme.sky.opacity(0.3), lineWidth: selected ? 3 : 1.5))
+            .contentShape(RoundedRectangle(cornerRadius: 14))
         }.buttonStyle(MacProfileRowStyle()).accessibilityIdentifier("profileSlot_\(slot.rawValue)")
             .accessibilityLabel(GameStrings.text("gear.slot.\(slot.rawValue)"))
             .accessibilityValue(item.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
+    }
+
+    /// Work bonuses and handmade bonuses, shown apart and counted apart.
+    private var bonusStrip: some View {
+        let handmade = HandmadeAttribute.allCases.filter { craft.bonus($0) > 0 }
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(GameStrings.text("wardrobe.workBonus")).font(.system(size: 12, weight: .heavy))
+                Spacer()
+                Button { mode = mode == .sources ? .overview : .sources } label: {
+                    Text(GameStrings.text("mac.profile.sources") + " ›").font(.system(size: 11.5, weight: .heavy))
+                }.buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("profileBonusSources")
+            }
+            FlowChips {
+                ForEach(Self.stats, id: \.key) { stat in
+                    if stat.value(bonuses) > 0 {
+                        chip(GameStrings.text(stat.key) + " −\(stat.value(bonuses))%", symbol: stat.symbol, tint: RoomTheme.darkMint)
+                    }
+                }
+                if Self.bonusText(bonuses) == nil { chip(GameStrings.text("mac.profile.noBonus"), symbol: "minus", tint: RoomTheme.secondary) }
+            }
+            Text(GameStrings.text("wardrobe.handmadeBonus")).font(.system(size: 12, weight: .heavy)).padding(.top, 2)
+            FlowChips {
+                ForEach(handmade, id: \.self) { attribute in
+                    chip(GameStrings.text(attribute.titleKey) + " " + MacCraftStyle.valueText(attribute, craft.bonus(attribute)),
+                         symbol: MacCraftStyle.symbol(attribute), tint: RoomTheme.friendshipDeep)
+                }
+                if handmade.isEmpty { chip(GameStrings.text("wardrobe.noHandmadeBonus"), symbol: "minus", tint: RoomTheme.secondary) }
+            }
+        }
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoomTheme.paleMint.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .combine).accessibilityIdentifier("profileBonusStrip")
     }
 
     private func bonusPill(_ value: EquipmentBonuses) -> some View {
         Text(Self.bonusText(value) ?? GameStrings.text("mac.profile.noBonus"))
             .font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
             .padding(.horizontal, 9).padding(.vertical, 3).background(RoomTheme.paleMint, in: Capsule())
-    }
-
-    private var bonusCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label(GameStrings.text("mac.profile.bonusTitle"), systemImage: "sparkles").font(.system(size: 14, weight: .heavy))
-                Spacer()
-                Button { mode = mode == .sources ? .overview : .sources } label: {
-                    Text(GameStrings.text("mac.profile.sources") + " ›").font(.system(size: 12.5, weight: .heavy))
-                }.buttonStyle(.plain).accessibilityIdentifier("profileBonusSources")
-            }.foregroundStyle(RoomTheme.darkMint)
-            HStack(spacing: 10) {
-                ForEach(Self.stats, id: \.key) { stat in
-                    VStack(spacing: 4) {
-                        Image(systemName: stat.symbol).foregroundStyle(RoomTheme.darkMint)
-                        Text(stat.value(bonuses) > 0 ? "−\(stat.value(bonuses))%" : "—").font(.system(size: 22, weight: .black)).monospacedDigit()
-                        Text(GameStrings.text(stat.key)).font(.caption.weight(.heavy))
-                        Text(sourceNames(stat)).font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(1)
-                    }.padding(.vertical, 10).frame(maxWidth: .infinity)
-                        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-                }
-            }
-        }.padding(14).background(RoomTheme.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 22))
-            .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(RoomTheme.mint.opacity(0.35), lineWidth: 2))
-    }
-
-    private func sourceNames(_ stat: Stat) -> String {
-        let names = slots.filter { slot in
-            profile.equipped[slot].flatMap(PlayerCatalog.item(id:)).map { stat.value($0.bonuses) > 0 } ?? false
-        }.map { GameStrings.text("gear.slot.\($0.rawValue)") }
-        return names.isEmpty ? " " : names.joined(separator: " + ")
     }
 
     // MARK: Middle · wardrobe for one slot

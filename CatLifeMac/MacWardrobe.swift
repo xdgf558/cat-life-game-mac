@@ -161,28 +161,54 @@ struct MacWardrobePage: View {
     }
 
     var body: some View {
-        // One scene sized from the space it gets: the standing mirror at full height on the left, the
-        // wardrobe as large as fits on the right, and the picked piece's strip right under the wardrobe.
+        // One little room sized from the space it gets: wallpaper and a wooden floor, the standing mirror
+        // and the wardrobe on the floor with a few home pieces around them, and the picked piece's strip below.
         GeometryReader { geometry in
             let width = geometry.size.width, height = geometry.size.height
-            let strip: CGFloat = 112, foot: CGFloat = 44, gap: CGFloat = 18
-            let mirrorWidth = min((height - foot - 10) * 0.6, width * 0.3)
-            let cabinetWidth = max(380, min(width - mirrorWidth - gap, (height - strip - 12) * 1.4286))
-            HStack(alignment: .top, spacing: gap) {
-                VStack(spacing: 10) {
-                    mirror.frame(width: mirrorWidth, height: mirrorWidth / 0.6)
-                    mirrorFoot.frame(width: mirrorWidth, height: foot)
+            let strip: CGFloat = 104, gap: CGFloat = 12
+            let roomHeight = max(320, height - strip - gap)
+            let floor = roomHeight * 0.12
+            let decor = width > 1000
+            let mirrorHeight = roomHeight - 54 - floor * 0.5
+            let mirrorWidth = min(mirrorHeight * 0.6, width * 0.26)
+            let side: CGFloat = decor ? 110 + 86 + 44 : 0
+            let cabinetWidth = max(360, min(mirrorHeight * 0.95 * 1.4286, width - mirrorWidth - side - 70))
+            VStack(spacing: gap) {
+                ZStack(alignment: .bottom) {
+                    MacWardrobeRoom(floor: floor)
+                    HStack(alignment: .bottom, spacing: 22) {
+                        mirror.frame(width: mirrorWidth, height: mirrorWidth / 0.6)
+                        if decor {
+                            VStack(spacing: 10) {
+                                Image("furniture-garden-leaf-wreath").resizable().scaledToFit().frame(width: 84)
+                                Spacer(minLength: 0)
+                                Image("furniture-garden-clay-pot").resizable().scaledToFit().frame(width: 62).padding(.bottom, -14)
+                                Image("furniture-flower-stool").resizable().scaledToFit().frame(width: 100)
+                            }
+                            .frame(width: 110, height: mirrorWidth / 0.6 * 0.82).accessibilityHidden(true)
+                        }
+                        MacWardrobeCabinet(craft: craft, slot: slot, pick: pick, busy: store.isBusy,
+                                           choose: { next, value in slot = next; pick = value; focused = true },
+                                           setShowsGear: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })
+                            .frame(width: cabinetWidth, height: cabinetWidth / 1.4286)
+                        if decor {
+                            Image("furniture-plant").resizable().scaledToFit().frame(width: 86).accessibilityHidden(true)
+                        }
+                    }
+                    .padding(.horizontal, 20).padding(.bottom, floor * 0.5)
                 }
-                VStack(spacing: 12) {
-                    MacWardrobeCabinet(craft: craft, slot: slot, pick: pick, busy: store.isBusy,
-                                       choose: { next, value in slot = next; pick = value; focused = true },
-                                       setShowsGear: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })
-                        .frame(width: cabinetWidth, height: cabinetWidth / 1.4286)
-                    MacWardrobeCloset(store: store, slot: slot, pick: $pick, openMagic: openMagic, back: back)
-                        .frame(width: cabinetWidth, height: strip)
+                .overlay(alignment: .topLeading) {
+                    if decor {
+                        Image("furniture-garden-wind-chime").resizable().scaledToFit().frame(height: roomHeight * 0.22)
+                            .padding(.leading, 14).accessibilityHidden(true)
+                    }
                 }
+                .overlay(alignment: .top) { mirrorFoot.frame(maxWidth: 420).frame(height: 34).padding(.top, 10) }
+                .frame(width: width, height: roomHeight)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                MacWardrobeCloset(store: store, slot: slot, pick: $pick, openMagic: openMagic, back: back)
+                    .frame(width: width, height: strip)
             }
-            .frame(width: width, height: height)
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .focusable().focusEffectDisabled().focused($focused)
@@ -201,16 +227,20 @@ struct MacWardrobePage: View {
         GeometryReader { geometry in
             let size = geometry.size
             let glass = CGRect(x: size.width * 0.1, y: size.height * 0.06, width: size.width * 0.8, height: size.height * 0.86)
-            ZStack {
-                LinearGradient(colors: [Color(red: 0.93, green: 0.96, blue: 0.97), RoomTheme.paper, RoomTheme.friendshipPaper],
-                               startPoint: .top, endPoint: .bottom)
-                LinearGradient(colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
-                    .frame(width: glass.width * 0.22).rotationEffect(.degrees(24)).offset(x: -glass.width * 0.25, y: -glass.height * 0.1)
-                    .allowsHitTesting(false)
-                Ellipse().fill(MacWardrobePalette.rug.opacity(0.35)).frame(width: glass.width * 0.7, height: glass.width * 0.09)
-                    .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, glass.height * 0.03)
+            // The glass reflects the room: pale wall, the wooden floor, a rug, and the figure standing on it.
+            let floorTop = glass.height * 0.8
+            ZStack(alignment: .top) {
+                LinearGradient(colors: [Color(red: 0.92, green: 0.95, blue: 0.96), RoomTheme.paper], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [MacWardrobePalette.shelf.opacity(0.55), MacWardrobePalette.frame.opacity(0.6)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: glass.height - floorTop).offset(y: floorTop)
+                Ellipse().fill(MacWardrobePalette.rug.opacity(0.55)).frame(width: glass.width * 0.78, height: glass.height * 0.07)
+                    .offset(y: glass.height * 0.86)
                 MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
-                    .padding(.top, glass.width * 0.2).padding(.bottom, glass.height * 0.02).padding(.horizontal, glass.width * 0.04)
+                    .frame(width: glass.width * 0.86)
+                    .frame(height: glass.height * 0.895, alignment: .bottom)
+                LinearGradient(colors: [.white.opacity(0), .white.opacity(0.35), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: glass.width * 0.2).rotationEffect(.degrees(24)).offset(x: -glass.width * 0.3, y: glass.height * 0.05)
+                    .allowsHitTesting(false)
             }
             .frame(width: glass.width, height: glass.height)
             .clipShape(UnevenRoundedRectangle(topLeadingRadius: glass.width / 2, bottomLeadingRadius: 6,
@@ -232,22 +262,23 @@ struct MacWardrobePage: View {
                 MacKeyCap(value: "esc")
             }
             .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-            .padding(.horizontal, 12).frame(maxHeight: .infinity)
-            .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
+            .padding(.horizontal, 14).frame(maxHeight: .infinity)
+            .background(RoomTheme.friendshipPaper.opacity(0.96), in: Capsule())
+            .overlay(Capsule().strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
             .accessibilityElement(children: .combine).accessibilityIdentifier("wardrobeTryOnBadge")
         } else {
             let active = HandmadeAttribute.allCases.filter { craft.bonus($0) > 0 }
             let line = active.isEmpty ? GameStrings.text("wardrobe.noHandmadeBonus")
                 : active.map { GameStrings.text($0.titleKey) + " " + MacCraftStyle.valueText($0, craft.bonus($0)) }.joined(separator: " · ")
-            VStack(alignment: .leading, spacing: 2) {
-                Text(GameStrings.text("wardrobe.handmadeBonus")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-                Text(line).font(.system(size: 11, weight: .bold)).foregroundStyle(active.isEmpty ? RoomTheme.secondary : RoomTheme.ink)
-                    .lineLimit(1).minimumScaleFactor(0.75)
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles").foregroundStyle(RoomTheme.friendshipDeep)
+                Text(GameStrings.text("wardrobe.handmadeBonus") + "：").foregroundStyle(RoomTheme.friendshipDeep)
+                Text(line).foregroundStyle(active.isEmpty ? RoomTheme.secondary : RoomTheme.ink).lineLimit(1).minimumScaleFactor(0.75)
             }
-            .padding(.horizontal, 12).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(RoomTheme.track, lineWidth: 1.5))
+            .font(.system(size: 11.5, weight: .heavy))
+            .padding(.horizontal, 14).frame(maxHeight: .infinity)
+            .background(RoomTheme.paper.opacity(0.94), in: Capsule())
+            .overlay(Capsule().strokeBorder(RoomTheme.track, lineWidth: 1.5))
             .help(line)
             .accessibilityElement(children: .combine)
         }
@@ -493,6 +524,39 @@ struct MacPieceArt: View {
 
 // MARK: 3.12 wardrobe cabinet
 
+/// The wardrobe's room: soft striped wallpaper, a skirting board and a plank floor.
+struct MacWardrobeRoom: View {
+    let floor: CGFloat
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            LinearGradient(colors: [Color(red: 0.99, green: 0.95, blue: 0.88), Color(red: 0.97, green: 0.90, blue: 0.82)],
+                           startPoint: .top, endPoint: .bottom)
+            Canvas { context, size in
+                var x: CGFloat = 0
+                while x < size.width {
+                    context.fill(Path(CGRect(x: x, y: 0, width: 14, height: size.height)), with: .color(RoomTheme.friendship.opacity(0.06)))
+                    x += 44
+                }
+            }
+            VStack(spacing: 0) {
+                Rectangle().fill(MacWardrobePalette.frameDark.opacity(0.35)).frame(height: 6)
+                Canvas { context, size in
+                    context.fill(Path(CGRect(origin: .zero, size: size)),
+                                 with: .linearGradient(Gradient(colors: [MacWardrobePalette.shelf, MacWardrobePalette.frame]),
+                                                       startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
+                    var y: CGFloat = size.height / 3
+                    while y < size.height {
+                        context.fill(Path(CGRect(x: 0, y: y, width: size.width, height: 1.5)), with: .color(MacWardrobePalette.frameDark.opacity(0.25)))
+                        y += size.height / 3
+                    }
+                }
+            }
+            .frame(height: floor)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 /// Wood, brass and the arched mirror shared by the wardrobe page.
 enum MacWardrobePalette {
     static let frame = Color(red: 0.64, green: 0.44, blue: 0.29)
@@ -548,6 +612,9 @@ struct MacWardrobeCabinet: View {
                 GeometryReader { geometry in
                     let size = geometry.size
                     Image("wardrobe-cabinet").resizable().frame(width: size.width, height: size.height).accessibilityHidden(true)
+                    // A picnic basket resting on the floor of the hanging side.
+                    Image("furniture-garden-picnic-basket").resizable().scaledToFit().frame(width: size.width * 0.1)
+                        .position(x: size.width * 0.42, y: size.height * 0.815).accessibilityHidden(true)
                     // The brass name plate in the cornice (x 39–61%, y 2–8%).
                     Text(GameStrings.text("wardrobe.title") + " · " + GameStrings.format("wardrobe.madeCount", made))
                         .font(.system(size: max(11, size.height * 0.03), weight: .heavy)).foregroundStyle(MacWardrobePalette.frameDark)

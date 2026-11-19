@@ -364,7 +364,8 @@ private struct MacNativeRoomCanvas: NSViewRepresentable {
             }
             scene.onPlacementPendingChanged = { [weak self] in guard let self, accepts() else { return }; self.source.store.setLayoutResolving($0) }
             scene.onCatTapped = { [weak self] in guard let self, accepts(), let id = self.source.store.cat?.id else { return }; self.source.onContextAction?(.profile(id)) }
-            scene.onResidentTapped = { [weak self] id in guard let self, accepts() else { return }; self.source.onContextAction?(.profile(id)) }
+            // 3.02: clicking another cat on the floor makes it the one you care for; its profile stays one right-click away.
+            scene.onResidentTapped = { [weak self] id in guard let self, accepts() else { return }; self.source.onContextAction?(.companion(id)) }
             scene.onBackgroundTapped = { [weak self] in guard let self, accepts() else { return }; self.source.scene.restPromptFurnitureID68 = nil }
             scene.onVisibleResidentsChanged = { [weak self] ids in guard let self, accepts() else { return }; self.source.store.visibleRoomCatIDs = ids }
             scene.onCatNeedAnchorChanged = { [weak self] point in guard let self, accepts() else { return }; self.source.needPresentation?.anchor = point }

@@ -1221,7 +1221,9 @@ final class RoomScene: SKScene {
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--ui-testing") && !args.contains("--allow-ambient-motion") { return }
 #endif
-        run(.sequence([.wait(forDuration: Double.random(in: 12...24)), .run { [weak self] in
+        // With companions sharing the floor someone strolls every few seconds; a single cat rests longer between walks.
+        let sharing = residents.actors.values.contains { !$0.isHidden }
+        run(.sequence([.wait(forDuration: Double.random(in: sharing ? 5...10 : 12...24)), .run { [weak self] in
             self?.takeQuietStroll()
         }]), withKey: "ambient-walk")
     }

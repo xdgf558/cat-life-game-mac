@@ -21,6 +21,8 @@ final class RoomResidentCats {
         }
     }
     private var visualWidth: CGFloat = 0
+    /// When each cat last went for a walk ("active" is the cared-for cat), so they take turns.
+    private var lastStroll: [String: Date] = [:]
 
     func hit(at point: CGPoint) -> String? {
         actors.filter { !$0.value.isHidden && $0.value.visualFrame.contains(point) }
@@ -167,7 +169,10 @@ final class RoomResidentCats {
     func stroll(planner: RoomResidentPlanner, active: CGPoint, activeActor: CatActor) -> Bool {
         var candidates = actors.filter { !$0.value.isHidden }
         candidates["active"] = activeActor
-        guard !isBusy, let (id, actor) = candidates.randomElement() else { return false }
+        // Whoever has waited longest walks next; ties (never walked) are broken at random.
+        let longestWaiting = candidates.keys.shuffled().min { (lastStroll[$0] ?? .distantPast) < (lastStroll[$1] ?? .distantPast) }
+        guard !isBusy, let id = longestWaiting, let actor = candidates[id] else { return false }
+        lastStroll[id] = Date()
         isBusy = true
         revision += 1
         let ticket = revision

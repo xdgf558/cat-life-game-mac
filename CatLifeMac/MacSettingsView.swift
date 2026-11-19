@@ -41,14 +41,15 @@ struct MacSettingsView: View {
         }
     }
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            sidebar.frame(width: 220)
+        HStack(alignment: .top, spacing: 12) {
+            sidebar.frame(width: 188)
             ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    Text(selected.title).font(.system(size: 25, weight: .heavy, design: .rounded))
+                VStack(alignment: .leading, spacing: 14) {
+                    Label(selected.title, systemImage: selected.symbol).font(.system(size: 20, weight: .heavy, design: .rounded))
                     content
                 }
-                .padding(28).frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 22).padding(.vertical, 18).frame(maxWidth: 920, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .gameCard(cornerRadius: 24)
             .accessibilityIdentifier("macSettingsContent")
@@ -79,26 +80,28 @@ struct MacSettingsView: View {
         } message: { Text(bindingError ?? "") }
     }
     private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 3) {
             ForEach(Section.allCases) { section in
                 Button { selected = section } label: {
                     Label(section.title, systemImage: section.symbol)
-                        .font(.system(size: 15, weight: .heavy, design: .rounded))
-                        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
-                        .padding(.horizontal, 12)
+                        .font(.system(size: 13.5, weight: .heavy, design: .rounded))
+                        .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+                        .padding(.horizontal, 10)
                         .foregroundStyle(selected == section ? RoomTheme.darkMint : RoomTheme.ink)
-                        .background(selected == section ? RoomTheme.paleMint : .clear, in: RoundedRectangle(cornerRadius: 18))
+                        .background(selected == section ? RoomTheme.paleMint : .clear, in: RoundedRectangle(cornerRadius: 12))
+                        .contentShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .buttonStyle(.plain).accessibilityIdentifier("macSettingsTab_" + section.rawValue)
+                .buttonStyle(.plain).accessibilityAddTraits(selected == section ? .isSelected : [])
+                .accessibilityIdentifier("macSettingsTab_" + section.rawValue)
             }
-            Spacer(minLength: 24)
+            Spacer(minLength: 16)
             Button(GameStrings.text("mac.settings.returnTitle"), action: onTitle)
-                .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("macReturnTitle")
+                .buttonStyle(SoftButtonStyle()).controlSize(.small).accessibilityIdentifier("macReturnTitle")
             Text(AppVersion.current.localizedDisplay + " · Mac")
-                .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                .frame(maxWidth: .infinity).padding(.top, 10)
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                .lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth: .infinity).padding(.top, 6)
         }
-        .padding(14).frame(maxHeight: .infinity).gameCard(cornerRadius: 24)
+        .padding(10).frame(maxHeight: .infinity).gameCard(cornerRadius: 20)
     }
     @ViewBuilder private var content: some View {
         switch selected {
@@ -112,7 +115,8 @@ struct MacSettingsView: View {
         }
     }
     private var displayContent: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
+        group("mac.settings.group.window") {
             row("mac.settings.windowMode", detail: "mac.settings.windowModeHint") {
                 MacSegmented(selection: $preferences.windowMode, options: MacWindowMode.allCases.map { ($0, GameStrings.text($0.titleKey)) })
                 .onChange(of: preferences.windowMode) { _, _ in windowController.apply() }
@@ -132,15 +136,18 @@ struct MacSettingsView: View {
             row("mac.settings.frameLimit", detail: "mac.settings.frameLimitHint") {
                 MacSegmented(selection: $preferences.frameLimit, options: [30, 60, 120].map { ($0, String($0)) }).accessibilityIdentifier("macFrameLimit")
             }
-            toggleRow("mac.settings.reduceMotion", detail: "mac.settings.reduceMotionHint", value: $preferences.reduceMotion, id: "macReduceMotion")
-            row("mac.settings.intro", detail: "mac.settings.introHint") {
-                Button(GameStrings.text("mac.settings.introPlay")) { NotificationCenter.default.post(name: .macReplayIntro, object: nil) }
-                    .buttonStyle(SoftButtonStyle()).fixedSize().accessibilityIdentifier("macReplayIntro")
-            }
-            toggleRow("mac.settings.daylight", detail: "mac.settings.daylightHint", value: $preferences.followDaylight, id: "macFollowDaylight")
-            toggleRow("mac.settings.onTop", detail: "mac.settings.onTopHint", value: $preferences.alwaysOnTop, id: "macAlwaysOnTop")
+            toggleRow("mac.settings.onTop", detail: "mac.settings.onTopHint", value: $preferences.alwaysOnTop, id: "macAlwaysOnTop", last: true)
                 .onChange(of: preferences.alwaysOnTop) { _, _ in windowController.apply() }
-            HStack { Spacer(); Button(GameStrings.text("mac.settings.restoreDisplay")) { preferences.restoreDisplay(); windowController.apply() }.buttonStyle(SoftButtonStyle()).fixedSize() }.padding(.top, 20)
+        }
+        group("mac.settings.group.visual") {
+            toggleRow("mac.settings.reduceMotion", detail: "mac.settings.reduceMotionHint", value: $preferences.reduceMotion, id: "macReduceMotion")
+            toggleRow("mac.settings.daylight", detail: "mac.settings.daylightHint", value: $preferences.followDaylight, id: "macFollowDaylight")
+            row("mac.settings.intro", detail: "mac.settings.introHint", last: true) {
+                Button(GameStrings.text("mac.settings.introPlay")) { NotificationCenter.default.post(name: .macReplayIntro, object: nil) }
+                    .buttonStyle(SoftButtonStyle()).controlSize(.small).fixedSize().accessibilityIdentifier("macReplayIntro")
+            }
+        }
+            HStack { Spacer(); Button(GameStrings.text("mac.settings.restoreDisplay")) { preferences.restoreDisplay(); windowController.apply() }.buttonStyle(SoftButtonStyle()).controlSize(.small).fixedSize() }
         }
     }
     private var currentWindowSize: String {
@@ -148,10 +155,13 @@ struct MacSettingsView: View {
         return "\(Int(size.width)) × \(Int(size.height))"
     }
     private var audioContent: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
+        group("mac.settings.group.volume") {
             audioRow("audio.music", enabled: $audioDraft.musicEnabled, volume: $audioDraft.musicVolume, preview: store.previewMusic)
             audioRow("audio.effects", enabled: $audioDraft.effectsEnabled, volume: $audioDraft.effectsVolume, preview: store.previewSoundEffect)
-            audioRow("audio.cat", enabled: $audioDraft.catEnabled, volume: $audioDraft.catVolume, preview: store.previewCatVoice)
+            audioRow("audio.cat", enabled: $audioDraft.catEnabled, volume: $audioDraft.catVolume, last: true, preview: store.previewCatVoice)
+        }
+        group("mac.settings.group.music") {
             row("audio.musicChoice", detail: "audio.musicChoiceDetail") {
                 Menu {
                     Button { audioDraft.musicChoice = nil } label: { choiceLabel("audio.musicChoice.scene", picked: audioDraft.musicChoice == nil) }
@@ -165,7 +175,8 @@ struct MacSettingsView: View {
             toggleRow("audio.sceneMusic", detail: "audio.sceneMusicDetail", value: $audioDraft.sceneMusic, id: "macSceneMusic")
                 .disabled(pickedMusicKey != "audio.musicChoice.scene")
             toggleRow("audio.nightQuiet", detail: "audio.nightQuietDetail", value: $audioDraft.nightQuiet, id: "macQuietHours")
-            toggleRow("mac.settings.backgroundAudio", detail: "mac.settings.backgroundAudioHint", value: $preferences.backgroundAudio, id: "macBackgroundAudio")
+            toggleRow("mac.settings.backgroundAudio", detail: "mac.settings.backgroundAudioHint", value: $preferences.backgroundAudio, id: "macBackgroundAudio", last: true)
+        }
             HStack {
                 if audioSaving { ProgressView().controlSize(.small); Text(GameStrings.text("common.saving")) }
                 else if audioFailure { Label(GameStrings.text("save.writeTitle"), systemImage: "exclamationmark.triangle.fill").foregroundStyle(RoomTheme.coral) }
@@ -173,7 +184,7 @@ struct MacSettingsView: View {
                 Spacer()
                 if audioFailure { Button(GameStrings.text("save.retry")) { commitAudio() } }
             }
-            .font(.system(size: 12, weight: .bold)).padding(.top, 18)
+            .font(.system(size: 12, weight: .bold))
         }
         .disabled(store.isDecorating || store.saveTransferInProgress)
     }
@@ -186,40 +197,48 @@ struct MacSettingsView: View {
     @ViewBuilder private func choiceLabel(_ key: String, picked: Bool) -> some View {
         if picked { Label(GameStrings.text(key), systemImage: "checkmark") } else { Text(GameStrings.text(key)) }
     }
-    private func audioRow(_ key: String, enabled: Binding<Bool>, volume: Binding<Double>, preview: @escaping () -> Void) -> some View {
-        row(key) {
-            HStack(spacing: 14) {
-                Toggle("", isOn: enabled).labelsHidden().toggleStyle(.switch)
-                Slider(value: volume, in: 0...1).frame(width: 200).disabled(!enabled.wrappedValue)
-                Text("\(Int(volume.wrappedValue * 100))%").monospacedDigit().frame(width: 44)
-                Button(action: preview) { Image(systemName: "play.fill").frame(width: 30, height: 30) }
+    private func audioRow(_ key: String, enabled: Binding<Bool>, volume: Binding<Double>, last: Bool = false,
+                          preview: @escaping () -> Void) -> some View {
+        row(key, last: last) {
+            HStack(spacing: 10) {
+                Toggle("", isOn: enabled).labelsHidden().toggleStyle(.switch).controlSize(.small)
+                Slider(value: volume, in: 0...1).frame(width: 170).disabled(!enabled.wrappedValue)
+                Text("\(Int(volume.wrappedValue * 100))%").font(.system(size: 12.5, weight: .bold)).monospacedDigit().frame(width: 40)
+                Button(action: preview) { Image(systemName: "play.fill").frame(width: 24, height: 24) }
                     .disabled(!enabled.wrappedValue || volume.wrappedValue == 0)
                     .accessibilityLabel(GameStrings.text("mac.settings.previewAudio"))
             }
         }
     }
     private var controlsContent: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            Text(GameStrings.text("mac.settings.rebindHint")).foregroundStyle(RoomTheme.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            group("mac.settings.group.input") {
+                toggleRow("mac.settings.reverseWheel", detail: "mac.settings.reverseWheelHint", value: $preferences.wheelReversed, id: "macReverseWheel")
+                toggleRow("mac.settings.contextMenus", detail: "mac.settings.contextMenusHint", value: $preferences.contextMenus, id: "macContextMenus")
+                toggleRow("mac.settings.hoverHints", detail: "mac.settings.hoverHintsHint", value: $preferences.hoverHints, id: "macHoverHints", last: true)
+            }
+            Text(GameStrings.text("mac.settings.rebindHint")).font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 340), spacing: 12, alignment: .top)], alignment: .leading, spacing: 12) {
             ForEach([("mac.shortcuts.navigation", Array(MacCommand.allCases.filter { $0.scope == .global })),
                      ("mac.shortcuts.home", Array(MacCommand.allCases.filter { [.feed, .clean, .play, .nextCat, .viewLeft, .viewRight, .focusCat, .catProfile, .decorate].contains($0) })),
                      ("mac.shortcuts.build", Array(MacCommand.allCases.filter { [.rotateLeft, .rotateRight, .nudgeLeft, .nudgeRight, .nudgeUp, .nudgeDown, .grid, .putAway, .confirm, .undo, .redo, .save, .search].contains($0) })),
                      ("mac.shortcuts.more", [.listUp, .listDown, .previousPage, .nextPage, .returnHome, .recovery])], id: \.0) { heading, commands in
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(GameStrings.text(heading)).font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.secondary).padding(.bottom, 8)
+                    Text(GameStrings.text(heading)).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.secondary).padding(.bottom, 6)
                     ForEach(commands, id: \.self) { command in shortcutRow(command) }
                 }
             }
-            Button(GameStrings.text("mac.settings.restoreShortcuts")) { preferences.restoreShortcuts() }
-                .buttonStyle(SoftButtonStyle()).fixedSize().accessibilityIdentifier("macRestoreShortcuts")
-            toggleRow("mac.settings.reverseWheel", detail: "mac.settings.reverseWheelHint", value: $preferences.wheelReversed, id: "macReverseWheel")
-            toggleRow("mac.settings.contextMenus", detail: "mac.settings.contextMenusHint", value: $preferences.contextMenus, id: "macContextMenus")
-            toggleRow("mac.settings.hoverHints", detail: "mac.settings.hoverHintsHint", value: $preferences.hoverHints, id: "macHoverHints")
+            }
+            HStack {
+                Spacer()
+                Button(GameStrings.text("mac.settings.restoreShortcuts")) { preferences.restoreShortcuts() }
+                    .buttonStyle(SoftButtonStyle()).controlSize(.small).fixedSize().accessibilityIdentifier("macRestoreShortcuts")
+            }
         }
     }
     private func shortcutRow(_ command: MacCommand) -> some View {
         HStack {
-            Text(GameStrings.text(command.titleKey)); Spacer()
+            Text(GameStrings.text(command.titleKey)).font(.system(size: 13, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.85); Spacer()
             MacShortcutRecorder(label: preferences.binding(for: command).label) { binding in
                 guard let conflict = preferences.rebind(command, to: binding) else { return }
                 switch conflict {
@@ -228,27 +247,27 @@ struct MacSettingsView: View {
                 case .duplicate(let other): bindingError = GameStrings.format("mac.settings.shortcutDuplicate", GameStrings.text(other.titleKey))
                 }
             }
-            .frame(width: 116, height: 30).accessibilityIdentifier("macShortcut_" + command.rawValue)
+            .frame(width: 108, height: 26).accessibilityIdentifier("macShortcut_" + command.rawValue)
         }
-        .frame(minHeight: 42).padding(.horizontal, 12)
+        .frame(minHeight: 34).padding(.horizontal, 10)
         .background(RoomTheme.cream.opacity(0.6), in: RoundedRectangle(cornerRadius: 9))
-        .padding(.bottom, 4)
+        .padding(.bottom, 3)
     }
     private var gameContent: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            Text(GameStrings.text("mac.settings.gameHint")).foregroundStyle(RoomTheme.secondary)
-            row("settings.homeName") {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(GameStrings.text("mac.settings.gameHint")).font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+        group {
+            row("settings.homeName", detail: homeNameSaved ? "homeName.saved" : nil) {
                 HStack(spacing: 10) {
                     TextField(GameStrings.text("settings.homeName"), text: $homeName).textFieldStyle(.roundedBorder).frame(width: 230).accessibilityIdentifier("macHomeNameField")
                     Button(GameStrings.text("homeName.save")) { saveHomeName() }.disabled(store.isBusy || savingHomeName).accessibilityIdentifier("macSaveHomeName")
                 }
             }
-            if homeNameSaved { Label(GameStrings.text("homeName.saved"), systemImage: "checkmark.circle.fill").foregroundStyle(RoomTheme.darkMint) }
             row("mac.settings.tour", detail: "mac.settings.tourHint") {
                 Button(GameStrings.text("mac.settings.tourReplay"), action: onReplayTour)
                     .disabled(store.isBusy || store.isDecorating || !store.hasEnteredHome).accessibilityIdentifier("macReplayTour")
             }
-            row("mac.settings.notifications", detail: "mac.settings.notificationsHint") {
+            row("mac.settings.notifications", detail: "mac.settings.notificationsHint", last: true) {
                 Toggle("", isOn: Binding(get: { preferences.notificationsEnabled }, set: { enabled in
                     guard !requestingNotifications else { return }
                     if !enabled { preferences.notificationsEnabled = false; return }
@@ -260,46 +279,53 @@ struct MacSettingsView: View {
                     }
                 })).labelsHidden().toggleStyle(.switch).disabled(requestingNotifications).accessibilityIdentifier("macNotifications")
             }
+        }
             if notificationDenied { Text(GameStrings.text("mac.settings.notificationDenied")).foregroundStyle(RoomTheme.coral) }
         }
     }
     private var savesContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Label(GameStrings.text("mac.settings.localSaves"), systemImage: "externaldrive.fill").font(.headline)
-            Text(GameStrings.text("mac.settings.localSavesHint")).foregroundStyle(RoomTheme.secondary)
-            Button(GameStrings.text("saveTransfer.title")) { showsSaves = true }
-                .buttonStyle(MintButtonStyle()).fixedSize().disabled(store.isBusy || store.isDecorating || store.saveTransferInProgress)
-                .accessibilityIdentifier("macOpenSaveManagement")
+        group {
+            row("mac.settings.localSaves", detail: "mac.settings.localSavesHint", last: true) {
+                Button(GameStrings.text("saveTransfer.title")) { showsSaves = true }
+                    .buttonStyle(MintButtonStyle()).fixedSize().disabled(store.isBusy || store.isDecorating || store.saveTransferInProgress)
+                    .accessibilityIdentifier("macOpenSaveManagement")
+            }
         }
     }
     private var languageContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(GameStrings.text("settings.languageHint")).foregroundStyle(RoomTheme.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            Text(GameStrings.text("settings.languageHint")).font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+            HStack(spacing: 10) {
             ForEach(GameLanguage.allCases, id: \.self) { language in
                 Button { store.setLanguage(language) } label: {
                     HStack {
                         Text(language == .simplifiedChinese ? "简体中文" : language == .traditionalChinese ? "繁體中文" : "English")
                         Spacer(); if store.language == language { Image(systemName: "checkmark.circle.fill") }
                     }
-                    .padding(18).frame(maxWidth: 520)
+                    .font(.system(size: 14, weight: .heavy))
+                    .padding(.horizontal, 14).padding(.vertical, 11).frame(maxWidth: 220)
                     .foregroundStyle(store.language == language ? RoomTheme.darkMint : RoomTheme.ink)
-                    .background(store.language == language ? RoomTheme.paleMint : RoomTheme.cream, in: RoundedRectangle(cornerRadius: 18))
+                    .background(store.language == language ? RoomTheme.paleMint : RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(store.language == language ? RoomTheme.mint : RoomTheme.track, lineWidth: 1.5))
+                    .contentShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .buttonStyle(.plain).disabled(store.isBusy || store.saveTransferInProgress)
+                .accessibilityAddTraits(store.language == language ? .isSelected : [])
                 .accessibilityIdentifier("macLanguage_" + language.rawValue)
+            }
             }
         }
     }
     private var aboutContent: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 16) {
-                Image("app-icon-preview").resizable().scaledToFit().frame(width: 80, height: 80).clipShape(RoundedRectangle(cornerRadius: 20))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 14) {
+                Image("app-icon-preview").resizable().scaledToFit().frame(width: 60, height: 60).clipShape(RoundedRectangle(cornerRadius: 15))
                 VStack(alignment: .leading, spacing: 6) {
                     Text(GameStrings.text("home.name")).font(.title2.weight(.heavy))
                     Text(AppVersion.current.localizedDisplay + " · macOS").foregroundStyle(RoomTheme.secondary)
                 }
             }
-            Text(GameStrings.text("mac.settings.aboutHint")).foregroundStyle(RoomTheme.secondary)
+            Text(GameStrings.text("mac.settings.aboutHint")).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
             #if APP_STORE
             Link(destination: URL(string: "https://github.com/xdgf558/cat-life-game-mac/blob/main/PRIVACY.md")!) {
                 Label(GameStrings.text("mac.settings.privacyPolicy"), systemImage: "hand.raised")
@@ -307,28 +333,44 @@ struct MacSettingsView: View {
             .accessibilityIdentifier("macPrivacyPolicy")
             #endif
             ForEach(AppRelease.recent) { release in
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(release.version + " · " + release.localizedDate).font(.headline)
-                    Text(GameStrings.text("releases.\(release.build).body")).fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(release.version + " · " + release.localizedDate).font(.system(size: 14, weight: .heavy))
+                    Text(GameStrings.text("releases.\(release.build).body")).font(.system(size: 12.5, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(18).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 18))
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
             }
         }
     }
-    private func row<Content: View>(_ title: String, detail: String? = nil, @ViewBuilder content: () -> Content) -> some View {
-        HStack(alignment: .center, spacing: 20) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(GameStrings.text(title)).font(.system(size: 15, weight: .heavy))
-                if let detail { Text(GameStrings.text(detail)).font(.system(size: 12, weight: .semibold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true) }
+    /// One setting: title and a short hint on the left, its control on the right. `last` drops the divider.
+    private func row<Content: View>(_ title: String, detail: String? = nil, last: Bool = false,
+                                    @ViewBuilder content: () -> Content) -> some View {
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(GameStrings.text(title)).font(.system(size: 14, weight: .heavy))
+                if let detail { Text(GameStrings.text(detail)).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             content()
         }
-        .padding(.vertical, 22)
-        .overlay(alignment: .bottom) { Rectangle().fill(RoomTheme.wood.opacity(0.45)).frame(height: 1) }
+        .padding(.vertical, 10)
+        .overlay(alignment: .bottom) { if !last { Rectangle().fill(RoomTheme.wood.opacity(0.3)).frame(height: 1) } }
     }
-    private func toggleRow(_ title: String, detail: String, value: Binding<Bool>, id: String) -> some View {
-        row(title, detail: detail) { Toggle("", isOn: value).labelsHidden().toggleStyle(.switch).accessibilityIdentifier(id) }
+    private func toggleRow(_ title: String, detail: String, value: Binding<Bool>, id: String, last: Bool = false) -> some View {
+        row(title, detail: detail, last: last) { Toggle("", isOn: value).labelsHidden().toggleStyle(.switch).controlSize(.small).accessibilityIdentifier(id) }
+    }
+    /// A titled card of rows.
+    private func group<Content: View>(_ title: String? = nil, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let title {
+                Text(GameStrings.text(title)).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                    .padding(.leading, 4).accessibilityAddTraits(.isHeader)
+            }
+            VStack(spacing: 0) { content() }
+                .padding(.horizontal, 16).padding(.vertical, 2)
+                .background(RoomTheme.cream.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(RoomTheme.track.opacity(0.8), lineWidth: 1))
+        }
     }
     private func scheduleAudioSave() {
         audioSaveTask?.cancel()

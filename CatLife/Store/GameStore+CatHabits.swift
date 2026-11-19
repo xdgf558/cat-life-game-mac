@@ -57,12 +57,12 @@ extension GameStore {
 
     var canOpenPlayTogether: Bool {
         isHabitInteractionActive && pendingCatPlayEnd == nil && !isShowingPlayTogether
-            && !isBusy && !isDecorating && !isInspectingHealth && !isChangingHomeFloor && !saveTransferInProgress
+            && !isCommitting && !isDecorating && !isInspectingHealth && !isChangingHomeFloor && !saveTransferInProgress
             && (roomFloorTravelReady || (restingFurnitureID != nil && cat?.activeRest != nil))
     }
 
     func presentPlayChoices() {
-        guard !isDecorating, !isBusy else { return }
+        guard !isDecorating, !isCommitting else { return }
         showsPlayChoices = true
     }
 

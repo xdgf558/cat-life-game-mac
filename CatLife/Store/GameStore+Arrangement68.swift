@@ -9,7 +9,7 @@ extension GameStore {
     }
     var arrangementSelection68: Bool { selectedFurnitureID != nil || arrangement68.bowlSelected }
     var canEditArrangement68: Bool {
-        isDecorating && !isBusy && !isSavingLayout && !isResolvingLayout
+        isDecorating && !isCommitting && !isSavingLayout && !isResolvingLayout
             && placingFurnitureID == nil && arrangement68.pendingRequest == nil
     }
     func canDropArrangementFurniture68(id: String, generation: UUID, floor: HomeFloor) -> Bool {
@@ -158,7 +158,7 @@ extension GameStore {
     }
     func flipSelectedFurniture() { rotateSelectedFurniture68(clockwise: true) }
     func placeFurniture(id: String) {
-        guard !isBusy, !isSavingLayout, !isResolvingLayout, arrangement68.pendingRequest == nil,
+        guard !isCommitting, !isSavingLayout, !isResolvingLayout, arrangement68.pendingRequest == nil,
               storedFurniture.contains(where: { $0.id == id }) else { return }
         guard canPlaceMoreFurniture else { showNotice(furnitureCapacityNotice); return }
         if !isDecorating { beginDecorating() }

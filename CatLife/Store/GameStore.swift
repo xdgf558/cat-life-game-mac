@@ -25,7 +25,12 @@ final class GameStore {
     // Completed startup work, not an elapsed-time animation or save field.
     private(set) var startupProgress: Double = 0
     private(set) var startupPhase = "welcome.loadingSave"
-    private(set) var isBusy = false
+    /// A save is in flight; every store action waits its turn behind it.
+    private(set) var isCommitting = false
+    /// The once-a-minute progress save. It runs silently: the save label and buttons don't react to it.
+    private(set) var isBackgroundSaving = false
+    /// What the interface treats as "saving": the player's own actions, never the silent background save.
+    var isBusy: Bool { isCommitting && !isBackgroundSaving }
     private(set) var saveTransferInProgress = false
     private(set) var saveSceneGeneration = UUID()
     private(set) var visibleHomeFloor: HomeFloor = .ground {
@@ -326,14 +331,14 @@ final class GameStore {
 
     @discardableResult
     private func processPendingAudioSettings(userInitiated: Bool = false) -> Bool {
-        guard !isBusy, let request = audioSaveRequest,
+        guard !isCommitting, let request = audioSaveRequest,
               !request.attempted || userInitiated || saveRetry.permitsAutomaticAttempt(at: Date()),
               var context = saveContext() else { return false }
         let explicitAttempt = userInitiated || !request.attempted
         audioSaveRequest?.attempted = true
         _ = GameEngine.synchronize(&context.candidate, now: Date())
         context.candidate.settings.audio = request.settings
-        isBusy = true
+        isCommitting = true
         Task {
             do {
                 try await commit(context)
@@ -355,7 +360,7 @@ final class GameStore {
                 recordSaveFailure(showAlert: audioSaveRequest?.id == request.id,
                                   userInitiated: explicitAttempt)
             }
-            isBusy = false
+            isCommitting = false
             drainPendingSynchronization()
         }
         return true
@@ -417,7 +422,7 @@ final class GameStore {
 
     var canStoreSelectedFurniture: Bool {
         isDecorating && selectedFurniture != nil && placingFurnitureID == nil
-            && !isBusy && !isSavingLayout && !isResolvingLayout
+            && !isCommitting && !isSavingLayout && !isResolvingLayout
     }
 
     var canFlipSelectedFurniture: Bool {
@@ -485,7 +490,7 @@ final class GameStore {
     }
 
     private func processNextRestTransition() {
-        guard !isBusy, !restTransitions.isEmpty,
+        guard !isCommitting, !restTransitions.isEmpty,
               saveRetry.permitsAutomaticAttempt(at: Date()), let context = saveContext() else { return }
         if context.candidate == context.original {
             acknowledgeTransitions(context.transitions)
@@ -493,14 +498,14 @@ final class GameStore {
             drainPendingSynchronization()
             return
         }
-        isBusy = true
+        isCommitting = true
         Task {
             do {
                 try await commit(context)
             } catch {
                 recordSaveFailure()
             }
-            isBusy = false
+            isCommitting = false
             drainPendingSynchronization()
         }
     }
@@ -608,10 +613,10 @@ final class GameStore {
     }
 
     func exportSaveArchive() async throws -> Data {
-        guard !isBusy, !isDecorating, var context = saveContext() else { throw SaveTransferError.busy }
-        isBusy = true
+        guard !isCommitting, !isDecorating, var context = saveContext() else { throw SaveTransferError.busy }
+        isCommitting = true
         saveTransferInProgress = true
-        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        defer { saveTransferInProgress = false; isCommitting = false; drainPendingSynchronization() }
         let exportedAt = Date()
         _ = GameEngine.synchronize(&context.candidate, now: exportedAt)
         do {
@@ -633,11 +638,11 @@ final class GameStore {
     }
 
     func exportPreservedNewerSave(id: String) async throws -> Data {
-        guard !isBusy, !isDecorating, !saveTransferInProgress else { throw SaveTransferError.busy }
+        guard !isCommitting, !isDecorating, !saveTransferInProgress else { throw SaveTransferError.busy }
         guard let repository = repository as? any GamePreservedSaveRepository else { throw SaveTransferError.readFailed }
-        isBusy = true
+        isCommitting = true
         saveTransferInProgress = true
-        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        defer { saveTransferInProgress = false; isCommitting = false; drainPendingSynchronization() }
         return try await repository.exportPreservedNewerSave(id: id, exportedAt: Date())
     }
 
@@ -651,12 +656,12 @@ final class GameStore {
     }
 
     func importSaveArchive(_ archive: NativeSaveArchive, isRecovery: Bool = false) async throws {
-        guard !isBusy, !isDecorating, snapshot != nil else { throw SaveTransferError.busy }
+        guard !isCommitting, !isDecorating, snapshot != nil else { throw SaveTransferError.busy }
         try await replaceSaveArchive(archive, isRecovery: isRecovery, afterLoadFailure: false)
     }
 
     func restoreSaveArchiveAfterLoadFailure(_ archive: NativeSaveArchive) async throws {
-        guard !isBusy, !isLoading, !loadingInProgress, loadFailed,
+        guard !isCommitting, !isLoading, !loadingInProgress, loadFailed,
               snapshot == nil, !hasEnteredHome else { throw SaveTransferError.busy }
         try await replaceSaveArchive(archive, isRecovery: true, afterLoadFailure: true)
     }
@@ -668,13 +673,13 @@ final class GameStore {
         try NativeSaveTransfer.validateImportTime(archive, now: importDate)
         // Import replaces a timeline. It must not replay physical events or completion
         // callbacks from the room that is about to be replaced.
-        isBusy = true
+        isCommitting = true
         saveTransferInProgress = true
         if afterLoadFailure { isLoading = true }
         defer {
             if afterLoadFailure { isLoading = false; syncAudio() }
             saveTransferInProgress = false
-            isBusy = false
+            isCommitting = false
             drainPendingSynchronization()
         }
         var candidate = archive.snapshot
@@ -784,14 +789,14 @@ final class GameStore {
     }
 
     func load() async {
-        guard !loadingInProgress, !isBusy else { return }
+        guard !loadingInProgress, !isCommitting else { return }
         companionMemories.clear()
         habitGuideCatID = nil
         isPresentingHabitGuide = false
         isPresentingHabitMemory = false
         inspectedMemoryCatID = nil
         loadingInProgress = true
-        isBusy = true
+        isCommitting = true
         isLoading = true
         loadFailed = false
         needsNewerVersion = false
@@ -803,7 +808,7 @@ final class GameStore {
         defer {
             loadingInProgress = false
             isLoading = false
-            isBusy = false
+            isCommitting = false
             syncAudio()
             drainPendingSynchronization()
         }
@@ -956,7 +961,7 @@ final class GameStore {
         } else { feed(supply: .food) }
     }
     func feed(supply: SupplyKind) {
-        guard !isDecorating, !isBusy, let cat else { return }
+        guard !isDecorating, !isCommitting, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.count(supply) ?? 0) >= foodRequired else { showNotice(GameStrings.text(supply == .premiumFood ? "care.premiumFoodRequired" : "care.needFood")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -971,13 +976,13 @@ final class GameStore {
     }
 
     func openSupplyPicker(for supply: SupplyKind) {
-        guard !isBusy, !isDecorating, cat != nil, supply != .toy else { return }
+        guard !isCommitting, !isDecorating, cat != nil, supply != .toy else { return }
         supplyPicker = supply == .food || supply == .premiumFood ? .food : .litter
     }
 
     func useSupplyFromPicker(_ supply: SupplyKind) async -> Bool {
         let family: SupplyKind = supply == .food || supply == .premiumFood ? .food : .litter
-        guard supply != .toy, supplyPicker == family, !isBusy, !isDecorating, let cat else { return false }
+        guard supply != .toy, supplyPicker == family, !isCommitting, !isDecorating, let cat else { return false }
         let generation = saveSceneGeneration
         var effects: [String] = []
         var actionKind: ActionKind = .none
@@ -1005,7 +1010,7 @@ final class GameStore {
         return true
     }
     func clean(supply: SupplyKind) {
-        guard !isDecorating, !isBusy, let cat else { return }
+        guard !isDecorating, !isCommitting, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.count(supply) ?? 0) > 0 else { showNotice(GameStrings.text(supply == .premiumLitter ? "care.premiumLitterRequired" : "care.needLitter")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -1015,7 +1020,7 @@ final class GameStore {
 
     func play() {
         guard !isShowingPlayTogether else { return }
-        guard !isDecorating, !isBusy, let cat else { return }
+        guard !isDecorating, !isCommitting, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.toys ?? 0) > 0 else { showNotice(GameStrings.text("care.needToy")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
@@ -1074,7 +1079,7 @@ final class GameStore {
     }
 
     func decoratePurchasedFurniture() async {
-        guard !isBusy, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
+        guard !isCommitting, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
               storedFurniture.contains(where: { $0.id == itemID }) else { return }
         if availableFurnitureFloor != nil {
             await arrangeInventoryFurniture(id: itemID)
@@ -1104,7 +1109,7 @@ final class GameStore {
     }
 
     var canChangeHomeFloor: Bool {
-        snapshot?.home.availableFloors.count == 2 && !isBusy && !isDecorating
+        snapshot?.home.availableFloors.count == 2 && !isCommitting && !isDecorating
             && !isChangingHomeFloor && !saveTransferInProgress && roomFloorTravelReady
     }
 
@@ -1138,7 +1143,7 @@ final class GameStore {
         }
     }
     func openHomeUpgrade() {
-        guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        guard !isCommitting, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
         activeSheet = .upgrade
     }
     func startWork(jobID: String = "job_flyer") {
@@ -1152,7 +1157,7 @@ final class GameStore {
     func wakeUp() { perform { GameEngine.wakeUp(&$0, now: $1) } }
 
     func beginDecorating() {
-        guard !isBusy, let snapshot else { return }
+        guard !isCommitting, let snapshot else { return }
         guard !isDecorating else { return }
         arrangement68.reset()
         draftBowlPosition = snapshot.home.bowlPosition(on: visibleHomeFloor)
@@ -1178,7 +1183,7 @@ final class GameStore {
 
     @discardableResult
     func renamePlayer(to rawName: String?) async -> Bool {
-        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
+        guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
         var candidate = context.candidate
         let name: String?
         if let rawName {
@@ -1191,8 +1196,8 @@ final class GameStore {
         // This cosmetic change must preserve the latest career, equipment,
         // home and sound preferences, and publish only after a durable write.
         candidate.player.profile.name = name
-        isBusy = true
-        defer { isBusy = false; drainPendingSynchronization() }
+        isCommitting = true
+        defer { isCommitting = false; drainPendingSynchronization() }
         do {
             context.candidate = candidate
             try await commit(context)
@@ -1208,7 +1213,7 @@ final class GameStore {
 
     @discardableResult
     func renameCat(id: String, to rawName: String?) async -> Bool {
-        guard !isBusy, !isDecorating, var context = saveContext(),
+        guard !isCommitting, !isDecorating, var context = saveContext(),
               let index = context.candidate.cats.firstIndex(where: { $0.id == id }) else { return false }
         let name: String?
         if let rawName {
@@ -1219,8 +1224,8 @@ final class GameStore {
         }
         guard context.candidate.cats[index].customName != name else { return true }
         context.candidate.cats[index].customName = name
-        isBusy = true
-        defer { isBusy = false; drainPendingSynchronization() }
+        isCommitting = true
+        defer { isCommitting = false; drainPendingSynchronization() }
         do {
             try await commit(context)
             audio.play(.tap, userInitiated: true)
@@ -1249,18 +1254,18 @@ final class GameStore {
     }
 
     func openSettings() {
-        guard !isBusy, !isDecorating else { return }
+        guard !isCommitting, !isDecorating else { return }
         isShowingSettings = true
     }
 
     func setLanguage(_ language: GameLanguage) {
-        guard !isBusy, var context = saveContext(),
+        guard !isCommitting, var context = saveContext(),
               context.candidate.settings.language != language else { return }
         var candidate = context.candidate
         // Use the same serialized save path as care and room changes. Only
         // publish the new preference after a successful atomic save, so an
         // unsuccessful write never presents a language that won't survive restart.
-        isBusy = true
+        isCommitting = true
         candidate.settings.language = language
         Task {
             do {
@@ -1271,14 +1276,14 @@ final class GameStore {
             } catch {
                 recordSaveFailure(userInitiated: true)
             }
-            isBusy = false
+            isCommitting = false
             drainPendingSynchronization()
         }
     }
 
     @discardableResult
     func setHomeName(_ rawName: String?) async -> Bool {
-        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
+        guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
         var candidate = context.candidate
         let name: String?
         if let rawName {
@@ -1291,9 +1296,9 @@ final class GameStore {
         }
         guard candidate.home.name != name else { return true }
         candidate.home.name = name
-        isBusy = true
+        isCommitting = true
         defer {
-            isBusy = false
+            isCommitting = false
             drainPendingSynchronization()
         }
         do {
@@ -1364,7 +1369,7 @@ final class GameStore {
     }
 
     func openNeighbors() {
-        guard !isBusy, !isDecorating, snapshot != nil else { return }
+        guard !isCommitting, !isDecorating, snapshot != nil else { return }
         inspectedCatID = nil
         isShowingSettings = false
         activeSheet = .town
@@ -1497,9 +1502,10 @@ final class GameStore {
 
     func performPersistedAction(playsSound: Bool = true, showsSuccessNotice: Bool = true,
                                         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
-        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
-        isBusy = true
-        defer { isBusy = false; drainPendingSynchronization() }
+        await waitForBackgroundSave()
+        guard !isCommitting, !isDecorating, var context = saveContext() else { return false }
+        isCommitting = true
+        defer { isCommitting = false; drainPendingSynchronization() }
         let outcome = action(&context.candidate, Date())
         do {
             // Publish actions and their rewards only after the entire transaction is durable.
@@ -1520,15 +1526,24 @@ final class GameStore {
     private func perform(finishesLayout: Bool = false, returnsToRoom: Bool = false,
                          presentSuccess: (() -> Bool)? = nil,
                          _ action: @escaping (inout GameSnapshot, Date) -> ActionOutcome) -> Task<Bool, Never>? {
-        guard !isBusy, var context = saveContext() else { return nil }
-        isBusy = true
+        // A click during the silent background save runs right after it instead of being dropped.
+        if isBackgroundSaving {
+            return Task {
+                await waitForBackgroundSave()
+                guard let next = perform(finishesLayout: finishesLayout, returnsToRoom: returnsToRoom,
+                                         presentSuccess: presentSuccess, action) else { return false }
+                return await next.value
+            }
+        }
+        guard !isCommitting, var context = saveContext() else { return nil }
+        isCommitting = true
         isSavingLayout = finishesLayout
         let actionDate = Date()
         now = actionDate
         _ = GameEngine.synchronize(&context.candidate, now: actionDate)
         let outcome = action(&context.candidate, actionDate)
         guard context.candidate != context.original || outcome.succeeded else {
-            isBusy = false
+            isCommitting = false
             isSavingLayout = false
             showNotice(message(for: outcome))
             playFailureSound(outcome.failure)
@@ -1551,10 +1566,19 @@ final class GameStore {
             } catch {
                 recordSaveFailure(userInitiated: true)
             }
-            isBusy = false
+            isCommitting = false
             isSavingLayout = false
             drainPendingSynchronization()
             return saved && outcome.succeeded
+        }
+    }
+
+    /// Lets a player action start right after the silent background save (a local write, usually a few ms).
+    func waitForBackgroundSave() async {
+        var waited = 0
+        while isBackgroundSaving, waited < 200 {
+            try? await Task.sleep(for: .milliseconds(10))
+            waited += 1
         }
     }
 
@@ -1563,7 +1587,7 @@ final class GameStore {
             silentProgressThrough = max(silentProgressThrough ?? .distantPast, Date())
         }
         guard snapshot != nil else { return }
-        guard !isBusy else {
+        guard !isCommitting else {
             pendingSynchronization = true
             pendingManualRetry = pendingManualRetry || userInitiated
             return
@@ -1581,7 +1605,8 @@ final class GameStore {
             refreshAdoptionReminders()
             return
         }
-        isBusy = true
+        isCommitting = true
+        isBackgroundSaving = !userInitiated
         Task {
             do {
                 if needsSave { try await commit(context) }
@@ -1598,13 +1623,14 @@ final class GameStore {
                     refreshAdoptionReminders()
                 }
             } catch { recordSaveFailure(userInitiated: userInitiated) }
-            isBusy = false
+            isCommitting = false
+            isBackgroundSaving = false
             drainPendingSynchronization()
         }
     }
 
     private func drainPendingSynchronization() {
-        guard !isBusy else { return }
+        guard !isCommitting else { return }
         if pendingManualRetry {
             pendingManualRetry = false
             pendingSynchronization = false
@@ -1653,7 +1679,7 @@ final class GameStore {
         if isLoading { names.append("loading") }
         if pendingCatPlayEnd != nil { names.append("pendingPlayEnd") }
         if isShowingPlayTogether { names.append("alreadyShowing") }
-        if isBusy { names.append("busy") }
+        if isCommitting { names.append("busy") }
         if isDecorating { names.append("decorating") }
         if isInspectingHealth { names.append("inspectingHealth") }
         if isChangingHomeFloor { names.append("changingFloor") }

@@ -2,7 +2,7 @@ import CatGameCore
 
 extension GameStore {
     func openTownBoard() {
-        guard !isBusy, !isDecorating, snapshot != nil else { return }
+        guard !isCommitting, !isDecorating, snapshot != nil else { return }
         inspectedCatID = nil
         isShowingSettings = false
         activeSheet = .town

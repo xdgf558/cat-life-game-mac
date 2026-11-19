@@ -88,7 +88,7 @@ final class CatPlayTogetherController {
             guard let self else { return }
             while !self.queue.isEmpty && !self.ending && self.visible {
                 guard self.generation == self.store.saveSceneGeneration else { self.finish(); break }
-                if self.store.isBusy { try? await Task.sleep(for: .milliseconds(30)); continue }
+                if self.store.isCommitting { try? await Task.sleep(for: .milliseconds(30)); continue }
                 let report = self.queue[0]
                 self.working = true
                 let saved = await self.store.submitPlayInput(catID: self.session.catID, sessionID: self.session.id, report: report)

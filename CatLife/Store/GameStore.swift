@@ -1643,7 +1643,8 @@ final class GameStore {
             if waiters.isEmpty { drainPendingSynchronization() } else {
                 waiters.forEach { $0.resume() }
                 // If none of them took the lock (refused, or the save changed), queued syncs still run.
-                Task { [weak self] in await Task.yield(); self?.drainPendingSynchronization() }
+                // The store lives for the whole app and this save task already holds it, so no weak capture.
+                Task { await Task.yield(); self.drainPendingSynchronization() }
             }
         }
     }

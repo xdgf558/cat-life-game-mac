@@ -526,7 +526,8 @@ struct MacWardrobeCabinet: View {
     let pick: MacClosetPick
     let busy: Bool
     let choose: (EquipmentSlot, MacClosetPick) -> Void
-    let setShowsGear: (Bool) -> Void
+    /// Main-actor isolated, so it is Sendable and can back the switch's Binding.
+    let setShowsGear: @MainActor (Bool) -> Void
 
     /// Areas of the 2000 × 1400 art, as fractions (see ArtSource/Wardrobe312/README.md).
     private static let areas: [EquipmentSlot: CGRect] = [

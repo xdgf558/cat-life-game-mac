@@ -161,17 +161,28 @@ struct MacWardrobePage: View {
     }
 
     var body: some View {
+        // One scene sized from the space it gets: the standing mirror at full height on the left, the
+        // wardrobe as large as fits on the right, and the picked piece's strip right under the wardrobe.
         GeometryReader { geometry in
-            let narrow = geometry.size.width < 1240
-            HStack(alignment: .top, spacing: 14) {
-                stageColumn.frame(width: narrow ? 240 : 300)
-                MacWardrobeCabinet(craft: craft, slot: slot, pick: pick, busy: store.isBusy,
-                                   choose: { next, value in slot = next; pick = value; focused = true },
-                                   setShowsGear: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                MacWardrobeCloset(store: store, slot: slot, pick: $pick, openMagic: openMagic, back: back)
-                    .frame(width: narrow ? 270 : 310)
+            let width = geometry.size.width, height = geometry.size.height
+            let strip: CGFloat = 112, foot: CGFloat = 44, gap: CGFloat = 18
+            let mirrorWidth = min((height - foot - 10) * 0.6, width * 0.3)
+            let cabinetWidth = max(380, min(width - mirrorWidth - gap, (height - strip - 12) * 1.4286))
+            HStack(alignment: .top, spacing: gap) {
+                VStack(spacing: 10) {
+                    mirror.frame(width: mirrorWidth, height: mirrorWidth / 0.6)
+                    mirrorFoot.frame(width: mirrorWidth, height: foot)
+                }
+                VStack(spacing: 12) {
+                    MacWardrobeCabinet(craft: craft, slot: slot, pick: pick, busy: store.isBusy,
+                                       choose: { next, value in slot = next; pick = value; focused = true },
+                                       setShowsGear: { value in Task { await store.setShowsWorkGearWhenEmpty(value) } })
+                        .frame(width: cabinetWidth, height: cabinetWidth / 1.4286)
+                    MacWardrobeCloset(store: store, slot: slot, pick: $pick, openMagic: openMagic, back: back)
+                        .frame(width: cabinetWidth, height: strip)
+                }
             }
+            .frame(width: width, height: height)
         }
         .font(.system(size: 14, weight: .semibold, design: .rounded)).foregroundStyle(RoomTheme.ink)
         .focusable().focusEffectDisabled().focused($focused)
@@ -184,43 +195,35 @@ struct MacWardrobePage: View {
 
     // MARK: Figure
 
-    private var stageColumn: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(GameStrings.text("wardrobe.now"), systemImage: "person.fill").font(.system(size: 16, weight: .heavy))
-            // The standing mirror (`wardrobe-mirror`): its glass is see-through, so the glass tint and the figure
-            // are drawn behind it, clipped to the arch the art leaves open (x 10–90%, y 6–92%).
-            Color.clear.aspectRatio(900 / 1500, contentMode: .fit)
-                .overlay {
-                    GeometryReader { geometry in
-                        let size = geometry.size
-                        let glass = CGRect(x: size.width * 0.1, y: size.height * 0.06, width: size.width * 0.8, height: size.height * 0.86)
-                        ZStack {
-                            LinearGradient(colors: [Color(red: 0.93, green: 0.96, blue: 0.97), RoomTheme.paper, RoomTheme.friendshipPaper],
-                                           startPoint: .top, endPoint: .bottom)
-                            LinearGradient(colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
-                                .frame(width: glass.width * 0.22).rotationEffect(.degrees(24)).offset(x: -glass.width * 0.25, y: -glass.height * 0.1)
-                                .allowsHitTesting(false)
-                            Ellipse().fill(MacWardrobePalette.rug.opacity(0.35)).frame(width: glass.width * 0.7, height: glass.width * 0.09)
-                                .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, tryOn == nil ? glass.height * 0.03 : 54)
-                            MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
-                                .padding(.top, glass.width * 0.22).padding(.bottom, tryOn == nil ? glass.height * 0.02 : 52)
-                                .padding(.horizontal, glass.width * 0.04)
-                        }
-                        .overlay(alignment: .bottom) { tryOnBanner }
-                        .frame(width: glass.width, height: glass.height)
-                        .clipShape(UnevenRoundedRectangle(topLeadingRadius: glass.width / 2, bottomLeadingRadius: 6,
-                                                          bottomTrailingRadius: 6, topTrailingRadius: glass.width / 2))
-                        .position(x: glass.midX, y: glass.midY)
-                        Image("wardrobe-mirror").resizable().scaledToFit().frame(width: size.width, height: size.height)
-                            .allowsHitTesting(false).accessibilityHidden(true)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            handmadeBonuses
-        }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
+    /// The standing mirror (`wardrobe-mirror`): its glass is see-through, so the glass tint and the figure
+    /// are drawn behind it, clipped to the arch the art leaves open (x 10–90%, y 6–92%).
+    private var mirror: some View {
+        GeometryReader { geometry in
+            let size = geometry.size
+            let glass = CGRect(x: size.width * 0.1, y: size.height * 0.06, width: size.width * 0.8, height: size.height * 0.86)
+            ZStack {
+                LinearGradient(colors: [Color(red: 0.93, green: 0.96, blue: 0.97), RoomTheme.paper, RoomTheme.friendshipPaper],
+                               startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [.white.opacity(0), .white.opacity(0.45), .white.opacity(0)], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: glass.width * 0.22).rotationEffect(.degrees(24)).offset(x: -glass.width * 0.25, y: -glass.height * 0.1)
+                    .allowsHitTesting(false)
+                Ellipse().fill(MacWardrobePalette.rug.opacity(0.35)).frame(width: glass.width * 0.7, height: glass.width * 0.09)
+                    .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, glass.height * 0.03)
+                MacAvatarFigure(avatar: avatar, craft: craft, tryOn: tryOn)
+                    .padding(.top, glass.width * 0.2).padding(.bottom, glass.height * 0.02).padding(.horizontal, glass.width * 0.04)
+            }
+            .frame(width: glass.width, height: glass.height)
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: glass.width / 2, bottomLeadingRadius: 6,
+                                              bottomTrailingRadius: 6, topTrailingRadius: glass.width / 2))
+            .position(x: glass.midX, y: glass.midY)
+            Image("wardrobe-mirror").resizable().frame(width: size.width, height: size.height)
+                .allowsHitTesting(false).accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .contain).accessibilityLabel(GameStrings.text("wardrobe.now"))
     }
 
-    @ViewBuilder private var tryOnBanner: some View {
+    /// Under the mirror: the try-on notice while trying something on, otherwise the worn handmade bonuses.
+    @ViewBuilder private var mirrorFoot: some View {
         if let id = tryOn, let definition = CraftCatalog.blueprint(id: id) {
             HStack(spacing: 8) {
                 Image(systemName: "eye.fill")
@@ -229,33 +232,25 @@ struct MacWardrobePage: View {
                 MacKeyCap(value: "esc")
             }
             .font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-            .padding(.horizontal, 10).padding(.vertical, 8)
-            .background(RoomTheme.paper.opacity(0.96), in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12).frame(maxHeight: .infinity)
+            .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(RoomTheme.friendshipBorder, lineWidth: 1.5))
-            .padding(8)
-            .accessibilityIdentifier("wardrobeTryOnBadge")
-        }
-    }
-
-    private var handmadeBonuses: some View {
-        let active = HandmadeAttribute.allCases.filter { craft.bonus($0) > 0 }
-        return VStack(alignment: .leading, spacing: 6) {
-            Text(GameStrings.text("wardrobe.handmadeBonus")).font(.system(size: 12, weight: .heavy))
-            if active.isEmpty {
-                Text(GameStrings.text("wardrobe.noHandmadeBonus")).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-            } else {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible())], alignment: .leading, spacing: 6) {
-                    ForEach(active, id: \.self) { attribute in
-                        Label(GameStrings.text(attribute.titleKey) + " " + MacCraftStyle.valueText(attribute, craft.bonus(attribute)),
-                              systemImage: MacCraftStyle.symbol(attribute))
-                            .font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep).lineLimit(1).minimumScaleFactor(0.8)
-                    }
-                }
+            .accessibilityElement(children: .combine).accessibilityIdentifier("wardrobeTryOnBadge")
+        } else {
+            let active = HandmadeAttribute.allCases.filter { craft.bonus($0) > 0 }
+            let line = active.isEmpty ? GameStrings.text("wardrobe.noHandmadeBonus")
+                : active.map { GameStrings.text($0.titleKey) + " " + MacCraftStyle.valueText($0, craft.bonus($0)) }.joined(separator: " · ")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(GameStrings.text("wardrobe.handmadeBonus")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
+                Text(line).font(.system(size: 11, weight: .bold)).foregroundStyle(active.isEmpty ? RoomTheme.secondary : RoomTheme.ink)
+                    .lineLimit(1).minimumScaleFactor(0.75)
             }
+            .padding(.horizontal, 12).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(RoomTheme.track, lineWidth: 1.5))
+            .help(line)
+            .accessibilityElement(children: .combine)
         }
-        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoomTheme.friendshipPaper.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
-        .accessibilityElement(children: .combine)
     }
 
     // MARK: Actions
@@ -363,114 +358,96 @@ struct MacWardrobeCloset: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Label(GameStrings.text("craft.slot.\(slot.rawValue)"), systemImage: MacWardrobePalette.symbol(slot))
-                    .font(.system(size: 16, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
-                Spacer()
-                if let worn = craft.appearance[slot].flatMap(craft.item(id:))?.blueprint {
-                    Text(GameStrings.format("wardrobe.wearingNow", GameStrings.text(worn.nameKey)))
-                        .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).lineLimit(1).minimumScaleFactor(0.8)
-                }
-            }
-            hero
-            detail
-            Spacer(minLength: 0)
-            buttons
-            Button(action: back) {
+        HStack(spacing: 14) {
+            art
+            VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 8) {
-                    Image(systemName: "briefcase.fill").foregroundStyle(RoomTheme.sky)
-                    Text(GameStrings.text("wardrobe.gearHint")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                        .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
-                    Spacer(minLength: 4)
-                    Text(GameStrings.text("wardrobe.toProfile") + " ›").font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                    Label(GameStrings.text("craft.slot.\(slot.rawValue)"), systemImage: MacWardrobePalette.symbol(slot))
+                        .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.friendshipDeep)
+                        .padding(.horizontal, 8).padding(.vertical, 3).background(RoomTheme.friendshipPaper, in: Capsule())
+                    Text(title).font(.system(size: 16, weight: .black)).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                .padding(10).background(RoomTheme.sky.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
-                .contentShape(RoundedRectangle(cornerRadius: 12))
-            }.buttonStyle(.plain).accessibilityIdentifier("wardrobeToProfile")
-        }.macContentCard69().frame(maxHeight: .infinity).accessibilityIdentifier("wardrobeCloset")
+                info
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .trailing, spacing: 6) {
+                buttons
+                Button(action: back) {
+                    Label(GameStrings.text("wardrobe.workGearLink"), systemImage: "briefcase.fill")
+                        .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                }.buttonStyle(.plain).help(GameStrings.text("wardrobe.gearHint")).accessibilityIdentifier("wardrobeToProfile")
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(MacWardrobePalette.shelf.opacity(0.45), lineWidth: 1.5))
+        .accessibilityElement(children: .contain).accessibilityIdentifier("wardrobeCloset")
         .sheet(item: $repairing) { item in
             MacRepairSheet(store: store, item: item, skillLevel: craft.skillLevel.level) { repairing = nil }
         }
     }
 
-    /// The picked piece large, like a label card pinned to the wardrobe door.
-    @ViewBuilder private var hero: some View {
-        let definition: BlueprintDefinition? = {
-            switch pick {
-            case .item(let id): return craft.item(id: id)?.blueprint
-            case .tryOn(let id): return CraftCatalog.blueprint(id: id)
-            case .none: return nil
-            }
-        }()
-        VStack(spacing: 6) {
+    private var definition: BlueprintDefinition? {
+        switch pick {
+        case .item(let id): craft.item(id: id)?.blueprint
+        case .tryOn(let id): CraftCatalog.blueprint(id: id)
+        case .none: nil
+        }
+    }
+    private var title: String {
+        switch pick {
+        case .item, .tryOn: definition.map { GameStrings.text($0.nameKey) } ?? ""
+        case .none: GameStrings.format("wardrobe.noneFor", GameStrings.text("craft.slot.\(slot.rawValue)"))
+        }
+    }
+
+    private var art: some View {
+        Group {
             if let definition {
-                MacBlueprintIcon(definition: definition, size: 96, asItem: true)
-                    .opacity({ if case .tryOn = pick { return 0.75 } else { return 1 } }())
+                MacPieceArt(definition: definition, size: 70).opacity({ if case .tryOn = pick { return 0.7 } else { return 1 } }())
             } else {
-                Image(systemName: "nosign").font(.system(size: 30)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
-                    .frame(width: 96, height: 96)
-                    .overlay(RoundedRectangle(cornerRadius: 26).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 2, dash: [6, 5])))
-            }
-            if case .none = pick {
-                Text(GameStrings.format("wardrobe.noneFor", GameStrings.text("craft.slot.\(slot.rawValue)"))).font(.system(size: 15, weight: .black))
-                Text(fallbackLine).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                Image(systemName: "nosign").font(.system(size: 24)).foregroundStyle(RoomTheme.secondary.opacity(0.5))
             }
         }
-        .padding(.vertical, 12).frame(maxWidth: .infinity)
-        .background(MacWardrobePalette.inner.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+        .frame(width: 84, height: 84)
+        .background(MacWardrobePalette.inner.opacity(0.7), in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(MacWardrobePalette.shelf.opacity(0.5), lineWidth: 1.5))
     }
 
-    private var fallbackLine: String {
-        craft.showsWorkGearWhenEmpty
-            ? GameStrings.format("wardrobe.followGear", workGear.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
-            : GameStrings.text("wardrobe.ownClothes")
-    }
-
-    @ViewBuilder private var detail: some View {
+    /// One or two short lines; longer notes are in the tooltip.
+    @ViewBuilder private var info: some View {
         switch pick {
         case .item(let id):
-            if let item = craft.item(id: id), let definition = item.blueprint {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(GameStrings.text(definition.nameKey)).font(.system(size: 15, weight: .black))
-                    Text(GameStrings.format("wardrobe.madeOn", item.madeAt.formatted(.dateTime.month().day())))
-                        .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                    MacBlueprintTags(definition: definition)
-                    MacDurabilityBar(durability: item.durability, cap: item.durabilityCap)
-                    Text(GameStrings.text(craft.isWorn(item.id) ? "gear.wearsWhenWorn" : "gear.restsInCloset"))
-                        .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-                    if item.repairTarget(skillLevel: craft.skillLevel.level).durability > item.durability,
-                       item.repairs < CraftCatalog.maximumRepairs {
-                        Button { repairing = item } label: {
-                            Label(GameStrings.text("gear.repair.button"), systemImage: "wrench.and.screwdriver.fill")
-                                .font(.system(size: 12, weight: .heavy)).frame(maxWidth: .infinity)
-                        }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("gearRepair")
-                    }
-                }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+            if let item = craft.item(id: id) {
+                Text(Self.summary(item)).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
+                MacDurabilityBar(durability: item.durability, cap: item.durabilityCap, compact: true).frame(maxWidth: 260)
+                    .help(GameStrings.text(craft.isWorn(item.id) ? "gear.wearsWhenWorn" : "gear.restsInCloset"))
             }
-        case .tryOn(let id):
-            if let definition = CraftCatalog.blueprint(id: id) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(GameStrings.format("wardrobe.tryOnTitle", GameStrings.text(definition.nameKey))).font(.system(size: 14, weight: .black))
-                    MacCostRow(definition: definition, craft: craft)
-                    Text(GameStrings.text("wardrobe.tryOnNote")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 14))
+        case .tryOn:
+            if let definition {
+                MacCostRow(definition: definition, craft: craft).frame(maxWidth: 300)
+                Text(GameStrings.text("wardrobe.tryOnNote")).font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    .lineLimit(1).minimumScaleFactor(0.8).help(GameStrings.text("wardrobe.tryOnNote"))
             }
         case .none:
-            EmptyView()
+            Text(fallbackLine).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).lineLimit(2)
         }
     }
 
     @ViewBuilder private var buttons: some View {
         let worn = craft.appearance[slot]
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
+            if case .item(let id) = pick, let item = craft.item(id: id),
+               item.repairTarget(skillLevel: craft.skillLevel.level).durability > item.durability,
+               item.repairs < CraftCatalog.maximumRepairs {
+                Button { repairing = item } label: {
+                    Label(GameStrings.text("gear.repair.button"), systemImage: "wrench.and.screwdriver.fill")
+                }.buttonStyle(SoftButtonStyle()).fixedSize().disabled(store.isBusy).accessibilityIdentifier("gearRepair")
+            }
             Button { Task { await store.setAppearance(slot: slot, itemID: nil) } } label: {
                 HStack(spacing: 6) { Text(GameStrings.text("wardrobe.takeOff")); MacKeyCap(value: "⌫") }
-            }.buttonStyle(SoftButtonStyle()).fixedSize(horizontal: true, vertical: false)
+            }.buttonStyle(SoftButtonStyle()).fixedSize()
                 .disabled(worn == nil || store.isBusy).accessibilityIdentifier("wardrobeTakeOff")
             switch pick {
             case .item(let id):
@@ -479,30 +456,37 @@ struct MacWardrobeCloset: View {
                         Image(systemName: worn == id ? "checkmark" : "hanger")
                         Text(GameStrings.text(worn == id ? "wardrobe.alreadyOn" : "wardrobe.wear"))
                         if worn != id { MacKeyCap(value: "↩") }
-                    }.frame(maxWidth: .infinity)
-                }.buttonStyle(MintButtonStyle()).keyboardShortcut(.defaultAction)
+                    }.frame(minWidth: 120)
+                }.buttonStyle(MintButtonStyle()).fixedSize().keyboardShortcut(.defaultAction)
                     .disabled(worn == id || store.isBusy).accessibilityIdentifier("wardrobeWear")
             case .tryOn:
                 Button(action: openMagic) {
-                    Label(GameStrings.text("wardrobe.goCraft"), systemImage: "hammer.fill").frame(maxWidth: .infinity)
-                }.buttonStyle(MintButtonStyle()).accessibilityIdentifier("wardrobeGoCraft")
+                    Label(GameStrings.text("wardrobe.goCraft"), systemImage: "hammer.fill").lineLimit(1).frame(minWidth: 120)
+                }.buttonStyle(MintButtonStyle()).fixedSize().accessibilityIdentifier("wardrobeGoCraft")
             case .none:
                 Button { Task { await store.setAppearance(slot: slot, itemID: nil) } } label: {
-                    Text(GameStrings.text(worn == nil ? "wardrobe.alreadyOn" : "wardrobe.wearNone")).frame(maxWidth: .infinity)
-                }.buttonStyle(MintButtonStyle()).disabled(worn == nil || store.isBusy)
+                    Text(GameStrings.text(worn == nil ? "wardrobe.alreadyOn" : "wardrobe.wearNone")).lineLimit(1).frame(minWidth: 120)
+                }.buttonStyle(MintButtonStyle()).fixedSize().disabled(worn == nil || store.isBusy)
             }
         }
-        let isTryOn: Bool = { if case .tryOn = pick { return true } else { return false } }()
-        let nothingMade = !Self.picks(craft, slot: slot).contains { if case .item = $0 { return true } else { return false } }
-        if !isTryOn && nothingMade {
-            Button(action: openMagic) {
-                HStack {
-                    Image(systemName: "scroll.fill").foregroundStyle(ExchangePalette.goldInk)
-                    Text(GameStrings.text("wardrobe.noneMade")).font(.system(size: 12, weight: .bold))
-                    Spacer()
-                    Text(GameStrings.text("wardrobe.goMagic") + " ›").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
-                }.padding(10).background(RoomTheme.gold.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-            }.buttonStyle(.plain)
+    }
+
+    private var fallbackLine: String {
+        craft.showsWorkGearWhenEmpty
+            ? GameStrings.format("wardrobe.followGear", workGear.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
+            : GameStrings.text("wardrobe.ownClothes")
+    }
+}
+
+/// A piece's own art, as large as given, with no badge behind it (falls back to the blueprint icon).
+struct MacPieceArt: View {
+    let definition: BlueprintDefinition
+    let size: CGFloat
+    var body: some View {
+        if UIImage(named: "blueprint-\(definition.id)") != nil {
+            Image("blueprint-\(definition.id)").resizable().scaledToFit().frame(width: size, height: size)
+        } else {
+            MacBlueprintIcon(definition: definition, size: size, asItem: true)
         }
     }
 }
@@ -608,14 +592,14 @@ struct MacWardrobeCabinet: View {
                 if hanging {
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: tileHeight * 0.8), spacing: 8)], alignment: .leading, spacing: 10) {
-                            ForEach(picks, id: \.self) { value in tile(value, part: part, hanging: true, icon: tileHeight * 0.48).frame(height: tileHeight) }
+                            ForEach(picks, id: \.self) { value in tile(value, part: part, hanging: true, icon: tileHeight * 0.58).frame(height: tileHeight) }
                         }.padding(.horizontal, 8)
                     }
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(alignment: .bottom, spacing: 8) {
                             ForEach(picks, id: \.self) { value in
-                                tile(value, part: part, hanging: false, icon: tileHeight * 0.5).frame(width: tileHeight * 0.86, height: tileHeight)
+                                tile(value, part: part, hanging: false, icon: tileHeight * 0.6).frame(width: tileHeight * 0.86, height: tileHeight)
                             }
                         }.padding(.horizontal, 8)
                     }
@@ -660,7 +644,7 @@ struct MacWardrobeCabinet: View {
                 ZStack(alignment: .topTrailing) {
                     Group {
                         if let definition {
-                            MacBlueprintIcon(definition: definition, size: icon, asItem: true).opacity(isTryOn ? 0.55 : 1)
+                            MacPieceArt(definition: definition, size: icon).opacity(isTryOn ? 0.6 : 1)
                         } else {
                             Image(systemName: "nosign").font(.system(size: 18)).foregroundStyle(RoomTheme.secondary.opacity(0.55))
                                 .frame(width: icon, height: icon)
@@ -683,7 +667,7 @@ struct MacWardrobeCabinet: View {
                 }
             }
             .padding(6).frame(maxWidth: .infinity)
-            .background(picked ? RoomTheme.friendshipPaper : RoomTheme.paper.opacity(0.85), in: RoundedRectangle(cornerRadius: 12))
+            .background(picked ? RoomTheme.friendshipPaper.opacity(0.92) : Color.white.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(picked ? RoomTheme.friendship : item?.stage == .fragile ? RoomTheme.coral : .clear,
                                                                      lineWidth: picked ? 2.5 : 1.5))
             .contentShape(RoundedRectangle(cornerRadius: 12))

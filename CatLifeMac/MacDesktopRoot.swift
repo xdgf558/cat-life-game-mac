@@ -258,7 +258,10 @@ struct MacDesktopRoot: View {
                         .transition(.opacity)
                 }
             }
-            .onChange(of: titleVisible ? [] : store.snapshot?.craft.fragileNotices ?? [], initial: true) { _, ids in announceFragile(ids) }
+            // Empty while busy, so notices written by a save are announced once that save has finished.
+            .onChange(of: titleVisible || store.isBusy ? [] : store.snapshot?.craft.fragileNotices ?? [], initial: true) { _, ids in
+                announceFragile(ids)
+            }
     }
     private var observedContent: some View {
         celebratedContent.task { await start() }

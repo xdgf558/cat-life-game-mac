@@ -326,7 +326,8 @@ public struct CraftState: Codable, Equatable, Sendable {
               grants.allSatisfy({ CraftCatalog.blueprint(id: $0.blueprintID) != nil && $0.at.timeIntervalSince1970.isFinite }),
               farewells.count <= CraftCatalog.maximumFarewells, farewells.allSatisfy(\.isValid),
               Set(farewells.map(\.id)).count == farewells.count,
-              fragileNotices.count <= CraftCatalog.maximumHandmade, fragileNotices.allSatisfy({ item(id: $0) != nil })
+              fragileNotices.count <= CraftCatalog.maximumHandmade, Set(fragileNotices).count == fragileNotices.count,
+              fragileNotices.allSatisfy({ item(id: $0) != nil })
         else { return false }
         return appearance.allSatisfy { slot, itemID in item(id: itemID)?.blueprint?.product.slot == slot }
     }

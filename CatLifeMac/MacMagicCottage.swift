@@ -72,9 +72,11 @@ struct MacMagicCottage: View {
         .onChange(of: opening, initial: true) { _, id in
             guard let id else { return }
             opened()
-            guard overlay == nil, !spinning else { return }
+            guard !spinning else { return }
+            overlay = nil
             selected = id
-            open(craft.hasEverHeld(id) && CraftCatalog.blueprint(id: id)?.isCraftable == true ? .craft : .book)
+            // Uses left: the crafting table. Used up: the book, which lists where to find another copy.
+            open(craft.usesLeft(id) > 0 && CraftCatalog.blueprint(id: id)?.isCraftable == true ? .craft : .book)
         }
         .onReceive(NotificationCenter.default.publisher(for: .macMagicEscape)) { _ in back() }
         .onChange(of: store.saveSceneGeneration) { _, _ in

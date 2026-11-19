@@ -495,7 +495,8 @@ struct MacWardrobeCloset: View {
                     MacDurabilityBar(durability: item.durability, cap: item.durabilityCap)
                     Text(GameStrings.text(craft.isWorn(item.id) ? "gear.wearsWhenWorn" : "gear.restsInCloset"))
                         .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-                    if item.repairTarget(skillLevel: craft.skillLevel.level).durability > item.durability {
+                    if item.repairTarget(skillLevel: craft.skillLevel.level).durability > item.durability,
+                       item.repairs < CraftCatalog.maximumRepairs {
                         Button { repairing = item } label: {
                             Label(GameStrings.text("gear.repair.button"), systemImage: "wrench.and.screwdriver.fill")
                                 .font(.system(size: 12, weight: .heavy)).frame(maxWidth: .infinity)
@@ -610,6 +611,8 @@ struct MacRepairSheet: View {
     let close: () -> Void
     @State private var saving = false
     @State private var failed = false
+    /// Saved: the sheet is closing, so the spent materials must not flash "not enough".
+    @State private var completed = false
 
     private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
 
@@ -617,8 +620,8 @@ struct MacRepairSheet: View {
         let definition = item.blueprint
         let target = item.repairTarget(skillLevel: skillLevel)
         let costs = definition.map(CraftCatalog.repairCosts(for:)) ?? []
-        let enough = costs.allSatisfy { craft.count(of: $0.material) >= $0.count }
-        let needed = target.durability > item.durability
+        let enough = completed || costs.allSatisfy { craft.count(of: $0.material) >= $0.count }
+        let needed = target.durability > item.durability && item.repairs < CraftCatalog.maximumRepairs
         VStack(spacing: 14) {
             Text(GameStrings.text("gear.repair.kicker")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).tracking(1.2)
             if let definition {
@@ -638,7 +641,7 @@ struct MacRepairSheet: View {
                 Text(GameStrings.text("gear.repair.costs")).font(.system(size: 12, weight: .heavy))
                 HStack(spacing: 6) {
                     ForEach(costs) { cost in
-                        let have = craft.count(of: cost.material), ok = have >= cost.count
+                        let have = craft.count(of: cost.material), ok = completed || have >= cost.count
                         HStack(spacing: 4) {
                             MacMaterialArt(material: cost.material, size: 18)
                             Text(GameStrings.text(cost.material.titleKey)).font(.system(size: 12, weight: .heavy))
@@ -689,6 +692,7 @@ struct MacRepairSheet: View {
         saving = true; failed = false
         Task {
             let done = await store.repairHandmade(item.id)
+            if done { completed = true }
             saving = false
             if done { close() } else { failed = true }
         }

@@ -246,11 +246,13 @@ struct MacCraftTable: View {
         let odds = CraftCatalog.qualityOdds(tier: definition.tier, skillLevel: state.skillLevel.level)
         return HStack(spacing: 6) {
             ForEach(OutingDecorQuality.allCases, id: \.self) { quality in
-                HStack(spacing: 4) {
-                    Text(GameStrings.text(quality.titleKey) + " · \(odds[quality] ?? 0)%").font(.system(size: 11.5, weight: .heavy))
-                    Text(GameStrings.format("craft.detail.attributeCount", CraftCatalog.attributeCount(tier: definition.tier, quality: quality)))
-                        .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                    let days = CraftCatalog.durabilityRange(tier: definition.tier, quality: quality)
+                let days = CraftCatalog.durabilityRange(tier: definition.tier, quality: quality)
+                VStack(spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(GameStrings.text(quality.titleKey) + " · \(odds[quality] ?? 0)%").font(.system(size: 11.5, weight: .heavy))
+                        Text(GameStrings.format("craft.detail.attributeCount", CraftCatalog.attributeCount(tier: definition.tier, quality: quality)))
+                            .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    }
                     Text(GameStrings.format("craft.detail.durability", days.lowerBound, days.upperBound))
                         .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                 }

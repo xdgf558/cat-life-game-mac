@@ -1090,10 +1090,12 @@ final class GameStore {
         isFurnitureTrayExpanded = true
         showNotice(furnitureCapacityNotice)
     }
-    func upgradeHome(toLevel: Int) {
-        guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+    /// The save's task, so a caller can await whether this upgrade was saved; nil when it never started.
+    @discardableResult
+    func upgradeHome(toLevel: Int) -> Task<Bool, Never>? {
+        guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return nil }
         let generation = saveSceneGeneration
-        perform(presentSuccess: { [weak self] in
+        return perform(presentSuccess: { [weak self] in
             guard let self, self.saveSceneGeneration == generation,
                   self.snapshot?.home.roomLevel == toLevel else { return false }
             self.homeUpgradeCelebration = HomeUpgradeCelebration(level: toLevel, rules: self.homeLayoutRules)
@@ -1513,10 +1515,12 @@ final class GameStore {
         }
     }
 
+    /// Returns the save's task, whose value says whether the action succeeded and was saved; nil when nothing started.
+    @discardableResult
     private func perform(finishesLayout: Bool = false, returnsToRoom: Bool = false,
                          presentSuccess: (() -> Bool)? = nil,
-                         _ action: @escaping (inout GameSnapshot, Date) -> ActionOutcome) {
-        guard !isBusy, var context = saveContext() else { return }
+                         _ action: @escaping (inout GameSnapshot, Date) -> ActionOutcome) -> Task<Bool, Never>? {
+        guard !isBusy, var context = saveContext() else { return nil }
         isBusy = true
         isSavingLayout = finishesLayout
         let actionDate = Date()
@@ -1529,11 +1533,13 @@ final class GameStore {
             showNotice(message(for: outcome))
             playFailureSound(outcome.failure)
             drainPendingSynchronization()
-            return
+            return nil
         }
-        Task {
+        return Task {
+            var saved = false
             do {
                 try await commit(context)
+                saved = true
                 if finishesLayout && outcome.succeeded { clearLayoutDraft() }
                 if outcome.succeeded {
                     if returnsToRoom && activeSheet == .inventory { activeSheet = nil }
@@ -1548,6 +1554,7 @@ final class GameStore {
             isBusy = false
             isSavingLayout = false
             drainPendingSynchronization()
+            return saved && outcome.succeeded
         }
     }
 

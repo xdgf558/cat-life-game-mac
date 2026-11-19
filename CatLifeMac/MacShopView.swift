@@ -348,24 +348,27 @@ struct MacShopView: View {
         }
     }
 
-    /// How many to buy at once: −/+ and quick picks (1, 5, 10, as many as fit the wallet and the shelf).
+    /// How many to buy at once: the count with −/+ on one line, quick picks (1, 5, 10, as many as fit the
+    /// wallet and the shelf) as equal chips on the next, so nothing is squeezed at any panel width.
     private func quantityPicker(count: Int, most: Int) -> some View {
-        HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
             Stepper(value: Binding(get: { count }, set: { quantity = max(1, min($0, most)) }), in: 1...max(1, most)) {
                 Text(GameStrings.format("supply.player.quantity", count)).font(.system(size: 12, weight: .heavy)).monospacedDigit()
             }.fixedSize().disabled(most <= 1).accessibilityIdentifier("macShopQuantity")
-            Spacer(minLength: 4)
-            ForEach([1, 5, 10], id: \.self) { value in
-                quickPick("×\(value)", value: value, picked: count == value, enabled: value <= most)
+            HStack(spacing: 6) {
+                ForEach([1, 5, 10], id: \.self) { value in
+                    quickPick("×\(value)", value: value, picked: count == value, enabled: value <= most)
+                }
+                quickPick(GameStrings.text("mac.shop.max"), value: most, picked: count == most && most > 10, enabled: most > 1)
+                    .accessibilityValue("\(most)")
             }
-            quickPick(GameStrings.format("mac.shop.max", most), value: most, picked: count == most && most > 10, enabled: most > 1)
         }
     }
     private func quickPick(_ title: String, value: Int, picked: Bool, enabled: Bool) -> some View {
         Button { quantity = value } label: {
-            Text(title).font(.system(size: 11.5, weight: .heavy)).monospacedDigit().lineLimit(1)
+            Text(title).font(.system(size: 11.5, weight: .heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.8)
                 .foregroundStyle(picked ? .white : RoomTheme.darkMint)
-                .padding(.horizontal, 8).padding(.vertical, 5)
+                .padding(.vertical, 5).frame(maxWidth: .infinity)
                 .background(picked ? RoomTheme.mint : RoomTheme.paleMint, in: Capsule())
                 .contentShape(Capsule())
         }

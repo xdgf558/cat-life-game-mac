@@ -33,6 +33,12 @@ struct MacAvatarFigure: View {
                     .overlay(alignment: .bottom) {
                         Image(avatar.assetName).resizable().scaledToFit()
                             .accessibilityLabel(GameStrings.text(avatar.nameKey))
+                            .background {
+                                // A hat's back half (the brim behind the head) goes behind the avatar.
+                                GeometryReader { geometry in
+                                    if let definition = blueprint(for: .head) { layer(definition, slot: .head, size: geometry.size, part: "-back") }
+                                }.accessibilityHidden(true)
+                            }
                             .overlay {
                                 GeometryReader { geometry in
                                     ForEach(Self.order, id: \.self) { slot in
@@ -48,11 +54,15 @@ struct MacAvatarFigure: View {
         }
     }
 
-    @ViewBuilder private func layer(_ definition: BlueprintDefinition, slot: EquipmentSlot, size: CGSize) -> some View {
-        if let avatar, let place = Self.placement(definition.id, avatarID: avatar.id), UIImage(named: "wear-\(definition.id)") != nil {
+    /// `part` "-back" draws only a two-layer piece's back image (nothing otherwise). The front pass uses
+    /// `wear-<id>-front` when the art comes in two layers, or the single `wear-<id>` image.
+    @ViewBuilder private func layer(_ definition: BlueprintDefinition, slot: EquipmentSlot, size: CGSize, part: String = "") -> some View {
+        let single = "wear-\(definition.id)"
+        let asset = part == "-back" ? single + "-back" : UIImage(named: single + "-front") != nil ? single + "-front" : single
+        if let avatar, let place = Self.placement(definition.id, avatarID: avatar.id), UIImage(named: asset) != nil {
             // Points are in the avatar art's 1254-pixel canvas; the fitted image is square.
             let scale = size.width / Self.canvas
-            Image("wear-\(definition.id)").resizable().scaledToFit()
+            Image(asset).resizable().scaledToFit()
                 .frame(width: place.width * scale, height: place.width * scale)
                 .mask {
                     // A headband's ends fade where they would tuck behind the hair.
@@ -61,7 +71,7 @@ struct MacAvatarFigure: View {
                                    startPoint: .top, endPoint: .bottom)
                 }
                 .position(x: place.center.x * scale, y: place.center.y * scale)
-        } else {
+        } else if part.isEmpty {
             let anchor = Self.anchor(slot)
             Image(systemName: definition.symbol).font(.system(size: max(14, size.width * 0.07), weight: .bold))
                 .foregroundStyle(.white)
@@ -213,7 +223,6 @@ struct MacWardrobePage: View {
             .clipShape(MacWardrobePalette.mirror)
             .overlay(MacWardrobePalette.mirror.strokeBorder(MacWardrobePalette.brass.opacity(0.8), lineWidth: 2).padding(7))
             .overlay(MacWardrobePalette.mirror.strokeBorder(MacWardrobePalette.frame, lineWidth: 8))
-            .shadow(color: MacWardrobePalette.frameDark.opacity(0.25), radius: 0, y: 4)
             handmadeBonuses
         }.macContentCard69(padding: 18).frame(maxHeight: .infinity)
     }
@@ -560,11 +569,13 @@ struct MacWardrobeCabinet: View {
             .padding(12)
             .accessibilityIdentifier("wardrobeShowGear")
         }
-        .background(
-            LinearGradient(colors: [MacWardrobePalette.frame, MacWardrobePalette.frameDark], startPoint: .top, endPoint: .bottom),
-            in: UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 14, bottomTrailingRadius: 14, topTrailingRadius: 30,
-                                       style: .continuous))
-        .shadow(color: MacWardrobePalette.frameDark.opacity(0.3), radius: 0, y: 6)
+        .background {
+            // The shadow belongs to the cabinet body only; on the whole view it doubled every label.
+            UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 14, bottomTrailingRadius: 14, topTrailingRadius: 30,
+                                   style: .continuous)
+                .fill(LinearGradient(colors: [MacWardrobePalette.frame, MacWardrobePalette.frameDark], startPoint: .top, endPoint: .bottom))
+                .shadow(color: MacWardrobePalette.frameDark.opacity(0.3), radius: 0, y: 6)
+        }
         .accessibilityElement(children: .contain).accessibilityIdentifier("wardrobeCabinet")
     }
 
@@ -593,7 +604,6 @@ struct MacWardrobeCabinet: View {
             if !hanging {
                 // The shelf board.
                 RoundedRectangle(cornerRadius: 2).fill(MacWardrobePalette.shelf).frame(height: 5)
-                    .shadow(color: MacWardrobePalette.frameDark.opacity(0.25), radius: 0, y: 2)
             }
         }
         .padding(10).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

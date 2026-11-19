@@ -47,14 +47,16 @@ public struct HandmadeItem: Codable, Equatable, Sendable, Identifiable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(String.self, forKey: .id)
         blueprintID = try values.decode(String.self, forKey: .blueprintID)
-        quality = try values.decode(OutingDecorQuality.self, forKey: .quality)
+        let decodedQuality = try values.decode(OutingDecorQuality.self, forKey: .quality)
+        quality = decodedQuality
         attributes = try values.decode([HandmadeAttributeRoll].self, forKey: .attributes)
         madeAt = try values.decode(Date.self, forKey: .madeAt)
         // Pieces made in 3.0 start 3.1 like new, at the top of their range.
         let full = CraftCatalog.blueprint(id: blueprintID)
-            .map { CraftCatalog.durabilityRange(tier: $0.tier, quality: quality).upperBound } ?? CraftCatalog.minimumDurabilityCap
-        durabilityCap = try values.decodeIfPresent(Int.self, forKey: .durabilityCap) ?? full
-        durability = try values.decodeIfPresent(Int.self, forKey: .durability) ?? durabilityCap
+            .map { CraftCatalog.durabilityRange(tier: $0.tier, quality: decodedQuality).upperBound } ?? CraftCatalog.minimumDurabilityCap
+        let decodedCap = try values.decodeIfPresent(Int.self, forKey: .durabilityCap) ?? full
+        durabilityCap = decodedCap
+        durability = try values.decodeIfPresent(Int.self, forKey: .durability) ?? decodedCap
         repairs = try values.decodeIfPresent(Int.self, forKey: .repairs) ?? 0
         daysWorn = try values.decodeIfPresent(Int.self, forKey: .daysWorn) ?? 0
     }

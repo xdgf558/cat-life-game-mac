@@ -82,7 +82,7 @@ enum GameActionNotice {
                  .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen:
                 return GameStrings.text(success.rawValue)
             case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
-                 .appearanceSettingSaved, .blueprintGrantsSeen:
+                 .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen:
                 return GameStrings.text(success.rawValue)
             }
         }
@@ -108,7 +108,8 @@ enum GameActionNotice {
               .outingPuzzlePending, .outingPuzzleMissing, .outingPuzzleInvalid,
               .stationCatMissing, .stationCatGrassRequired, .stationCatPending,
               .wheelDailyLimit, .craftBlueprintMissing, .craftNotOpen, .craftUsesFull, .craftUsedUp,
-              .craftMaterialsRequired, .craftInventoryFull, .craftItemMissing, .craftSlotMismatch:
+              .craftMaterialsRequired, .craftInventoryFull, .craftItemMissing, .craftSlotMismatch,
+              .craftRepairNotNeeded, .craftRepairMaterials:
             return GameStrings.text(outcome.messageKey)
         case .craftStardustRequired, .craftSkillRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)

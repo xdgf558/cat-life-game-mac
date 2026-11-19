@@ -221,12 +221,15 @@ struct MacCraftTable: View {
             HStack(spacing: 8) {
                 Image(systemName: "scroll.fill").font(.system(size: 12)).foregroundStyle(ExchangePalette.goldInk)
                 Text(GameStrings.text("craft.detail.usesLeft")).font(.system(size: 12, weight: .heavy))
-                HStack(spacing: 2) {
-                    ForEach(0..<max(cap, left), id: \.self) { index in
-                        Image(systemName: index < left ? "diamond.fill" : "diamond").font(.system(size: 8, weight: .bold))
-                            .foregroundStyle(index < left ? ExchangePalette.goldInk : RoomTheme.secondary.opacity(0.5))
-                    }
-                }.accessibilityHidden(true)
+                // Up to 8 diamonds; a copy stacked past that (up to 16) just shows the number.
+                if max(cap, left) <= 8 {
+                    HStack(spacing: 2) {
+                        ForEach(0..<max(cap, left), id: \.self) { index in
+                            Image(systemName: index < left ? "diamond.fill" : "diamond").font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(index < left ? ExchangePalette.goldInk : RoomTheme.secondary.opacity(0.5))
+                        }
+                    }.accessibilityHidden(true)
+                }
                 Text(verbatim: "\(left)").font(.system(size: 14, weight: .black)).monospacedDigit().foregroundStyle(RoomTheme.coralDeep)
                 Spacer(minLength: 4)
                 Text(GameStrings.format("craft.detail.usesRule", GameStrings.text(definition.tier.titleKey), cap)
@@ -537,10 +540,13 @@ struct MacBlueprintBook: View {
                     }
                 }
             }.scrollIndicators(.never)
-            Button { Task { await store.setCraftGoal(isGoal ? nil : definition.id) } } label: {
-                Label(GameStrings.text(isGoal ? "craft.goal.clear" : "craft.goal.set"), systemImage: isGoal ? "pin.slash.fill" : "pin.fill")
-                    .frame(maxWidth: .infinity)
-            }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("bookGoal")
+            // Decor can't be crafted yet, so it can't be a goal (an old goal can still be cleared).
+            if definition.isCraftable || isGoal {
+                Button { Task { await store.setCraftGoal(isGoal ? nil : definition.id) } } label: {
+                    Label(GameStrings.text(isGoal ? "craft.goal.clear" : "craft.goal.set"), systemImage: isGoal ? "pin.slash.fill" : "pin.fill")
+                        .frame(maxWidth: .infinity)
+                }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("bookGoal")
+            }
             if held && definition.isCraftable {
                 HStack(spacing: 8) {
                     if definition.product.slot != nil {
@@ -651,7 +657,7 @@ struct MacCraftResultCard: View {
                 materialColumn("craft.fail.used", attempt.spent, tint: RoomTheme.coralDeep)
             }
             experienceLine(attempt)
-            MacBeforeAfterRow(title: GameStrings.text("craft.fail.nextRate"), before: attempt.successPercent, after: attempt.nextSuccessPercent)
+            MacBeforeAfterRow(title: GameStrings.text("craft.fail.nextRate"), before: attempt.successPercent, after: attempt.nextSuccessPercent, suffix: "%")
             HStack(spacing: 10) {
                 Button(action: keep) {
                     HStack(spacing: 8) { Text(GameStrings.text("craft.fail.stop")); MacKeyCap(value: "esc") }

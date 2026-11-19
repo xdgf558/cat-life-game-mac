@@ -260,6 +260,8 @@ extension GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard state.outing.lastSettlement?.acknowledged == false else { return ActionOutcome() }
         state.outing.lastSettlement?.acknowledged = true
+        // The settlement listed the blueprints it taught; the cottage doesn't announce them again.
+        state.craft.markGrantsSeen(state.outing.lastSettlement?.learnedBlueprintIDs ?? [])
         return .init(success: .outingAcknowledged)
     }
 

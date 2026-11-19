@@ -271,6 +271,8 @@ extension GameEngine {
         let heldBefore = Set(candidate.craft.grantedSources)
         CraftRules.grantEarnedBlueprints(&candidate, at: timestamp)
         let learned = candidate.craft.grantedSources.filter { !heldBefore.contains($0) }
+        // The result card names them, so the cottage doesn't announce them again.
+        candidate.craft.markGrantsSeen(learned)
         candidate.craft.lastAttempt = CraftAttemptResult(
             id: "attempt-\(serial)", blueprintID: definition.id, succeeded: succeeded, successPercent: percent, itemID: itemID,
             spent: spent, refunded: refunded, experienceBefore: experienceBefore, experienceAfter: candidate.craft.experience,

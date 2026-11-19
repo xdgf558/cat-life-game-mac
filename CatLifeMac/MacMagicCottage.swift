@@ -184,6 +184,16 @@ struct MacMagicCottage: View {
         .accessibilityElement(children: .combine)
     }
 
+    private func goalBlockedText(_ goal: BlueprintDefinition) -> String? {
+        switch craft.readiness(for: goal) {
+        case .ready, .lacksMaterials: nil
+        case .usedUp: GameStrings.text("craft.usedUp")
+        case .skillTooLow(let level): GameStrings.format("craft.lockedSkill", level)
+        case .neverHeld: GameStrings.text("craft.status.notLearned")
+        case .notYetOpen: GameStrings.text("craft.status.decorLater")
+        }
+    }
+
     private var goalCard: some View {
         let goal = craft.goalBlueprintID.flatMap(CraftCatalog.blueprint(id:))
         return VStack(alignment: .leading, spacing: 10) {
@@ -216,6 +226,13 @@ struct MacMagicCottage: View {
                     Button { selected = goal.id; open(.craft) } label: {
                         Label(GameStrings.text("craft.goal.ready"), systemImage: "hammer.fill").frame(maxWidth: .infinity)
                     }.buttonStyle(MintButtonStyle()).accessibilityIdentifier("magicGoalCraft")
+                } else if let blocked = goalBlockedText(goal) {
+                    // Materials are there but something else stands in the way: say what.
+                    Label(blocked, systemImage: "info.circle.fill")
+                        .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
                 }
             } else {
                 Text(GameStrings.text("craft.goal.empty")).font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)

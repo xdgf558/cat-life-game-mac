@@ -252,6 +252,8 @@ extension GameEngine {
                                            effect: RecoveryEffectRecord(CraftRules.napEffect(in: state)))
         state.recordRecovery(nap: true)
         state.craft.cafeNaps = min(CraftCatalog.maximumExperience, state.craft.cafeNaps + 1)
+        // The nap that reaches the count teaches its blueprint now, not at the next sync.
+        CraftRules.grantEarnedBlueprints(&state, at: timestamp)
         return .init(success: .cafeNapStarted)
     }
 

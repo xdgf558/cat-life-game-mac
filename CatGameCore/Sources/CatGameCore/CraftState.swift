@@ -189,6 +189,11 @@ public struct CraftState: Codable, Equatable, Sendable {
     public func item(id: String) -> HandmadeItem? { handmade.first { $0.id == id } }
     public func isWorn(_ itemID: String) -> Bool { appearance.values.contains(itemID) }
     public var unseenGrants: [BlueprintGrant] { grants.filter { !$0.seen } }
+    /// Marks these blueprints' grant notices as shown (a result card or a settlement already told the player).
+    public mutating func markGrantsSeen(_ blueprintIDs: [String]) {
+        let ids = Set(blueprintIDs)
+        for index in grants.indices where ids.contains(grants[index].blueprintID) { grants[index].seen = true }
+    }
 
     /// Every material a blueprint still lacks (empty when it can be made).
     public func shortfall(for definition: BlueprintDefinition) -> [CraftCost] {
@@ -241,7 +246,8 @@ public struct CraftState: Codable, Equatable, Sendable {
               Set(appearance.values).count == appearance.count,
               (1...CraftCatalog.maximumExperience).contains(nextSerial),
               (0...CraftCatalog.maximumExperience).contains(cafeNaps),
-              grants.count <= CraftCatalog.blueprints.count, Set(grants.map(\.blueprintID)).count == grants.count
+              grants.count <= CraftCatalog.blueprints.count, Set(grants.map(\.blueprintID)).count == grants.count,
+              grants.allSatisfy({ CraftCatalog.blueprint(id: $0.blueprintID) != nil && $0.at.timeIntervalSince1970.isFinite })
         else { return false }
         return appearance.allSatisfy { slot, itemID in item(id: itemID)?.blueprint?.product.slot == slot }
     }

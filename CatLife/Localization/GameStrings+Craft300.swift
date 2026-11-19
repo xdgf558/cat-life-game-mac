@@ -161,6 +161,7 @@ extension GameStrings {
         "craft.result.levelUp": "制造升到 Lv%d %@",
         "craft.result.experience": "熟练度 +%d（现在 %d）",
         // Exchange
+        "craft.exchange.overflow": "这张蓝图最多存 %d 次，这次只会加 %d 次；%d 星尘照常扣除，多出的次数不退。",
         "craft.exchange.title": "用星尘换蓝图", "craft.exchange.have": "星尘 %d",
         "craft.exchange.otherRoute": "也可以：",
         "craft.exchange.uses": "%@ 次数",
@@ -363,6 +364,7 @@ extension GameStrings {
         "craft.result.pick": "去挑一張藍圖",
         "craft.result.levelUp": "製造升到 Lv%d %@",
         "craft.result.experience": "熟練度 +%d（現在 %d）",
+        "craft.exchange.overflow": "這張藍圖最多存 %d 次，這次只會加 %d 次；%d 星塵照常扣除，多出的次數不退。",
         "craft.exchange.title": "用星塵換藍圖", "craft.exchange.have": "星塵 %d",
         "craft.exchange.otherRoute": "也可以：",
         "craft.exchange.uses": "%@ 次數",
@@ -561,6 +563,7 @@ extension GameStrings {
         "craft.result.pick": "Pick a blueprint",
         "craft.result.levelUp": "Craft skill Lv%d %@",
         "craft.result.experience": "Proficiency +%d (now %d)",
+        "craft.exchange.overflow": "This blueprint holds at most %d uses, so this adds only %d. The full %d stardust is still spent; the extra uses are not refunded.",
         "craft.exchange.title": "Trade stardust for a blueprint", "craft.exchange.have": "Stardust %d",
         "craft.exchange.otherRoute": "Also: ",
         "craft.exchange.uses": "%@ uses",

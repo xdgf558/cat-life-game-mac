@@ -397,7 +397,7 @@ struct MacWheelResultCard: View {
                 beforeAfter(GameStrings.text("craft.result.uses"), result.usesBefore, result.usesAfter)
                 if result.overflowStardust > 0 {
                     beforeAfter(GameStrings.format("craft.result.overflow", result.overflowStardust),
-                                craft.count(of: .stardust) - result.overflowStardust, craft.count(of: .stardust))
+                                max(0, craft.count(of: .stardust) - result.overflowStardust), craft.count(of: .stardust))
                 }
             } else if let material = result.prize.material {
                 Text(GameStrings.format("craft.result.got", GameStrings.text(material.titleKey), result.count))
@@ -459,13 +459,15 @@ struct MacBeforeAfterRow: View {
     let title: String
     let before: Int
     let after: Int
+    /// Appended to both numbers, e.g. "%".
+    var suffix = ""
     var body: some View {
         HStack {
             Text(title).font(.system(size: 13, weight: .heavy))
             Spacer()
-            Text(before, format: .number).font(.system(size: 13, weight: .bold).monospacedDigit()).foregroundStyle(RoomTheme.secondary)
+            Text(before.formatted() + suffix).font(.system(size: 13, weight: .bold).monospacedDigit()).foregroundStyle(RoomTheme.secondary)
             Image(systemName: "arrow.right").font(.system(size: 10, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
-            Text(after, format: .number).font(.system(size: 17, weight: .black).monospacedDigit())
+            Text(after.formatted() + suffix).font(.system(size: 17, weight: .black).monospacedDigit())
                 .foregroundStyle(after > before ? RoomTheme.darkMint : after < before ? RoomTheme.coralDeep : RoomTheme.ink)
         }
         .padding(.horizontal, 14).padding(.vertical, 10)
@@ -511,6 +513,16 @@ struct MacStardustExchange: View {
                 MacBeforeAfterRow(title: GameStrings.format("craft.exchange.uses", GameStrings.text(chosen.nameKey)),
                                   before: craft.usesLeft(chosen.id),
                                   after: min(chosen.tier.maximumUses, craft.usesLeft(chosen.id) + chosen.tier.usesPerCopy))
+                let added = min(chosen.tier.maximumUses, craft.usesLeft(chosen.id) + chosen.tier.usesPerCopy) - craft.usesLeft(chosen.id)
+                if added < chosen.tier.usesPerCopy {
+                    // Near the cap: say plainly that the rest is not refunded.
+                    Label(GameStrings.format("craft.exchange.overflow", chosen.tier.maximumUses, added, price), systemImage: "exclamationmark.circle.fill")
+                        .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoomTheme.paleCoral.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                        .accessibilityIdentifier("magicExchangeOverflow")
+                }
             }
             HStack(spacing: 10) {
                 Button(action: cancel) {

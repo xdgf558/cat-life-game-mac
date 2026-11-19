@@ -35,20 +35,29 @@ struct RoomResidentPlanner: Sendable {
         // blocked corner hundreds of times with tiny offsets.
         let candidates = sampled(navigation.walkablePoints.sorted { distance($0, active) < distance($1, active) },
                                  limit: 96)
-        var result: [CGPoint] = []
-        for index in 0..<count {
-            if Task<Never, Never>.isCancelled { return [] }
-            let preferred = index < existing.count ? [existing[index]] : []
-            guard let chosen = (preferred + candidates).first(where: { candidate in
-                guard !Task<Never, Never>.isCancelled,
-                      spacing(candidate, from: [active] + result) >= catWidth * 0.95 else { return false }
-                let occupied = [active] + result
-                let placement = floor.addingObstacles(occupied.map(obstacle)).navigator(bowlAt: bowl, precomputeGrid: false)
-                guard placement.isWalkable(candidate), preserves(reserved, avoiding: candidate) else { return false }
-                return canFeedAll(occupied + [candidate])
-            }) else { break }
-            result.append(chosen)
+        func place(gaps: [CGFloat]) -> [CGPoint] {
+            var result: [CGPoint] = []
+            for index in 0..<count {
+                if Task<Never, Never>.isCancelled { return [] }
+                let preferred = index < existing.count ? [existing[index]] : []
+                func fits(_ candidate: CGPoint, gap: CGFloat) -> Bool {
+                    guard !Task<Never, Never>.isCancelled,
+                          spacing(candidate, from: [active] + result) >= catWidth * gap else { return false }
+                    let occupied = [active] + result
+                    let placement = floor.addingObstacles(occupied.map(obstacle)).navigator(bowlAt: bowl, precomputeGrid: false)
+                    guard placement.isWalkable(candidate), preserves(reserved, avoiding: candidate) else { return false }
+                    return canFeedAll(occupied + [candidate])
+                }
+                guard let chosen = gaps.lazy.compactMap({ gap in (preferred + candidates).first { fits($0, gap: gap) } }).first
+                else { break }
+                result.append(chosen)
+            }
+            return result
         }
+        // Spread the cats out first. If a roomy early spot leaves a later cat nowhere to stand,
+        // the old close layout is tried too, and whichever shows more cats wins (ties keep the spread one).
+        let spread = place(gaps: [1.8, 0.95])
+        let result = spread.count < count ? [spread, place(gaps: [0.95])].max { $0.count < $1.count } ?? spread : spread
         return Task<Never, Never>.isCancelled ? [] : result
     }
 
@@ -65,16 +74,19 @@ struct RoomResidentPlanner: Sendable {
         let activePlanner = Self(floor: activeFloor, bowl: bowl, world: world, active: active, catWidth: catWidth)
         guard let reserved = activePlanner.careRoutes(navigation: activeNavigation,
                                                       restObstacles: otherObstacles) else { return nil }
+        // A visible walk: one to three body lengths, the longer ones tried first.
         let nearby = navigation.walkablePoints.filter {
             let length = distance($0, origin)
-            return length >= catWidth * 0.40 && length <= catWidth * 0.8
+            return length >= catWidth * 0.6 && length <= catWidth * 3
                 && spacing($0, from: stationary) >= catWidth * 0.85
         }.shuffled()
-        for destination in sampled(nearby, limit: 12) {
+        let far = nearby.filter { distance($0, origin) >= catWidth * 1.2 }
+        let near = nearby.filter { distance($0, origin) < catWidth * 1.2 }
+        for destination in sampled(far, limit: 12) + sampled(near, limit: 4) {
             if Task<Never, Never>.isCancelled { return nil }
             guard (movingActive || preserves(reserved, avoiding: destination)),
                   let route = navigation.route(from: origin, to: destination),
-                  routeLength(route) <= catWidth,
+                  routeLength(route) <= catWidth * 4,
                   canFeedAll(stationary + [destination]) else { continue }
             return route
         }

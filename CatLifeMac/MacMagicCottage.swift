@@ -16,6 +16,9 @@ struct MacMagicExits {
 struct MacMagicCottage: View {
     let store: GameStore
     var exits = MacMagicExits()
+    /// 3.1: a blueprint to open on (a goodbye card's "去再做一件"); `opened` tells the caller it was used.
+    var opening: String? = nil
+    var opened: () -> Void = {}
 
     enum Mode: Hashable { case hub, wheel, craft, book }
     enum Overlay: Equatable { case spin, exchange, attempt, grants }
@@ -66,6 +69,13 @@ struct MacMagicCottage: View {
             if !craft.unseenGrants.isEmpty { overlay = .grants }
         }
         .onDisappear { spinTask?.cancel() }
+        .onChange(of: opening, initial: true) { _, id in
+            guard let id else { return }
+            opened()
+            guard overlay == nil, !spinning else { return }
+            selected = id
+            open(craft.hasEverHeld(id) && CraftCatalog.blueprint(id: id)?.isCraftable == true ? .craft : .book)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .macMagicEscape)) { _ in back() }
         .onChange(of: store.saveSceneGeneration) { _, _ in
             spinTask?.cancel(); spinning = false; overlay = nil; mode = .hub; selected = nil

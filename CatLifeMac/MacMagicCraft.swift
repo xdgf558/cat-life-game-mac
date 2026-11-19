@@ -250,6 +250,9 @@ struct MacCraftTable: View {
                     Text(GameStrings.text(quality.titleKey) + " · \(odds[quality] ?? 0)%").font(.system(size: 11.5, weight: .heavy))
                     Text(GameStrings.format("craft.detail.attributeCount", CraftCatalog.attributeCount(tier: definition.tier, quality: quality)))
                         .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    let days = CraftCatalog.durabilityRange(tier: definition.tier, quality: quality)
+                    Text(GameStrings.format("craft.detail.durability", days.lowerBound, days.upperBound))
+                        .font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                 }
                 .lineLimit(1).minimumScaleFactor(0.8)
                 .foregroundStyle(MacCraftStyle.tint(quality)).padding(.vertical, 6).padding(.horizontal, 4).frame(maxWidth: .infinity)
@@ -623,6 +626,8 @@ struct MacCraftResultCard: View {
                     }.padding(.horizontal, 12).padding(.vertical, 8).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
+            MacDurabilityBar(durability: item.durability, cap: item.durabilityCap)
+                .padding(.horizontal, 12).padding(.vertical, 8).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 12))
             experienceLine(attempt)
             MacBeforeAfterRow(title: GameStrings.text("craft.result.uses"), before: attempt.usesBefore, after: attempt.usesAfter)
             Text(GameStrings.text("craft.success.note")).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)

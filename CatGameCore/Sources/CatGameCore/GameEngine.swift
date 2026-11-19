@@ -460,6 +460,8 @@ public enum GameEngine {
             // 3.0: a worn handmade piece can lift the player's mood each new day.
             let dailyMood = state.craft.bonus(.dailyMood)
             if previousDay != nil, dailyMood > 0 { state.player.mood = min(100, state.player.mood + dailyMood) }
+            // 3.1: each new game day wears what is worn by one day (once per day, however long the player was away).
+            if previousDay != nil { CraftRules.wearOneDay(&state, at: timestamp) }
         }
         state.community.events.advance(to: state.tasks.dailyDayKey)
         // A trip belongs to its day: the first sync of a new day settles it.

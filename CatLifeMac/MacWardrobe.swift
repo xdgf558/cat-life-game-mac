@@ -281,6 +281,7 @@ struct MacWardrobePage: View {
                 Text(worn.map(MacWardrobeCloset.summary) ?? fallback).font(.system(size: 11, weight: .bold))
                     .foregroundStyle(worn == nil ? RoomTheme.secondary : RoomTheme.darkMint)
                     .lineLimit(2).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                if let worn { MacDurabilityBar(durability: worn.durability, cap: worn.durabilityCap, compact: true) }
             }
             .padding(12).frame(maxWidth: .infinity)
             .background(chosen ? RoomTheme.friendshipPaper : RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
@@ -376,14 +377,17 @@ struct MacWardrobeCloset: View {
     /// Main-actor isolated, so it is Sendable and can back the segmented control's Binding.
     let selectSlot: @MainActor (EquipmentSlot) -> Void
     let openMagic: () -> Void
+    /// 3.1: the piece being mended (D2), fixed when the sheet opens.
+    @State private var repairing: HandmadeItem?
 
     private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
     private var workGear: EquipmentItem? { store.snapshot?.player.profile.equipped[slot].flatMap(PlayerCatalog.item(id:)) }
 
-    /// Made pieces first (worn on top), then blueprints held for the slot, then "none".
+    /// Made pieces first (about to break, then worn, on top), then blueprints held for the slot, then "none".
     static func picks(_ craft: CraftState, slot: EquipmentSlot) -> [MacClosetPick] {
+        func rank(_ item: HandmadeItem) -> Int { item.stage == .fragile ? 0 : craft.isWorn(item.id) ? 1 : 2 }
         let made = craft.handmade.filter { $0.blueprint?.product.slot == slot }
-            .sorted { (craft.isWorn($0.id) ? 0 : 1, $1.madeAt) < (craft.isWorn($1.id) ? 0 : 1, $0.madeAt) }
+            .sorted { (rank($0), $1.madeAt) < (rank($1), $0.madeAt) }
         let tryOns = CraftCatalog.craftableBlueprints.filter { $0.product.slot == slot && craft.hasEverHeld($0.id) }
         return made.map { .item($0.id) } + tryOns.map { .tryOn($0.id) } + [.none]
     }
@@ -412,6 +416,9 @@ struct MacWardrobeCloset: View {
             detail
             buttons
         }.macContentCard69().frame(maxHeight: .infinity).accessibilityIdentifier("wardrobeCloset")
+        .sheet(item: $repairing) { item in
+            MacRepairSheet(store: store, item: item, skillLevel: craft.skillLevel.level) { repairing = nil }
+        }
     }
 
     private func row(_ value: MacClosetPick) -> some View {
@@ -425,6 +432,7 @@ struct MacWardrobeCloset: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(GameStrings.text(definition.nameKey)).font(.system(size: 14, weight: .heavy))
                             Text(Self.summary(item)).font(.system(size: 10.5, weight: .bold)).foregroundStyle(RoomTheme.darkMint).lineLimit(1)
+                            MacDurabilityBar(durability: item.durability, cap: item.durabilityCap, compact: true).padding(.top, 2)
                         }
                         Spacer(minLength: 4)
                         tag(craft.isWorn(id) ? "wardrobe.wearing" : "wardrobe.inCloset", tint: craft.isWorn(id) ? RoomTheme.darkMint : RoomTheme.secondary)
@@ -450,11 +458,18 @@ struct MacWardrobeCloset: View {
                 }
             }
             .padding(9).frame(maxWidth: .infinity, alignment: .leading)
-            .background(chosen ? RoomTheme.friendshipPaper : RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(chosen ? RoomTheme.friendship : RoomTheme.track, lineWidth: chosen ? 3 : 2))
+            .background(chosen ? RoomTheme.friendshipPaper : fragile(value) ? RoomTheme.paleCoral.opacity(0.45) : RoomTheme.paper,
+                        in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(chosen ? RoomTheme.friendship : fragile(value) ? RoomTheme.coral : RoomTheme.track,
+                                                                     lineWidth: chosen ? 3 : 2))
             .contentShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain).accessibilityAddTraits(chosen ? .isSelected : [])
+    }
+
+    private func fragile(_ value: MacClosetPick) -> Bool {
+        if case .item(let id) = value { return craft.item(id: id)?.stage == .fragile }
+        return false
     }
 
     private var fallbackLine: String {
@@ -477,8 +492,15 @@ struct MacWardrobeCloset: View {
                     Text(GameStrings.format("wardrobe.madeOn", item.madeAt.formatted(.dateTime.month().day())))
                         .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                     MacBlueprintTags(definition: definition)
-                    Text(GameStrings.text("wardrobe.bonusNote")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    MacDurabilityBar(durability: item.durability, cap: item.durabilityCap)
+                    Text(GameStrings.text(craft.isWorn(item.id) ? "gear.wearsWhenWorn" : "gear.restsInCloset"))
+                        .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                    if item.repairTarget(skillLevel: craft.skillLevel.level).durability > item.durability {
+                        Button { repairing = item } label: {
+                            Label(GameStrings.text("gear.repair.button"), systemImage: "wrench.and.screwdriver.fill")
+                                .font(.system(size: 12, weight: .heavy)).frame(maxWidth: .infinity)
+                        }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy).accessibilityIdentifier("gearRepair")
+                    }
                 }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
             }
         case .tryOn(let id):
@@ -534,6 +556,233 @@ struct MacWardrobeCloset: View {
                     Text(GameStrings.text("wardrobe.goMagic") + " ›").font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
                 }.padding(10).background(RoomTheme.gold.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
             }.buttonStyle(.plain)
+        }
+    }
+}
+
+// MARK: 3.1 durability
+
+/// A handmade piece's days of wear: a bar coloured by stage, with "N / M 天 · 阶段".
+struct MacDurabilityBar: View {
+    let durability: Int
+    let cap: Int
+    var compact = false
+    private var stage: DurabilityStage { .of(durability: durability, cap: cap) }
+
+    static func tint(_ stage: DurabilityStage) -> Color {
+        switch stage {
+        case .fresh: RoomTheme.darkMint
+        case .handy: RoomTheme.mint
+        case .worn: RoomTheme.gold
+        case .fragile: RoomTheme.coralDeep
+        }
+    }
+
+    var body: some View {
+        let fraction = cap > 0 ? min(1, max(0, CGFloat(durability) / CGFloat(cap))) : 0
+        VStack(alignment: .leading, spacing: compact ? 3 : 5) {
+            HStack(spacing: 6) {
+                Text(GameStrings.text(stage.titleKey)).font(.system(size: compact ? 10.5 : 12, weight: .heavy))
+                    .foregroundStyle(Self.tint(stage))
+                Spacer(minLength: 4)
+                Text(GameStrings.format("gear.days", durability, cap)).font(.system(size: compact ? 10.5 : 12, weight: .bold).monospacedDigit())
+                    .foregroundStyle(RoomTheme.secondary)
+            }.lineLimit(1).minimumScaleFactor(0.8)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(RoomTheme.track)
+                    Capsule().fill(Self.tint(stage)).frame(width: max(compact ? 4 : 6, geometry.size.width * fraction))
+                }
+            }.frame(height: compact ? 5 : 8)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.text("gear.durability"))
+        .accessibilityValue(GameStrings.text(stage.titleKey) + ", " + GameStrings.format("gear.days", durability, cap))
+    }
+}
+
+/// D2: mend one piece. Before / after are taken when the sheet opens, so they don't jump while it closes.
+@MainActor
+struct MacRepairSheet: View {
+    let store: GameStore
+    let item: HandmadeItem
+    let skillLevel: Int
+    let close: () -> Void
+    @State private var saving = false
+    @State private var failed = false
+
+    private var craft: CraftState { store.snapshot?.craft ?? CraftState() }
+
+    var body: some View {
+        let definition = item.blueprint
+        let target = item.repairTarget(skillLevel: skillLevel)
+        let costs = definition.map(CraftCatalog.repairCosts(for:)) ?? []
+        let enough = costs.allSatisfy { craft.count(of: $0.material) >= $0.count }
+        let needed = target.durability > item.durability
+        VStack(spacing: 14) {
+            Text(GameStrings.text("gear.repair.kicker")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint).tracking(1.2)
+            if let definition {
+                MacBlueprintIcon(definition: definition, size: 72, asItem: true)
+                Text(GameStrings.format("gear.repair.title", GameStrings.text(definition.nameKey))).font(.system(size: 20, weight: .heavy))
+                    .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                Text(GameStrings.text("gear.repair.now")).font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                MacDurabilityBar(durability: item.durability, cap: item.durabilityCap)
+                Text(GameStrings.text("gear.repair.after")).font(.system(size: 11.5, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                MacDurabilityBar(durability: target.durability, cap: target.cap)
+            }
+            .padding(14).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+            MacBeforeAfterRow(title: GameStrings.text("gear.repair.cap"), before: item.durabilityCap, after: target.cap)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(GameStrings.text("gear.repair.costs")).font(.system(size: 12, weight: .heavy))
+                HStack(spacing: 6) {
+                    ForEach(costs) { cost in
+                        let have = craft.count(of: cost.material), ok = have >= cost.count
+                        HStack(spacing: 4) {
+                            MacMaterialArt(material: cost.material, size: 18)
+                            Text(GameStrings.text(cost.material.titleKey)).font(.system(size: 12, weight: .heavy))
+                            Text(verbatim: "\(have)/\(cost.count)").font(.system(size: 12, weight: .heavy)).monospacedDigit()
+                        }
+                        .foregroundStyle(ok ? RoomTheme.darkMint : RoomTheme.coralDeep)
+                        .padding(.horizontal, 10).padding(.vertical, 6).frame(maxWidth: .infinity)
+                        .background((ok ? RoomTheme.paleMint : RoomTheme.paleCoral).opacity(0.7), in: RoundedRectangle(cornerRadius: 10))
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(GameStrings.text(cost.material.titleKey) + " \(have) / \(cost.count)")
+                    }
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+            Text(GameStrings.text(skillLevel >= CraftCatalog.repairMasterLevel ? "gear.repair.noteMaster" : "gear.repair.note"))
+                .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            if failed || (!saving && (!enough || !needed)) {
+                Label(GameStrings.text(failed ? "gear.repair.failed" : !needed ? "gear.error.repairNotNeeded" : "gear.error.repairMaterials"),
+                      systemImage: "exclamationmark.circle.fill")
+                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
+                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(RoomTheme.paleCoral.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
+                    .accessibilityIdentifier("gearRepairBlocked")
+            }
+            HStack(spacing: 10) {
+                Button(action: close) {
+                    HStack(spacing: 8) { Text(GameStrings.text("common.cancel")); MacKeyCap(value: "esc") }
+                }.buttonStyle(SoftButtonStyle()).keyboardShortcut(.cancelAction).disabled(saving)
+                Button(action: repair) {
+                    HStack(spacing: 8) {
+                        if saving { ProgressView().controlSize(.small).tint(.white) } else { Image(systemName: "wrench.and.screwdriver.fill") }
+                        Text(GameStrings.text(saving ? "common.saving" : "gear.repair.confirm"))
+                        if !saving { MacKeyCap(value: "↩") }
+                    }.frame(maxWidth: .infinity)
+                }.buttonStyle(MintButtonStyle()).keyboardShortcut(.defaultAction)
+                    .disabled(saving || !enough || !needed || store.isBusy).accessibilityIdentifier("gearRepairConfirm")
+            }
+        }
+        .padding(22).frame(width: 440)
+        .background(RoomTheme.paper).foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+        .interactiveDismissDisabled(saving)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("gearRepairSheet")
+    }
+
+    private func repair() {
+        guard !saving else { return }
+        saving = true; failed = false
+        Task {
+            let done = await store.repairHandmade(item.id)
+            saving = false
+            if done { close() } else { failed = true }
+        }
+    }
+}
+
+/// D3: the morning goodbye card for a piece that wore out. The piece is already gone from the save.
+struct MacHandmadeFarewellCard: View {
+    let farewell: HandmadeFarewell
+    /// The blueprint's uses now (it may have changed since that morning).
+    let usesLeft: Int
+    let busy: Bool
+    let makeAnother: () -> Void
+    let dismiss: () -> Void
+
+    var body: some View {
+        let definition = CraftCatalog.blueprint(id: farewell.blueprintID)
+        let name = definition.map { GameStrings.text($0.nameKey) } ?? ""
+        ZStack {
+            RoomTheme.ink.opacity(0.35).ignoresSafeArea().accessibilityHidden(true)
+            VStack(spacing: 12) {
+                Text(GameStrings.text("gear.farewell.kicker")).font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.secondary).tracking(1.2)
+                if let definition {
+                    MacBlueprintIcon(definition: definition, size: 84, asItem: true).saturation(0.2).opacity(0.75)
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "bandage.fill").font(.system(size: 18, weight: .bold)).foregroundStyle(RoomTheme.coral)
+                                .padding(6).background(.white, in: Circle()).offset(x: 6, y: 6)
+                        }
+                }
+                Text(GameStrings.format("gear.farewell.title", name)).font(.system(size: 21, weight: .heavy))
+                    .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
+                Text(farewell.repairs > 0 ? GameStrings.format("gear.farewell.daysRepaired", farewell.daysWorn, farewell.repairs)
+                                          : GameStrings.format("gear.farewell.days", farewell.daysWorn))
+                    .font(.system(size: 12.5, weight: .bold)).foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(GameStrings.text("gear.farewell.lost")).font(.system(size: 12, weight: .heavy))
+                    HStack(spacing: 6) {
+                        Text(GameStrings.text(farewell.quality.titleKey)).font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
+                            .padding(.horizontal, 8).padding(.vertical, 3).background(MacCraftStyle.tint(farewell.quality).opacity(0.6), in: Capsule())
+                        ForEach(farewell.attributes, id: \.attribute) { roll in
+                            Text(GameStrings.text(roll.attribute.titleKey) + " " + MacCraftStyle.valueText(roll.attribute, roll.value))
+                                .font(.system(size: 11.5, weight: .bold)).strikethrough().foregroundStyle(RoomTheme.secondary).lineLimit(1)
+                        }
+                    }
+                    Text(GameStrings.text("gear.farewell.look")).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
+                if let material = farewell.refunded {
+                    HStack(spacing: 8) {
+                        MacMaterialArt(material: material, size: 22)
+                        Text(GameStrings.format("gear.farewell.refund", GameStrings.text(material.titleKey))).font(.system(size: 12.5, weight: .heavy))
+                        Spacer()
+                        Text(verbatim: "+1").font(.system(size: 15, weight: .black)).foregroundStyle(RoomTheme.darkMint)
+                    }
+                    .padding(.horizontal, 14).padding(.vertical, 9).background(RoomTheme.paleMint.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
+                    .accessibilityElement(children: .combine)
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(usesLeft > 0 ? GameStrings.format("gear.farewell.uses", usesLeft) : GameStrings.text("gear.farewell.usedUp"),
+                          systemImage: "scroll.fill").font(.system(size: 12.5, weight: .heavy))
+                        .foregroundStyle(usesLeft > 0 ? RoomTheme.darkMint : RoomTheme.coralDeep)
+                    if usesLeft > 0, let definition {
+                        Text(GameStrings.text("gear.farewell.needs")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        HStack(spacing: 6) {
+                            ForEach(definition.costs) { cost in
+                                HStack(spacing: 3) {
+                                    MacMaterialArt(material: cost.material, size: 16)
+                                    Text(verbatim: "×\(cost.count)").font(.system(size: 11.5, weight: .heavy)).monospacedDigit()
+                                }
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(GameStrings.text(cost.material.titleKey) + " \(cost.count)")
+                            }
+                        }
+                    }
+                }
+                .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                .background((usesLeft > 0 ? RoomTheme.paleMint : RoomTheme.paleCoral).opacity(0.4), in: RoundedRectangle(cornerRadius: 14))
+                HStack(spacing: 10) {
+                    Button(action: dismiss) {
+                        HStack(spacing: 8) { Text(GameStrings.text("craft.grants.ok")); MacKeyCap(value: "esc") }
+                    }.buttonStyle(SoftButtonStyle()).disabled(busy).accessibilityIdentifier("gearFarewellOK")
+                    Button(action: makeAnother) {
+                        HStack(spacing: 8) {
+                            Image(systemName: usesLeft > 0 ? "hammer.fill" : "magnifyingglass")
+                            Text(GameStrings.text(usesLeft > 0 ? "gear.farewell.makeAnother" : "gear.farewell.findBlueprint"))
+                            MacKeyCap(value: "↩")
+                        }.frame(maxWidth: .infinity)
+                    }.buttonStyle(MintButtonStyle()).disabled(busy).accessibilityIdentifier("gearFarewellMake")
+                }
+            }
+            .padding(22).frame(width: 440).modifier(MacMagicCardChrome())
+            .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
+            .accessibilityIdentifier("gearFarewellCard")
         }
     }
 }

@@ -120,6 +120,8 @@ public enum ActionFailure: String, Equatable, Sendable {
     case craftInventoryFull = "craft.error.inventoryFull"
     case craftItemMissing = "craft.error.itemMissing"
     case craftSlotMismatch = "craft.error.slot"
+    case craftRepairNotNeeded = "gear.error.repairNotNeeded"
+    case craftRepairMaterials = "gear.error.repairMaterials"
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
@@ -186,6 +188,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case appearanceCleared = "wardrobe.cleared"
     case appearanceSettingSaved = "wardrobe.settingSaved"
     case blueprintGrantsSeen = "craft.grants.seen"
+    case handmadeRepaired = "gear.repaired"
+    case handmadeNoticesSeen = "gear.noticesSeen"
 
     public var kind: ActionKind {
         switch self {
@@ -201,7 +205,7 @@ public enum ActionSuccess: String, Equatable, Sendable {
              .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped,
              .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen: return .none
         case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
-             .appearanceSettingSaved, .blueprintGrantsSeen: return .none
+             .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

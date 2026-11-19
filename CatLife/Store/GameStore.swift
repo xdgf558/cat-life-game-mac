@@ -1029,7 +1029,9 @@ final class GameStore {
         }
     }
 
-    func buySupply(_ kind: SupplyKind) { perform { GameEngine.buySupply(&$0, kind: kind, now: $1) } }
+    func buySupply(_ kind: SupplyKind, quantity: Int = 1) {
+        perform { GameEngine.buySupply(&$0, kind: kind, quantity: quantity, now: $1) }
+    }
 
     // MARK: Player supplies and café (1.1.0)
     func buyPlayerSupply(_ kind: PlayerSupplyKind, quantity: Int = 1) {
@@ -1410,8 +1412,8 @@ final class GameStore {
         }
     }
 
-    func buyCommunityGift(id: String) async -> Bool {
-        await performPersistedAction { GameEngine.buyCommunityGift(&$0, giftID: id, quantity: 1, now: $1) }
+    func buyCommunityGift(id: String, quantity: Int = 1) async -> Bool {
+        await performPersistedAction { GameEngine.buyCommunityGift(&$0, giftID: id, quantity: quantity, now: $1) }
     }
 
     func showCommunityGiftLimit() { showNotice(GameStrings.text("community.giftLimit")) }

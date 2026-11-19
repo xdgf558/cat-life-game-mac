@@ -59,7 +59,7 @@ extension GameStore {
 
     @discardableResult
     func arrangeInventoryFurniture(id: String) async -> Bool {
-        guard !isBusy, !isSavingLayout, !isResolvingLayout, !isChangingHomeFloor,
+        guard !isCommitting, !isSavingLayout, !isResolvingLayout, !isChangingHomeFloor,
               !saveTransferInProgress,
               snapshot?.inventory.furniture.contains(where: { $0.id == id }) == true else { return false }
         let placedFloor = furnitureFloor(for: id)
@@ -73,7 +73,7 @@ extension GameStore {
             await changeHomeFloor(to: target)
         }
         guard generation == saveSceneGeneration, target == visibleHomeFloor,
-              !isBusy, !saveTransferInProgress, activeSheet == sourceSheet, isShowingSettings == sourceSettings,
+              !isCommitting, !saveTransferInProgress, activeSheet == sourceSheet, isShowingSettings == sourceSettings,
               furniturePurchaseItemID == purchaseID,
               furnitureFloor(for: id) == placedFloor,
               placedFloor != nil || canPlaceMoreFurniture else { return false }

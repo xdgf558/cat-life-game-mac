@@ -158,7 +158,7 @@ extension GameStore {
     }
     func flipSelectedFurniture() { rotateSelectedFurniture68(clockwise: true) }
     func placeFurniture(id: String) {
-        guard !isBusy, !isSavingLayout, !isResolvingLayout, arrangement68.pendingRequest == nil,
+        guard !isCommitting, !isSavingLayout, !isResolvingLayout, arrangement68.pendingRequest == nil,
               storedFurniture.contains(where: { $0.id == id }) else { return }
         guard canPlaceMoreFurniture else { showNotice(furnitureCapacityNotice); return }
         if !isDecorating { beginDecorating() }

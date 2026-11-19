@@ -3,7 +3,7 @@ import CatGameCore
 
 extension GameStore {
     func replayOnboarding() {
-        guard let snapshot, hasEnteredHome, !isLoading, !isBusy,
+        guard let snapshot, hasEnteredHome, !isLoading, !isCommitting,
               !saveTransferInProgress, !isDecorating else { return }
         inspectedCatID = nil
         onboarding.restart(snapshot: snapshot)
@@ -11,7 +11,7 @@ extension GameStore {
 
     /// A guide shortcut only navigates; the normal page owns every gameplay action.
     func exploreOnboarding(_ step: GameOnboardingStep) {
-        guard snapshot != nil, hasEnteredHome, !isLoading, !isBusy,
+        guard snapshot != nil, hasEnteredHome, !isLoading, !isCommitting,
               !saveTransferInProgress, !isDecorating else { return }
         inspectedCatID = nil
         isInspectingHealth = false

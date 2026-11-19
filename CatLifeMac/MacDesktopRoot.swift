@@ -749,7 +749,7 @@ struct MacDesktopRoot: View {
         }
         return true
     }
-    private var hasPendingQuitWrites: Bool { store.isBusy || store.isSavingLayout || store.saveTransferInProgress }
+    private var hasPendingQuitWrites: Bool { store.isCommitting || store.isSavingLayout || store.saveTransferInProgress }
     private func requestQuit() -> NSApplication.TerminateReply {
         guard !quitting else { return .terminateCancel }
         if store.isDecorating && !store.isSavingLayout {

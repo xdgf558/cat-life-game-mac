@@ -21,7 +21,7 @@ final class RoomResidentCats {
         }
     }
     private var visualWidth: CGFloat = 0
-    /// When each cat last went for a walk ("active" is the cared-for cat), so they take turns.
+    /// When each cat last went for a walk, by cat ID, so the turn follows the cat when care switches.
     private var lastStroll: [String: Date] = [:]
 
     func hit(at point: CGPoint) -> String? {
@@ -166,9 +166,9 @@ final class RoomResidentCats {
 
     /// One cat travels at a time. All other cats keep breathing and looking around.
     @discardableResult
-    func stroll(planner: RoomResidentPlanner, active: CGPoint, activeActor: CatActor) -> Bool {
+    func stroll(planner: RoomResidentPlanner, active: CGPoint, activeActor: CatActor, activeID: String) -> Bool {
         var candidates = actors.filter { !$0.value.isHidden }
-        candidates["active"] = activeActor
+        candidates[activeID] = activeActor
         // Whoever has waited longest walks next; ties (never walked) are broken at random.
         let longestWaiting = candidates.keys.shuffled().min { (lastStroll[$0] ?? .distantPast) < (lastStroll[$1] ?? .distantPast) }
         guard !isBusy, let id = longestWaiting, let actor = candidates[id] else { return false }

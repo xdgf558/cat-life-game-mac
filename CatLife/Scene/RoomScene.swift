@@ -1007,7 +1007,11 @@ final class RoomScene: SKScene {
             leaveFurnitureRest()
             return
         }
-        if residents.isBusy { pendingFeedback = kind; return }
+        if residents.isBusy {
+            pendingFeedback = kind
+            if residents.isStrolling { interruptStrollForCare() }
+            return
+        }
         if restPlanningTask != nil { cancelPresentation(at: cat.position) }
         if presentationBusy || cat.isPerforming {
             // Coalesce presentation only; each successful game action was saved.
@@ -1201,6 +1205,15 @@ final class RoomScene: SKScene {
                                    active: cat.position, catWidth: catWidth)
     }
 
+    /// Care comes first: the walking cat stops where it is, everyone's spot is checked again
+    /// (feeding and rest routes stay clear), then the queued care plays.
+    private func interruptStrollForCare() {
+        residents.invalidate()
+        cat.cancelAndSettle(at: cat.position)
+        prepareResidents()
+        if !residents.isBusy, !presentationBusy { finishPresentation() }
+    }
+
     private func prepareResidents() {
         guard presentationActive || readOnlyPreviewEnabled, !presentationBusy, bowlPlanningRequest == nil,
               let latest, let planner = residentPlanner else { return }
@@ -1240,7 +1253,7 @@ final class RoomScene: SKScene {
             return
         }
         if !residents.actors.isEmpty, let planner = residentPlanner {
-            _ = residents.stroll(planner: planner, active: cat.position, activeActor: cat)
+            _ = residents.stroll(planner: planner, active: cat.position, activeActor: cat, activeID: renderedCatID ?? "active")
             return
         }
         guard let navigation else { resumeIdle(); return }

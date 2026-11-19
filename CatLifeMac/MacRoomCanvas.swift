@@ -103,8 +103,8 @@ final class MacRoomSKView: SKView {
            let structure = roomScene.roomPresentation.fixedStructure(at: point) {
             roomScene.cancelCameraInteraction(); structureAction?(structure); return
         }
-        if roomScene.editing || pointerMoved
-            || catID(hit: roomScene.roomPresentation.hit(screen: point, editing: false), scene: roomScene) == nil {
+        let tapped = roomScene.roomPresentation.hit(screen: point, editing: false)
+        if roomScene.editing || pointerMoved || catID(hit: tapped, scene: roomScene) == nil {
             roomScene.endPointer(at: point)
             return
         }
@@ -112,7 +112,7 @@ final class MacRoomSKView: SKView {
         pendingClick = Task { @MainActor [weak self, weak roomScene] in
             do { try await Task.sleep(for: .seconds(NSEvent.doubleClickInterval)) } catch { return }
             guard let self, let roomScene, self.inputEnabled, self.roomScene === roomScene, !Task.isCancelled else { return }
-            roomScene.endPointer(at: point); self.pendingClick = nil
+            roomScene.endPointer(at: point, tapped: tapped); self.pendingClick = nil
         }
     }
     override func scrollWheel(with event: NSEvent) {
@@ -147,7 +147,7 @@ final class MacRoomSKView: SKView {
             else { key = roomScene.homeFloor == .ground ? "mac.room.upstairs" : "mac.room.downstairs" }
             toolTip = GameStrings.text(key)
         } else if let id = catID(hit: hit, scene: roomScene), let name = residentNames[id] {
-            toolTip = name + " · " + GameStrings.text("mac.hover.cat")
+            toolTip = name + " · " + GameStrings.text(hit == "cat" ? "mac.hover.cat" : "mac.hover.resident")
         } else if let hit, hit.hasPrefix("furniture-"), let item = roomScene.ownedFurniture.first(where: { "furniture-" + $0.id == hit }) {
             toolTip = GameStrings.text(FurnitureCatalog.metadata(for: item.kind).nameKey) + " · " + GameStrings.text("mac.hover.furniture")
         } else { toolTip = GameStrings.text(hit == "bowl" ? "layout.bowl" : "mac.hover.floor") }

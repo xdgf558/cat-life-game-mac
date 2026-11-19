@@ -211,7 +211,9 @@ extension RoomScene {
 #endif
     }
 
-    func endPointer(at screen: CGPoint) {
+    /// `tapped` is what was under the pointer when it was released; a click held back for the
+    /// double-click delay acts on that cat, not on whatever has walked under the point since.
+    func endPointer(at screen: CGPoint, tapped: String? = nil) {
         guard !blockedTouchSequence, !roomPresentation.camera.isPinching else { return }
 #if DEBUG
         if diagnostics.furnitureTesting { diagnostics.lastRestInput += ";ended" }
@@ -248,7 +250,12 @@ extension RoomScene {
         guard !editing, let origin = touchOrigin else { return }
         let point = screen
         guard hypot(point.x - origin.x, point.y - origin.y) < 12 else { return }
-        let hit = roomPresentation.hit(screen: point, editing: false)
+        let hit: String?
+        if let tapped {
+            if tapped.hasPrefix("resident-"),
+               residents.actors[String(tapped.dropFirst("resident-".count))].map({ $0.isHidden }) ?? true { return }
+            hit = tapped
+        } else { hit = roomPresentation.hit(screen: point, editing: false) }
         #if os(macOS)
         if hit == nil, let structure = roomPresentation.fixedStructure(at: point) {
             onFixedStructureTapped?(structure)

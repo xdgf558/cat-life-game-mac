@@ -7,8 +7,9 @@ import CatGameCore
 @MainActor
 struct MacHomeUpgradeView: View {
     let store: GameStore
-    /// The level whose confirmation card is open.
-    @State private var confirming: HomeLevel?
+    /// The open confirmation card. Its now/after and balance are taken when it opens, so the card
+    /// doesn't jump to "Lv N → Lv N" or take the price off twice while it closes after a save.
+    @State private var confirming: Confirmation?
     @State private var upgradeFailed = false
     @State private var saving = false
 
@@ -39,18 +40,12 @@ struct MacHomeUpgradeView: View {
         }
         .padding(18).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .foregroundStyle(RoomTheme.ink).fontDesign(.rounded)
-        .sheet(item: $confirming) { target in
-            if let current {
-                MacHomeUpgradeConfirmSheet(store: store, current: current, target: target, saving: saving, failed: upgradeFailed,
-                                           ready: canUpgrade(target), confirm: { upgrade(target) },
-                                           cancel: { if !saving { confirming = nil } })
-            }
-        }
-        // The card stays open while saving and closes only once the new level is saved.
-        .onChange(of: store.isBusy) { _, busy in
-            guard saving, !busy, let target = confirming else { return }
-            saving = false
-            if level >= target.level { confirming = nil } else { upgradeFailed = true }
+        .sheet(item: $confirming) { card in
+            MacHomeUpgradeConfirmSheet(store: store, current: card.current, target: card.target, balance: card.balance,
+                                       saving: saving, failed: upgradeFailed,
+                                       blocked: saving ? nil : blockedReason(card.target),
+                                       ready: canUpgrade(card.target), confirm: { upgrade(card.target) },
+                                       cancel: { if !saving { confirming = nil } })
         }
         .onChange(of: store.saveSceneGeneration) { _, _ in confirming = nil; saving = false }
         .accessibilityIdentifier("macHomeUpgrade")
@@ -140,7 +135,11 @@ struct MacHomeUpgradeView: View {
                             value: GameStrings.format("mac.upgrade.workLevel", next.requiredPlayerLevel),
                             note: GameStrings.format("mac.upgrade.yourLevel", playerLevel), met: enoughLevel)
                     .accessibilityIdentifier("homeUpgradeRequirement")
-                Button { upgradeFailed = false; confirming = next } label: {
+                Button {
+                    guard let current else { return }
+                    upgradeFailed = false
+                    confirming = Confirmation(current: current, target: next, balance: gold)
+                } label: {
                     Label(GameStrings.text("homeUpgrade.action"), systemImage: "hammer.fill")
                         .font(.system(size: 14, weight: .heavy)).frame(maxWidth: .infinity, minHeight: 30)
                 }
@@ -148,7 +147,7 @@ struct MacHomeUpgradeView: View {
                 .frame(width: 190).keyboardShortcut(.defaultAction)
                 .accessibilityIdentifier("homeUpgradeAction")
             }
-            Label(statusText(next, enoughGold: enoughGold, enoughLevel: enoughLevel),
+            Label(statusText(next),
                   systemImage: enoughGold && enoughLevel ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(enoughGold && enoughLevel ? RoomTheme.darkMint : RoomTheme.coral)
@@ -174,11 +173,8 @@ struct MacHomeUpgradeView: View {
         .background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 14))
     }
 
-    private func statusText(_ next: HomeLevel, enoughGold: Bool, enoughLevel: Bool) -> String {
-        if !enoughLevel { return GameStrings.format("home.levelRequired", next.requiredPlayerLevel) }
-        if !enoughGold { return GameStrings.format("mac.upgrade.shortGold", next.upgradeCost - gold) }
-        if store.isDecorating || store.placingFurnitureID != nil { return GameStrings.text("mac.upgrade.finishLayout") }
-        return GameStrings.text("mac.upgrade.ready")
+    private func statusText(_ next: HomeLevel) -> String {
+        blockedReason(next) ?? GameStrings.text("mac.upgrade.ready")
     }
 
     private var maxed: some View {
@@ -191,23 +187,48 @@ struct MacHomeUpgradeView: View {
 
     // MARK: Rules
 
+    /// The card stays open while saving and closes only once this upgrade is saved.
     private func upgrade(_ target: HomeLevel) {
         guard !saving, canUpgrade(target) else { return }
         upgradeFailed = false
         saving = true
-        store.upgradeHome(toLevel: target.level)
-        // Nothing started (a guard in the store said no): leave the card open and say so.
-        if !store.isBusy { saving = false; upgradeFailed = level < target.level }
+        let save = store.upgradeHome(toLevel: target.level)
+        Task {
+            let saved = await save?.value ?? false
+            guard saving, confirming?.target.level == target.level else { return }
+            saving = false
+            if saved && level >= target.level { confirming = nil } else { upgradeFailed = true }
+        }
+    }
+
+    /// Why the card's confirm button is off, when it is off for a reason the player can fix.
+    private func blockedReason(_ next: HomeLevel) -> String? {
+        if playerLevel < next.requiredPlayerLevel { return GameStrings.format("home.levelRequired", next.requiredPlayerLevel) }
+        if gold < next.upgradeCost { return GameStrings.format("mac.upgrade.shortGold", next.upgradeCost - gold) }
+        if store.isDecorating || store.placingFurnitureID != nil { return GameStrings.text("mac.upgrade.finishLayout") }
+        return nil
     }
 
     private func canUpgrade(_ next: HomeLevel) -> Bool {
         store.snapshot != nil && !store.isBusy && !store.isSavingLayout && !store.isResolvingLayout
             && store.placingFurnitureID == nil && gold >= next.upgradeCost && playerLevel >= next.requiredPlayerLevel
     }
-    private func area(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
-    private func number(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: store.language.rawValue)))
-    }
+    private func area(_ home: HomeLevel) -> Double { macHomeArea(home) }
+    private func number(_ value: Double) -> String { macHomeNumber(value, store.language) }
+}
+
+/// How much floor a level has, as a multiple of the first home, and that number written for the player.
+private func macHomeArea(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
+private func macHomeNumber(_ value: Double, _ language: GameLanguage) -> String {
+    value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: language.rawValue)))
+}
+
+/// What the confirmation card shows, fixed when it opens.
+private struct Confirmation: Identifiable {
+    let current: HomeLevel
+    let target: HomeLevel
+    let balance: Int
+    var id: Int { target.level }
 }
 
 /// 3.01: the upgrade confirmation, in place of the grey system dialog. The home now and after side by side
@@ -217,8 +238,10 @@ private struct MacHomeUpgradeConfirmSheet: View {
     let store: GameStore
     let current: HomeLevel
     let target: HomeLevel
+    let balance: Int
     let saving: Bool
     let failed: Bool
+    let blocked: String?
     let ready: Bool
     let confirm: () -> Void
     let cancel: () -> Void
@@ -229,7 +252,6 @@ private struct MacHomeUpgradeConfirmSheet: View {
     private enum Control: Hashable { case cancel, confirm }
 
     private var still: Bool { reduceMotion || systemReduceMotion }
-    private var balance: Int { store.snapshot?.player.gold ?? 0 }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -246,6 +268,14 @@ private struct MacHomeUpgradeConfirmSheet: View {
             gains
             perks
             ledger
+            if let blocked, !failed {
+                Label(blocked, systemImage: "info.circle.fill")
+                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(RoomTheme.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityIdentifier("macHomeUpgradeConfirmBlocked")
+            }
             if failed {
                 Label(GameStrings.text("mac.upgrade.cardFailed"), systemImage: "exclamationmark.circle.fill")
                     .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
@@ -293,7 +323,7 @@ private struct MacHomeUpgradeConfirmSheet: View {
             Label(GameStrings.text("mac.upgrade.cardKicker"), systemImage: "hammer.fill")
                 .font(.system(size: 11, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
                 .padding(.horizontal, 10).padding(.vertical, 5).background(.white.opacity(0.92), in: Capsule())
-                .position(x: 66, y: 22)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).padding(12)
         }
         .frame(width: 416, height: 156)
         .accessibilityHidden(true)
@@ -424,10 +454,8 @@ private struct MacHomeUpgradeConfirmSheet: View {
         }
     }
 
-    private func area(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
-    private func number(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: store.language.rawValue)))
-    }
+    private func area(_ home: HomeLevel) -> Double { macHomeArea(home) }
+    private func number(_ value: Double) -> String { macHomeNumber(value, store.language) }
 }
 
 /// This level's cutaway home. The painted `home-level-N` art is drawn to scale (a bigger home is a
@@ -685,9 +713,7 @@ struct MacHomeUpgradeCelebration: View {
         .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private func area(_ home: HomeLevel) -> Double { home.worldScale * home.worldScale * Double(home.floors.count) }
-    private func number(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...2)).locale(Locale(identifier: store.language.rawValue)))
-    }
+    private func area(_ home: HomeLevel) -> Double { macHomeArea(home) }
+    private func number(_ value: Double) -> String { macHomeNumber(value, store.language) }
 }
 #endif

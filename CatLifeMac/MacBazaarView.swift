@@ -191,7 +191,7 @@ struct MacBazaarView: View {
 
     @ViewBuilder private func statusLine(_ request: BazaarRequest, isTraded: Bool, fits: Bool) -> some View {
         if isTraded {
-            Label(GameStrings.text("bazaar.traded"), systemImage: "checkmark.circle.fill").font(.system(size: 11.5, weight: .bold))
+            Label(GameStrings.text("bazaar.tradedToday"), systemImage: "checkmark.circle.fill").font(.system(size: 11.5, weight: .bold))
                 .foregroundStyle(RoomTheme.secondary)
         } else if let item, itemOpen {
             if fits {

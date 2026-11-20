@@ -54,6 +54,17 @@ extension GameStore {
         await performCraft { GameEngine.acknowledgeHandmadeNotices(&$0, farewellID: farewellID, now: $1) }
     }
 
+    /// 3.2: swap a handmade piece with a neighbour, or sell it to the shop.
+    @discardableResult
+    func tradeHandmade(neighborID: String, itemID: String) async -> Bool {
+        await performCraft(showsNotice: true) { GameEngine.tradeHandmade(&$0, neighborID: neighborID, itemID: itemID, now: $1) }
+    }
+
+    @discardableResult
+    func sellHandmade(_ itemID: String) async -> Bool {
+        await performCraft(showsNotice: true) { GameEngine.sellHandmade(&$0, itemID: itemID, now: $1) }
+    }
+
     private func performCraft(showsNotice: Bool = false, _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         let generation = saveSceneGeneration
         let succeeded = await performPersistedAction(playsSound: false, showsSuccessNotice: showsNotice, action)

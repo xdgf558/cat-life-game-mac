@@ -80,7 +80,7 @@ public enum BlueprintSource: Equatable, Sendable {
     /// Routes the game can grant today.
     public var isAvailable: Bool {
         switch self {
-        case .bazaarTrades, .shares, .shopShelf: false
+        case .shares, .shopShelf: false
         default: true
         }
     }

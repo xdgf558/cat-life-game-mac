@@ -1087,4 +1087,5 @@ extension GameStrings {
         .merging(intro260Chinese) { _, new in new }
         .merging(restInvite261Chinese) { _, new in new }
         .merging(craft300Chinese) { _, new in new }
+        .merging(bazaar320Chinese) { _, new in new }
 }

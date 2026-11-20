@@ -20,7 +20,7 @@ enum TownMapLayout {
         case .adoption: values = (12, 1420, 150)
         case .cafe: values = (166, 1620, 150)
         case .lot1, .magic: values = (258, 1420, 128)
-        case .lot2: values = (4, 1620, 128)
+        case .lot2, .bazaar: values = (4, 1620, 128)
         }
         return CGRect(x: values.0, y: values.1, width: values.2, height: values.2 + 24)
     }
@@ -88,6 +88,15 @@ struct TownMapStatus {
             if !CafeCatalog.isOpen(at: now) { return GameStrings.text("cafe.badge.closed") }
             if snapshot?.napUsedToday == true { return GameStrings.text("cafe.badge.napped") }
             return GameStrings.text("cafe.badge.nap")
+        case .bazaar:
+            guard let snapshot, let today = snapshot.tasks.dailyDayKey else { return nil }
+            let craft = snapshot.craft
+            let open = BazaarCatalog.requests(day: today).filter { request in
+                !craft.bazaar.hasTraded(request.neighborID, today: today) && craft.handmade.contains {
+                    BazaarCatalog.blocker($0, in: craft) == nil && request.want.accepts($0)
+                }
+            }
+            return open.isEmpty ? nil : GameStrings.format("bazaar.badge.wanted", open.count)
         case .magic:
             guard let snapshot else { return nil }
             if snapshot.craft.wheel.freeLeft(today: snapshot.tasks.dailyDayKey) > 0 { return GameStrings.text("craft.badge.freeSpin") }
@@ -106,6 +115,7 @@ struct TownMapStatus {
         case .cafe: return RoomTheme.lilac
         case .garden: return snapshot?.outing.trip != nil ? RoomTheme.coral : RoomTheme.friendship
         case .magic: return RoomTheme.coral
+        case .bazaar: return RoomTheme.friendship
         case .market where exhaustedExchanges: return RoomTheme.secondary
         default: return RoomTheme.mint
         }

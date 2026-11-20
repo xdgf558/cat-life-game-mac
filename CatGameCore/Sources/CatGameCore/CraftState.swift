@@ -192,18 +192,20 @@ public struct CraftState: Codable, Equatable, Sendable {
     /// 3.1: goodbye cards for pieces that broke, oldest first, and pieces that became fragile this morning.
     public var farewells: [HandmadeFarewell]
     public var fragileNotices: [String]
+    /// 3.2: the bazaar's trades today and in total.
+    public var bazaar: BazaarState
 
     public init() {
         materials = [:]; blueprints = [:]; grantedSources = []; experience = 0; wheel = WheelDay()
         goalBlueprintID = nil; handmade = []; appearance = [:]; showsWorkGearWhenEmpty = true
         nextSerial = 1; cafeNaps = 0; lastSpin = nil; lastAttempt = nil; grants = []; legacyChecked = false
-        farewells = []; fragileNotices = []
+        farewells = []; fragileNotices = []; bazaar = BazaarState()
     }
 
     private enum CodingKeys: String, CodingKey {
         case materials, blueprints, grantedSources, experience, wheel, goalBlueprintID, handmade, appearance
         case showsWorkGearWhenEmpty, nextSerial, cafeNaps, lastSpin, lastAttempt, grants, legacyChecked
-        case farewells, fragileNotices
+        case farewells, fragileNotices, bazaar
     }
 
     public init(from decoder: Decoder) throws {
@@ -233,6 +235,7 @@ public struct CraftState: Codable, Equatable, Sendable {
         legacyChecked = try values.decodeIfPresent(Bool.self, forKey: .legacyChecked) ?? false
         farewells = try values.decodeIfPresent([HandmadeFarewell].self, forKey: .farewells) ?? []
         fragileNotices = try values.decodeIfPresent([String].self, forKey: .fragileNotices) ?? []
+        bazaar = try values.decodeIfPresent(BazaarState.self, forKey: .bazaar) ?? BazaarState()
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -254,6 +257,7 @@ public struct CraftState: Codable, Equatable, Sendable {
         try values.encode(legacyChecked, forKey: .legacyChecked)
         try values.encode(farewells, forKey: .farewells)
         try values.encode(fragileNotices, forKey: .fragileNotices)
+        try values.encode(bazaar, forKey: .bazaar)
     }
 
     // MARK: Reading
@@ -327,7 +331,7 @@ public struct CraftState: Codable, Equatable, Sendable {
               farewells.count <= CraftCatalog.maximumFarewells, farewells.allSatisfy(\.isValid),
               Set(farewells.map(\.id)).count == farewells.count,
               fragileNotices.count <= CraftCatalog.maximumHandmade, Set(fragileNotices).count == fragileNotices.count,
-              fragileNotices.allSatisfy({ item(id: $0) != nil })
+              fragileNotices.allSatisfy({ item(id: $0) != nil }), bazaar.isValid
         else { return false }
         return appearance.allSatisfy { slot, itemID in item(id: itemID)?.blueprint?.product.slot == slot }
     }

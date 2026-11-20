@@ -21,22 +21,24 @@ enum TownPlace: String, CaseIterable, Identifiable {
     case garden
     /// 3.0: the magic cottage (wheel, crafting table, wardrobe). Built on the empty lot by the adoption house.
     case magic
+    /// 3.2: the bazaar, where handmade clothes are swapped with neighbours or sold. Built on the lot by the hospital.
+    case bazaar
     var id: String { rawValue }
     var isEmpty: Bool { self == .lot1 || self == .lot2 || self == .lot3 }
     /// Places drawn on the town map. Since 1.3.0 the notice board stands in the plaza, so the plaza is its
     /// only entrance and the board's old plot is an empty lot. `.board` still names the board sheet.
     static var mapPlaces: [TownPlace] {
         #if os(macOS)
-        allCases.filter { $0 != .board && $0 != .lot3 && $0 != .lot1 }
+        allCases.filter { $0 != .board && $0 != .lot3 && $0 != .lot1 && $0 != .lot2 }
         #else
-        allCases.filter { $0 != .board && $0 != .garden && $0 != .magic }
+        allCases.filter { $0 != .board && $0 != .garden && $0 != .magic && $0 != .bazaar }
         #endif
     }
     /// No place is pending any more: the café opened in 1.1.0. Kept for the shared map code paths.
     var isFuture: Bool { false }
     var layer: TownLayer {
         if self == .street || self == .market { return .neighbors }
-        return [.cafe, .plaza, .board, .magic].contains(self) ? .community : .life
+        return [.cafe, .plaza, .board, .magic, .bazaar].contains(self) ? .community : .life
     }
     var titleKey: String {
         switch self {
@@ -67,6 +69,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .lot1, .lot2, .lot3: "town-lot-cartoon"
         case .garden: "town-garden-cartoon"
         case .magic: "town-magic-cartoon"
+        case .bazaar: "town-bazaar-cartoon"
         }
     }
     var symbol: String {
@@ -84,6 +87,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .lot1, .lot2, .lot3: "leaf.fill"
         case .garden: "camera.macro"
         case .magic: "wand.and.stars"
+        case .bazaar: "basket.fill"
         }
     }
     var tint: Color {
@@ -94,6 +98,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .shop: return Color(red: 0.24, green: 0.50, blue: 0.66)
         case .garden: return RoomTheme.friendshipDeep
         case .magic: return RoomTheme.lilac
+        case .bazaar: return RoomTheme.coralDeep
         case .lot1, .lot2, .lot3: return TownPalette.emptyEdge
         default: return RoomTheme.darkMint
         }
@@ -106,7 +111,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .shop: return Color(red: 0.86, green: 0.92, blue: 0.95)
         case .adoption: return Color(red: 0.98, green: 0.89, blue: 0.72)
         case .garden: return RoomTheme.friendshipPaper
-        case .magic: return TownPalette.community
+        case .magic, .bazaar: return TownPalette.community
         case .lot1, .lot2, .lot3: return .clear
         default: return RoomTheme.paleMint
         }
@@ -129,6 +134,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .cafe: return "cafe.enter"
         case .garden: return "outing.enter"
         case .magic: return "craft.enter"
+        case .bazaar: return "bazaar.enter"
         default: return "town.meetCat"
         }
     }

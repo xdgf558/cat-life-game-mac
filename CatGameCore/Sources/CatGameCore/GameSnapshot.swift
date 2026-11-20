@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 20
+    public static let currentSchemaVersion = 21
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]

@@ -117,7 +117,7 @@ struct RestRecoveryTests {
         _ = GameEngine.startSleep(&value, now: start)
         // Minute-ish syncs with fractional seconds leave a fractional remainder before the last point.
         var time = start
-        for step in [61.13, 59.71, 60.29, 61.07, 58.93] {
+        for step in [61.13, 59.71, 60.29, 61.07, 58.93, 60.41] {
             time = time.addingTimeInterval(step)
             _ = GameEngine.synchronize(&value, now: time)
         }

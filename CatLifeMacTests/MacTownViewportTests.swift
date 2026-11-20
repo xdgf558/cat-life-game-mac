@@ -59,8 +59,8 @@ final class MacTownWalkRouteTests: XCTestCase {
     func testRedirectMidBridgeStartsFromTheBridgeNotItsFarEnd() {
         let leg = (start: CGPoint(x: 0.52, y: MacTownWalk.roads[1]), end: CGPoint(x: 0.52, y: MacTownWalk.roads[0]))
         let middle = CGPoint(x: 0.52, y: (leg.start.y + leg.end.y) / 2)
-        let route = MacTownWalk.route(from: middle, leg: leg, to: .market)
+        let route = MacTownWalk.route(from: middle, leg: leg, to: .bazaar)
         XCTAssertEqual(route.first, leg.start, "Heading back south, the player turns round on the bridge.")
-        XCTAssertEqual(route.last, MacTownWalk.destination(for: .market))
+        XCTAssertEqual(route.last, MacTownWalk.destination(for: .bazaar))
     }
 }

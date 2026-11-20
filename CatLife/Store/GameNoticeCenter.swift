@@ -82,8 +82,9 @@ enum GameActionNotice {
                  .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen:
                 return GameStrings.text(success.rawValue)
             case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
-                 .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen:
+                 .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen, .bazaarTraded:
                 return GameStrings.text(success.rawValue)
+            case .bazaarSold: return GameStrings.format(success.rawValue, outcome.amount)
             }
         }
         switch outcome.failure {
@@ -109,7 +110,8 @@ enum GameActionNotice {
               .stationCatMissing, .stationCatGrassRequired, .stationCatPending,
               .wheelDailyLimit, .craftBlueprintMissing, .craftNotOpen, .craftUsesFull, .craftUsedUp,
               .craftMaterialsRequired, .craftInventoryFull, .craftItemMissing, .craftSlotMismatch,
-              .craftRepairNotNeeded, .craftRepairMaterials:
+              .craftRepairNotNeeded, .craftRepairMaterials,
+              .bazaarTradedToday, .bazaarWorn, .bazaarNotTradable, .bazaarNotWanted:
             return GameStrings.text(outcome.messageKey)
         case .craftStardustRequired, .craftSkillRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)

@@ -39,7 +39,11 @@ struct NeighborDetailView: View {
                         if showsExchangeEntry {
                             Button {
                                 store.playNavigationSound()
+                                #if os(macOS)
+                                store.openExchangeMarket(neighborID: neighborID)
+                                #else
                                 showsMarket = true
+                                #endif
                             } label: {
                                 Label(GameStrings.text("market.neighborEntry"), systemImage: "arrow.left.arrow.right")
                                     .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)

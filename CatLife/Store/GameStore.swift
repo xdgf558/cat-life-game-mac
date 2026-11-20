@@ -116,6 +116,8 @@ final class GameStore {
     var isPresentingAdoptionConfirmation = false
     var isShowingNeighbors = false { didSet { if oldValue != isShowingNeighbors { syncAudio() } } }
     var isShowingMarket = false { didSet { if oldValue != isShowingMarket { syncAudio() } } }
+    /// The stall a link into the market starts on; nil shows the default.
+    var marketNeighborID: String?
     var isShowingTownBoard = false { didSet { if oldValue != isShowingTownBoard { syncAudio() } } }
     var isPresentingExchange = false
     var isPresentingCommunityGift = false

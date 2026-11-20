@@ -448,13 +448,13 @@ enum MacTownViewport69 {
         case .shop: CGPoint(x: 0.79, y: 0.12)
         case .board, .plaza: CGPoint(x: 0.52, y: 0.43)
         case .lot3, .garden: CGPoint(x: 0.24, y: 0.46)
-        case .market: CGPoint(x: 0.8, y: 0.445)
+        case .market, .bazaar: CGPoint(x: 0.8, y: 0.445)
         case .street: CGPoint(x: 0.16, y: 0.7)
         case .home: CGPoint(x: 0.52, y: 0.7)
         case .hospital: CGPoint(x: 0.8, y: 0.7)
         case .adoption: CGPoint(x: 0.36, y: 0.815)
         case .lot1, .magic: CGPoint(x: 0.665, y: 0.83)
-        case .lot2, .bazaar: CGPoint(x: 0.945, y: 0.83)
+        case .lot2: CGPoint(x: 0.945, y: 0.83)
         }
     }
 }

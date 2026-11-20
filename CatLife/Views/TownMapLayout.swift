@@ -13,14 +13,14 @@ enum TownMapLayout {
         case .shop: values = (220, 200, 156)
         case .plaza: values = (106, 500, 178)
         case .board, .lot3, .garden: values = (4, 714, 134)
-        case .market: values = (234, 714, 152)
+        case .market, .bazaar: values = (234, 714, 152)
         case .street: values = (4, 910, 164)
         case .hospital: values = (234, 910, 152)
         case .home: values = (118, 1200, 170)
         case .adoption: values = (12, 1420, 150)
         case .cafe: values = (166, 1620, 150)
         case .lot1, .magic: values = (258, 1420, 128)
-        case .lot2, .bazaar: values = (4, 1620, 128)
+        case .lot2: values = (4, 1620, 128)
         }
         return CGRect(x: values.0, y: values.1, width: values.2, height: values.2 + 24)
     }
@@ -96,7 +96,12 @@ struct TownMapStatus {
                     BazaarCatalog.blocker($0, in: craft) == nil && request.want.accepts($0)
                 }
             }
-            return open.isEmpty ? nil : GameStrings.format("bazaar.badge.wanted", open.count)
+            // 3.2: the bazaar holds the supplies swaps too, so one badge counts both.
+            let swaps = availableExchanges
+            if swaps > 0, !open.isEmpty { return GameStrings.format("bazaar.badge.both", swaps, open.count) }
+            if swaps > 0 { return GameStrings.format("market.availableCount", swaps) }
+            if !open.isEmpty { return GameStrings.format("bazaar.badge.wanted", open.count) }
+            return exhaustedExchanges ? GameStrings.text("townMap.exchangedToday") : nil
         case .magic:
             guard let snapshot else { return nil }
             if snapshot.craft.wheel.freeLeft(today: snapshot.tasks.dailyDayKey) > 0 { return GameStrings.text("craft.badge.freeSpin") }
@@ -115,8 +120,8 @@ struct TownMapStatus {
         case .cafe: return RoomTheme.lilac
         case .garden: return snapshot?.outing.trip != nil ? RoomTheme.coral : RoomTheme.friendship
         case .magic: return RoomTheme.coral
+        case .market where exhaustedExchanges, .bazaar where exhaustedExchanges: return RoomTheme.secondary
         case .bazaar: return RoomTheme.friendship
-        case .market where exhaustedExchanges: return RoomTheme.secondary
         default: return RoomTheme.mint
         }
     }

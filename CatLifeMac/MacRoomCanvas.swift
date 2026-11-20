@@ -389,6 +389,7 @@ private struct MacNativeRoomCanvas: NSViewRepresentable {
             }
             scene.onSound = { [weak self] in guard let self, accepts() else { return }; self.source.store.playSceneSound($0) }
             scene.onBowlTapped = { [weak self] in guard let self, accepts() else { return }; self.source.store.feed() }
+            scene.onMealFinished = { [weak self] catID in guard let self, accepts() else { return }; self.source.store.finishMeal(catID: catID) }
             scene.onBowlMoved = { [weak self] in guard let self, accepts() else { return }; self.source.store.moveBowl(to: $0) }
             scene.onFurnitureSelected = { [weak self] id in guard let self, accepts() else { return }
                 if let id { self.source.store.selectFurniture(id: id) } else { self.source.store.selectBowl68() }

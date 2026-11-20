@@ -247,7 +247,7 @@ struct MacHomeView: View {
                     }
                 }
                 VStack(spacing: 9) {
-                    metric("stat.satiety", icon: "fork.knife.circle.fill", value: cat.satiety, color: RoomTheme.gold)
+                    metric("stat.satiety", icon: "fork.knife.circle.fill", value: store.shownSatiety(cat), color: RoomTheme.gold)
                     metric("stat.cleanliness", icon: "sparkles", value: cat.cleanliness, color: RoomTheme.sky)
                     metric("stat.mood", icon: "face.smiling.inverse", value: cat.mood, color: RoomTheme.friendship)
                     metric("mac.home.energy", icon: "moon.fill", value: cat.energy, color: Color(red: 0.55, green: 0.42, blue: 0.75))

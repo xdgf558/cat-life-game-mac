@@ -223,8 +223,9 @@ struct MacBazaarView: View {
         card {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    GameIcon(asset: "shopkeeper-chestnut", symbol: "person.fill", size: 44, tint: RoomTheme.gold)
-                        .frame(width: 58, height: 58).background(RoomTheme.gold.opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
+                    GameIcon(asset: "shopkeeper-chestnut", symbol: "person.fill", size: 58, tint: RoomTheme.gold)
+                        .frame(width: 58, height: 58).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Text(GameStrings.text("bazaar.shop.name")).font(.system(size: 16, weight: .heavy))

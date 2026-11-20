@@ -846,6 +846,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/outing-garden-map.imageset/outing-garden-map.
 $(SRCROOT)/CatLife/Assets.xcassets/place-adoption-scene.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/place-adoption-scene.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/place-adoption-scene.imageset/place-adoption-scene.png
+$(SRCROOT)/CatLife/Assets.xcassets/place-bazaar-scene.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/place-bazaar-scene.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/place-bazaar-scene.imageset/place-bazaar-scene.png
 $(SRCROOT)/CatLife/Assets.xcassets/place-board-scene.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/place-board-scene.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/place-board-scene.imageset/place-board-scene.png
@@ -960,6 +963,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/room-wall-plaster.imageset/room-wall-plaster.
 $(SRCROOT)/CatLife/Assets.xcassets/room-window-arched.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/room-window-arched.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/room-window-arched.imageset/room-window-arched.png
+$(SRCROOT)/CatLife/Assets.xcassets/shopkeeper-chestnut.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/shopkeeper-chestnut.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/shopkeeper-chestnut.imageset/shopkeeper-chestnut.png
 $(SRCROOT)/CatLife/Assets.xcassets/supply-cat-grass.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/supply-cat-grass.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/supply-cat-grass.imageset/supply-cat-grass.png
@@ -978,6 +984,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/supply-premium-food.imageset/supply-premium-f
 $(SRCROOT)/CatLife/Assets.xcassets/supply-premium-litter.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/supply-premium-litter.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/supply-premium-litter.imageset/supply-premium-litter.png
+$(SRCROOT)/CatLife/Assets.xcassets/town-bazaar-cartoon.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/town-bazaar-cartoon.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/town-bazaar-cartoon.imageset/town-bazaar-cartoon.png
 $(SRCROOT)/CatLife/Assets.xcassets/town-board-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/town-board-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/town-board-cartoon.imageset/town-board-cartoon.png

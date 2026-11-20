@@ -572,16 +572,20 @@ public enum GameEngine {
         let tracker = sleep.staminaUpdatedAt
         let toFull = max(0, Double(100 - min(100, player.stamina)) * 180 - player.sleepStaminaRemainder)
         let wakeAt = tracker.addingTimeInterval(toFull)
-        let until = min(max(now, tracker), wakeAt)
-        recoverDuringSleep(&player.stamina, tracker: &sleep.staminaUpdatedAt,
-                           remainder: &player.sleepStaminaRemainder, now: until)
-        recoverDuringSleep(&player.mood, tracker: &sleep.moodUpdatedAt,
-                           remainder: &player.sleepMoodRemainder, now: until)
-        guard player.stamina >= 100 else {
+        // Decide waking from the times, not from whole points: with fractional real timestamps,
+        // `wakeAt - tracker` can round just under the last 180 s and leave stamina stuck at 99.
+        guard now >= wakeAt else {
+            recoverDuringSleep(&player.stamina, tracker: &sleep.staminaUpdatedAt,
+                               remainder: &player.sleepStaminaRemainder, now: now)
+            recoverDuringSleep(&player.mood, tracker: &sleep.moodUpdatedAt,
+                               remainder: &player.sleepMoodRemainder, now: now)
             player.activeSleep = sleep
             return
         }
-        player.staminaUpdatedAt = max(sleep.staminaUpdatedAt, sleep.startedAt)
+        recoverDuringSleep(&player.mood, tracker: &sleep.moodUpdatedAt,
+                           remainder: &player.sleepMoodRemainder, now: wakeAt)
+        player.stamina = 100
+        player.staminaUpdatedAt = max(wakeAt, sleep.startedAt)
         player.sleepStaminaRemainder = 0
         player.sleepMoodRemainder = 0
         player.activeSleep = nil

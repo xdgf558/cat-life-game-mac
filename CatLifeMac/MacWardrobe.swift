@@ -721,9 +721,13 @@ struct MacWardrobeCabinet: View {
                     }
                     if worn && value != .none {
                         Image(systemName: "checkmark.circle.fill").font(.system(size: 15)).foregroundStyle(.white, RoomTheme.mint).offset(x: 5, y: -5)
-                    } else if item?.stage == .fragile {
+                    }
+                }
+                .overlay(alignment: .bottomTrailing) {
+                    if item?.stage == .fragile {
+                        // Bottom corner, so it shows alongside the worn check (the worn piece is the one wearing out).
                         Circle().fill(RoomTheme.coralDeep).frame(width: 11, height: 11).overlay(Circle().strokeBorder(.white, lineWidth: 2))
-                            .offset(x: 3, y: -3)
+                            .offset(x: 3, y: 3)
                     }
                 }
                 Text(name).font(.system(size: 10.5, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)

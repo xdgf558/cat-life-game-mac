@@ -199,12 +199,10 @@ struct MacBuildView: View {
             .accessibilityElement(children: .contain)
     }
     private var toolbar: some View {
-        HStack(spacing: 8) {
-            historyControls
-            Spacer(minLength: 6)
-            saveStatus
-            Spacer(minLength: 6)
-            closingControls
+        // Narrow windows or longer English labels fall back to the status on its own line.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) { historyControls; Spacer(minLength: 6); saveStatus; Spacer(minLength: 6); closingControls }
+            VStack(spacing: 5) { HStack(spacing: 8) { historyControls; Spacer(minLength: 6); closingControls }; saveStatus }
         }.padding(.horizontal, 8).padding(.vertical, 6)
             .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white, lineWidth: 2))

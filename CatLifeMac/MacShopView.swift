@@ -359,7 +359,7 @@ struct MacShopView: View {
                 ForEach([1, 5, 10], id: \.self) { value in
                     quickPick("×\(value)", value: value, picked: count == value, enabled: value <= most)
                 }
-                quickPick(GameStrings.text("mac.shop.max"), value: most, picked: count == most && most > 10, enabled: most > 1)
+                quickPick(GameStrings.text("mac.shop.max"), value: most, picked: count == most && ![1, 5, 10].contains(most), enabled: most > 1)
                     .accessibilityValue("\(most)")
             }
         }

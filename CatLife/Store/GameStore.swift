@@ -134,6 +134,11 @@ final class GameStore {
 
     func shownSatiety(_ cat: CatState) -> Int { mealHolds[cat.id].map { min($0, cat.satiety) } ?? cat.satiety }
 
+    private func clearMealHolds() {
+        mealHolds = [:]
+        mealHoldTokens = [:]
+    }
+
     func finishMeal(catID: String) {
         mealHolds[catID] = nil
         mealHoldTokens[catID] = nil
@@ -749,6 +754,7 @@ final class GameStore {
         restingFurnitureID = nil
         presentedRestSessionID = nil
         feedback = nil
+        clearMealHolds()
         pendingWorkResultID = nil
         inspectedCatID = nil
         hospitalCatID = nil
@@ -816,6 +822,7 @@ final class GameStore {
     func load() async {
         guard !loadingInProgress, !isCommitting else { return }
         companionMemories.clear()
+        clearMealHolds()
         habitGuideCatID = nil
         isPresentingHabitGuide = false
         isPresentingHabitMemory = false

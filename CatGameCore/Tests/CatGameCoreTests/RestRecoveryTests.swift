@@ -110,6 +110,21 @@ struct RestRecoveryTests {
         #expect(value.player.staminaUpdatedAt == now.addingTimeInterval(360))
     }
 
+    @Test func fractionalTimestampsStillWakeAtFullStamina() {
+        let start = Date(timeIntervalSince1970: 1_795_000_000.37)
+        var value = GameSnapshot.fresh(now: start)
+        value.player.stamina = 98
+        _ = GameEngine.startSleep(&value, now: start)
+        // Minute-ish syncs with fractional seconds leave a fractional remainder before the last point.
+        var time = start
+        for step in [61.13, 59.71, 60.29, 61.07, 58.93] {
+            time = time.addingTimeInterval(step)
+            _ = GameEngine.synchronize(&value, now: time)
+        }
+        #expect(value.player.activeSleep == nil && value.player.stamina == 100)
+        #expect(value.player.staminaUpdatedAt <= time)
+    }
+
     @Test func bedRecoveryIsGradualAndPausesOnlyEnergyWithExistingDecayRemainder() {
         var value = state()
         value.cats[0].decayTracker.mood = now.addingTimeInterval(-60)

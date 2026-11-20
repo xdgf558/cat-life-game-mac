@@ -99,7 +99,7 @@ enum GameActionNotice {
              .townEventMissing, .townEventDayChanged, .townEventCompleted, .townEventStaminaRequired,
               .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy,
               .habitCatUnavailable, .habitPlayBusy, .habitPlaySessionEnded, .habitInputInvalid, .habitCornerUnavailable,
-              .sleepNapping, .workNapping, .supplyNone, .recoveryDailyLimit, .recoveryFull, .cafeClosed,
+              .sleepNapping, .sleepRested, .workNapping, .supplyNone, .recoveryDailyLimit, .recoveryFull, .cafeClosed,
               .cafeNapActive, .cafeNapWorking, .cafeNapSleeping, .cafeNapUsed,
               .workOuting, .outingActive, .outingMissing, .outingDailyLimit, .outingWorking, .outingSleeping,
               .outingNapping, .outingCatSick, .outingCatHungry, .outingCatTired, .outingCatBusy, .outingStaminaRequired,

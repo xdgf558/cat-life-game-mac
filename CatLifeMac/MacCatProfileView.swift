@@ -153,7 +153,7 @@ struct MacCatProfileView: View {
     private func stats(_ cat: CatState) -> some View {
         VStack(alignment: .leading, spacing: 9) {
             group("catProfile.daily")
-            stat("stat.satiety", cat.satiety, tint: RoomTheme.gold, id: "catProfileSatiety")
+            stat("stat.satiety", store.shownSatiety(cat), tint: RoomTheme.gold, id: "catProfileSatiety")
             stat("stat.cleanliness", cat.cleanliness, tint: RoomTheme.sky, id: "catProfileCleanliness")
             stat("rest.energy", cat.energy, tint: RoomTheme.lilac, id: "catProfileEnergy")
             group("catProfile.wellbeing").padding(.top, 4)

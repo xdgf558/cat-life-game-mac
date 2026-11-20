@@ -50,8 +50,9 @@ struct WorkRestView: View {
                 .disabled(store.isBusy)
                 .accessibilityIdentifier("sleepWakeButton")
             } else {
-                if working {
-                    Text(GameStrings.text("sleep.workActive"))
+                let rested = (store.snapshot?.player.stamina ?? 0) >= 100
+                if working || rested {
+                    Text(GameStrings.text(working ? "sleep.workActive" : "sleep.rested"))
                         .font(.footnote).foregroundStyle(RoomTheme.secondary)
                 }
                 Button { store.startSleep() } label: {
@@ -59,7 +60,7 @@ struct WorkRestView: View {
                         .font(.headline).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(SoftButtonStyle())
-                .disabled(store.isBusy || working)
+                .disabled(store.isBusy || working || rested)
                 .accessibilityIdentifier("sleepStartButton")
             }
             Text(GameStrings.text("sleep.rate"))

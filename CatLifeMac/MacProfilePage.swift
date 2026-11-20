@@ -146,7 +146,7 @@ struct MacProfilePage: View {
             Ellipse().fill(RoomTheme.ink.opacity(0.09)).frame(width: 200, height: 26)
                 .frame(maxHeight: .infinity, alignment: .bottom).padding(.bottom, 26)
             MacAvatarFigure(avatar: avatar, craft: craft)
-                .padding(.top, avatar == nil ? 0 : 44).padding(.bottom, avatar == nil ? 0 : 20)
+                .padding(.top, avatar == nil ? 0 : 24).padding(.bottom, avatar == nil ? 0 : 20)
         }
         .overlay(alignment: .topLeading) {
             Label(avatar.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("player.avatar.unselected"), systemImage: "person.fill")

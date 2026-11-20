@@ -172,6 +172,8 @@ final class RoomScene: SKScene {
     var blockedTouchSequence = false
     private var restFront: SKSpriteNode { artwork.restFront }
     var onBowlTapped: (() -> Void)?
+    /// The shown cat finished eating (bowl emptied); the HUD can now show the new satiety.
+    var onMealFinished: ((String) -> Void)?
     var onPlacementPendingChanged: ((Bool) -> Void)?
     private(set) var isPlacementPending = false
     var onBowlMoved: ((NormalizedPoint) -> Void)?
@@ -1091,6 +1093,7 @@ final class RoomScene: SKScene {
                      onMealFinished: { [weak self] in
                          guard let self, self.revision == ticket else { return }
                          self.setBowlTexture("bowl-empty")
+                         if let catID = self.renderedCatID { self.onMealFinished?(catID) }
                      }, completion: completion)
         case .play(let plan):
 #if DEBUG

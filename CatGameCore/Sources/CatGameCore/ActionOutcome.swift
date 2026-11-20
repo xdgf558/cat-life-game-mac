@@ -66,6 +66,7 @@ public enum ActionFailure: String, Equatable, Sendable {
     case roomCapacityReached = "room.capacityReached"
     case sleepWorkActive = "sleep.workActive"
     case sleepNapping = "sleep.napping"
+    case sleepRested = "sleep.rested"
     case workNapping = "work.napping"
     case supplyCarryLimit = "supply.player.carryLimit"
     case supplyNone = "supply.player.none"

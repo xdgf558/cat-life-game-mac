@@ -112,6 +112,8 @@ public enum GameEngine {
         var candidate = state
         guard candidate.player.activeWork == nil else { return failure(.sleepWorkActive) }
         guard candidate.player.activeNap == nil else { return failure(.sleepNapping) }
+        // Sleep ends by itself once stamina is full, so there is nothing to sleep for.
+        guard candidate.player.stamina < 100 else { return failure(.sleepRested) }
         // Sleeping settles an unfinished outing; its remaining footprints are lost.
         settleOuting(&candidate, reason: .sleep, at: effectiveTime(candidate, now: now))
         candidate.player.activeSleep = PlayerSleep(startedAt: effectiveTime(candidate, now: now))
@@ -563,13 +565,30 @@ public enum GameEngine {
 
     private static func cap(_ value: Int) -> Int { min(100, max(0, value)) }
 
+    /// Sleep recovers until stamina is full, then the player wakes by themselves at that moment
+    /// (mood recovers only until then); waking anchors the awake stamina clock there.
     private static func settleSleep(_ player: inout PlayerState, now: Date) {
         guard var sleep = player.activeSleep else { return }
-        recoverDuringSleep(&player.stamina, tracker: &sleep.staminaUpdatedAt,
-                           remainder: &player.sleepStaminaRemainder, now: now)
+        let tracker = sleep.staminaUpdatedAt
+        let toFull = max(0, Double(100 - min(100, player.stamina)) * 180 - player.sleepStaminaRemainder)
+        let wakeAt = tracker.addingTimeInterval(toFull)
+        // Decide waking from the times, not from whole points: with fractional real timestamps,
+        // `wakeAt - tracker` can round just under the last 180 s and leave stamina stuck at 99.
+        guard now >= wakeAt else {
+            recoverDuringSleep(&player.stamina, tracker: &sleep.staminaUpdatedAt,
+                               remainder: &player.sleepStaminaRemainder, now: now)
+            recoverDuringSleep(&player.mood, tracker: &sleep.moodUpdatedAt,
+                               remainder: &player.sleepMoodRemainder, now: now)
+            player.activeSleep = sleep
+            return
+        }
         recoverDuringSleep(&player.mood, tracker: &sleep.moodUpdatedAt,
-                           remainder: &player.sleepMoodRemainder, now: now)
-        player.activeSleep = sleep
+                           remainder: &player.sleepMoodRemainder, now: wakeAt)
+        player.stamina = 100
+        player.staminaUpdatedAt = max(wakeAt, sleep.startedAt)
+        player.sleepStaminaRemainder = 0
+        player.sleepMoodRemainder = 0
+        player.activeSleep = nil
     }
 
     private static func recoverDuringSleep(_ value: inout Int, tracker: inout Date,

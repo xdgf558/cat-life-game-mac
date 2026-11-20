@@ -313,21 +313,28 @@ struct MacShopView: View {
         // The status only explains why buying is blocked; when buyable it just repeats the description and owned count.
         let purchasable = product.canPurchase(in: store.snapshot)
         let canBuy = !store.isBusy && purchasable
+        let most = product.maximumQuantity(in: store.snapshot)
+        let count = product.isBulk ? max(1, min(quantity, most)) : 1
+        let total = product.price * count
         return VStack(alignment: .leading, spacing: 8) {
             if !purchasable {
                 Text(product.status(in: store.snapshot)).font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.coralDeep)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack(alignment: .firstTextBaseline) {
-                Label("\(product.price)", systemImage: "dollarsign.circle.fill").font(.system(size: 20, weight: .heavy))
+                Label("\(total)", systemImage: "dollarsign.circle.fill").font(.system(size: 20, weight: .heavy))
                 Spacer()
-                Text(GameStrings.format("mac.shop.afterBalance", max(0, (store.snapshot?.player.gold ?? 0) - product.price)))
+                Text(GameStrings.format("mac.shop.afterBalance", max(0, (store.snapshot?.player.gold ?? 0) - total)))
                     .font(.caption).foregroundStyle(RoomTheme.secondary)
             }
+            if product.isBulk && purchasable { quantityPicker(count: count, most: most) }
             HStack(spacing: 8) {
                 Button { purchase(product, arrange: false) } label: {
-                    HStack(spacing: 4) { Text(GameStrings.text("mac.shop.buy")); Text(keyLabel(.confirm)).font(.caption.monospaced()) }
-                        .font(.system(size: 13.5, weight: .heavy)).frame(maxWidth: .infinity)
+                    HStack(spacing: 4) {
+                        Text(product.isBulk ? GameStrings.format("supply.player.buyN", count) : GameStrings.text("mac.shop.buy"))
+                        Text(keyLabel(.confirm)).font(.caption.monospaced())
+                    }
+                    .font(.system(size: 13.5, weight: .heavy)).frame(maxWidth: .infinity)
                 }.buttonStyle(MintButtonStyle()).disabled(!canBuy)
                     .accessibilityIdentifier("macShopBuy")
                 if product.furniture != nil {
@@ -339,6 +346,34 @@ struct MacShopView: View {
                 }
             }
         }
+    }
+
+    /// How many to buy at once: the count with −/+ on one line, quick picks (1, 5, 10, as many as fit the
+    /// wallet and the shelf) as equal chips on the next, so nothing is squeezed at any panel width.
+    private func quantityPicker(count: Int, most: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Stepper(value: Binding(get: { count }, set: { quantity = max(1, min($0, most)) }), in: 1...max(1, most)) {
+                Text(GameStrings.format("supply.player.quantity", count)).font(.system(size: 12, weight: .heavy)).monospacedDigit()
+            }.fixedSize().disabled(most <= 1).accessibilityIdentifier("macShopQuantity")
+            HStack(spacing: 6) {
+                ForEach([1, 5, 10], id: \.self) { value in
+                    quickPick("×\(value)", value: value, picked: count == value, enabled: value <= most)
+                }
+                quickPick(GameStrings.text("mac.shop.max"), value: most, picked: count == most && ![1, 5, 10].contains(most), enabled: most > 1)
+                    .accessibilityValue("\(most)")
+            }
+        }
+    }
+    private func quickPick(_ title: String, value: Int, picked: Bool, enabled: Bool) -> some View {
+        Button { quantity = value } label: {
+            Text(title).font(.system(size: 11.5, weight: .heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.8)
+                .foregroundStyle(picked ? .white : RoomTheme.darkMint)
+                .padding(.vertical, 5).frame(maxWidth: .infinity)
+                .background(picked ? RoomTheme.mint : RoomTheme.paleMint, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain).disabled(!enabled).opacity(enabled ? 1 : 0.4)
+        .accessibilityAddTraits(picked ? .isSelected : [])
     }
 
     private func playerInfo(_ supply: PlayerSupplyDefinition) -> some View {
@@ -393,7 +428,7 @@ struct MacShopView: View {
         }
         guard !store.isBusy, product.canPurchase(in: store.snapshot) else { return }
         if arrange { pendingArrange = (product.id, product.count(in: store.snapshot), store.saveSceneGeneration) }
-        product.purchase(in: store)
+        product.purchase(in: store, quantity: product.isBulk ? max(1, min(quantity, product.maximumQuantity(in: store.snapshot))) : 1)
     }
     private func finishPurchase() {
         guard let pending = pendingArrange else { return }
@@ -506,10 +541,34 @@ private enum MacShopProduct: Identifiable {
         case .player: return detail
         }
     }
-    @MainActor func purchase(in store: GameStore) {
+    @MainActor func purchase(in store: GameStore, quantity: Int = 1) {
         switch self {
-        case .item(let p): p.purchase(in: store); case .gift(let p): Task { _ = await store.buyCommunityGift(id: p.id) }
-        case .player(let p): store.buyPlayerSupply(p.kind, quantity: 1)
+        case .item(let p):
+            if case .supply(let kind) = p.kind { store.buySupply(kind, quantity: quantity) } else { p.purchase(in: store) }
+        case .gift(let p): Task { _ = await store.buyCommunityGift(id: p.id, quantity: quantity) }
+        case .player(let p): store.buyPlayerSupply(p.kind, quantity: quantity)
         }
+    }
+    /// Care supplies and gifts can be bought several at a time; furniture and gear one at a time.
+    var isBulk: Bool {
+        switch self {
+        case .item(let p): if case .supply = p.kind { return true } else { return false }
+        case .gift: return true
+        case .player: return false
+        }
+    }
+    /// The most one purchase can take: what the wallet affords and the shelf still holds (Core's limits).
+    func maximumQuantity(in state: GameSnapshot?) -> Int {
+        guard let state, price > 0, isBulk else { return 1 }
+        let affordable = state.player.gold / price
+        let room: Int
+        switch self {
+        case .item(let p):
+            guard case .supply(let kind) = p.kind else { return 1 }
+            room = (GameSnapshot.maximumStock - count(in: state)) / max(1, SupplyCatalog.definition(for: kind).unitsPerPurchase)
+        case .gift: room = GameSnapshot.maximumStock - count(in: state)
+        case .player: return 1
+        }
+        return max(1, min(999, affordable, room))
     }
 }

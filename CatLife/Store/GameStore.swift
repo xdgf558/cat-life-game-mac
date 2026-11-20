@@ -127,6 +127,35 @@ final class GameStore {
     private(set) var now = Date()
     var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
+    /// While a fed cat is still eating, its shown satiety stays at the pre-meal value.
+    /// The meal is saved at the tap; only the display waits for the room's meal to finish.
+    private(set) var mealHolds: [String: Int] = [:]
+    @ObservationIgnored private var mealHoldTokens: [String: UUID] = [:]
+
+    func shownSatiety(_ cat: CatState) -> Int { mealHolds[cat.id].map { min($0, cat.satiety) } ?? cat.satiety }
+
+    private func clearMealHolds() {
+        mealHolds = [:]
+        mealHoldTokens = [:]
+    }
+
+    func finishMeal(catID: String) {
+        mealHolds[catID] = nil
+        mealHoldTokens[catID] = nil
+    }
+
+    private func holdMeal(catID: String, satiety: Int?) {
+        guard let satiety else { return }
+        let token = UUID()
+        mealHolds[catID] = satiety
+        mealHoldTokens[catID] = token
+        // Fallback: a meal the room never shows (hidden room, cancelled walk) still lands.
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(15))
+            guard let self, self.mealHoldTokens[catID] == token else { return }
+            self.finishMeal(catID: catID)
+        }
+    }
     private(set) var isDecorating = false {
         didSet { if oldValue != isDecorating { playNavigationSound() } }
     }
@@ -725,6 +754,7 @@ final class GameStore {
         restingFurnitureID = nil
         presentedRestSessionID = nil
         feedback = nil
+        clearMealHolds()
         pendingWorkResultID = nil
         inspectedCatID = nil
         hospitalCatID = nil
@@ -792,6 +822,7 @@ final class GameStore {
     func load() async {
         guard !loadingInProgress, !isCommitting else { return }
         companionMemories.clear()
+        clearMealHolds()
         habitGuideCatID = nil
         isPresentingHabitGuide = false
         isPresentingHabitMemory = false
@@ -987,6 +1018,7 @@ final class GameStore {
         let generation = saveSceneGeneration
         var effects: [String] = []
         var actionKind: ActionKind = .none
+        var satietyBefore: Int?
         let succeeded = await performPersistedAction(showsSuccessNotice: false) { state, date in
             let synchronized = GameEngine.synchronize(&state, now: date)
             guard synchronized.succeeded else { return synchronized }
@@ -995,6 +1027,7 @@ final class GameStore {
                 : GameEngine.clean(&state, catID: cat.id, supply: supply, now: date)
             if result.succeeded, let before, let after = state.cats.first(where: { $0.id == cat.id }) {
                 actionKind = result.kind
+                satietyBefore = before.satiety
                 effects = [("stat.satiety", after.satiety - before.satiety), ("stat.cleanliness", after.cleanliness - before.cleanliness),
                            ("stat.mood", after.mood - before.mood), ("stat.health", after.health - before.health),
                            ("stat.bond", after.intimacy - before.intimacy)]
@@ -1005,6 +1038,7 @@ final class GameStore {
         guard succeeded, generation == saveSceneGeneration else { return false }
         supplyPicker = nil
         if activeSheet == .inventory { activeSheet = nil }
+        if actionKind == .feed { holdMeal(catID: cat.id, satiety: satietyBefore) }
         feedback = RoomFeedback(kind: actionKind, catID: cat.id)
         showNotice(GameStrings.format("supplyPicker.used", GameStrings.text(SupplyCatalog.definition(for: supply).nameKey),
                                      effects.isEmpty ? GameStrings.text("design55.careFull") : effects.joined(separator: " · ")))
@@ -1029,7 +1063,9 @@ final class GameStore {
         }
     }
 
-    func buySupply(_ kind: SupplyKind) { perform { GameEngine.buySupply(&$0, kind: kind, now: $1) } }
+    func buySupply(_ kind: SupplyKind, quantity: Int = 1) {
+        perform { GameEngine.buySupply(&$0, kind: kind, quantity: quantity, now: $1) }
+    }
 
     // MARK: Player supplies and café (1.1.0)
     func buyPlayerSupply(_ kind: PlayerSupplyKind, quantity: Int = 1) {
@@ -1410,8 +1446,8 @@ final class GameStore {
         }
     }
 
-    func buyCommunityGift(id: String) async -> Bool {
-        await performPersistedAction { GameEngine.buyCommunityGift(&$0, giftID: id, quantity: 1, now: $1) }
+    func buyCommunityGift(id: String, quantity: Int = 1) async -> Bool {
+        await performPersistedAction { GameEngine.buyCommunityGift(&$0, giftID: id, quantity: quantity, now: $1) }
     }
 
     func showCommunityGiftLimit() { showNotice(GameStrings.text("community.giftLimit")) }
@@ -1566,6 +1602,10 @@ final class GameStore {
                 if finishesLayout && outcome.succeeded { clearLayoutDraft() }
                 if outcome.succeeded {
                     if returnsToRoom && activeSheet == .inventory { activeSheet = nil }
+                    if outcome.kind == .feed {
+                        let catID = context.candidate.activeCatID
+                        holdMeal(catID: catID, satiety: context.original.cats.first { $0.id == catID }?.satiety)
+                    }
                     feedback = RoomFeedback(kind: outcome.kind, catID: context.candidate.activeCatID)
                     playCommittedSound(outcome.kind)
                 }
@@ -1641,7 +1681,8 @@ final class GameStore {
             if waiters.isEmpty { drainPendingSynchronization() } else {
                 waiters.forEach { $0.resume() }
                 // If none of them took the lock (refused, or the save changed), queued syncs still run.
-                Task { [weak self] in await Task.yield(); self?.drainPendingSynchronization() }
+                // The store lives for the whole app and this save task already holds it, so no weak capture.
+                Task { await Task.yield(); self.drainPendingSynchronization() }
             }
         }
     }

@@ -90,16 +90,21 @@ struct RestRecoveryTests {
         #expect(GameEngine.startWork(&value, now: now.addingTimeInterval(122)).succeeded)
     }
 
-    @Test func sleepCapsEachStatIndependentlyAndDiscardsCappedCredit() {
+    @Test func sleepEndsByItselfTheMomentStaminaIsFull() {
         var value = state()
+        value.player.stamina = 100
+        #expect(GameEngine.startSleep(&value, now: now).messageKey == "sleep.rested")
+        #expect(value.player.activeSleep == nil)
         value.player.stamina = 99
         _ = GameEngine.startSleep(&value, now: now)
+        _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(179))
+        #expect(value.player.activeSleep != nil && value.player.stamina == 99)
+        // Synced long after: woke at 180 s, so mood recovered only until then.
         _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(359))
-        #expect(value.player.stamina == 100 && value.player.sleepStaminaRemainder == 0)
-        #expect(value.player.mood == 31 && value.player.sleepMoodRemainder == 179)
-        _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(360))
-        #expect(value.player.mood == 32 && value.player.sleepMoodRemainder == 0)
-        _ = GameEngine.wakeUp(&value, now: now.addingTimeInterval(360))
+        #expect(value.player.activeSleep == nil && value.player.stamina == 100)
+        #expect(value.player.mood == 31 && value.player.sleepMoodRemainder == 0)
+        #expect(value.player.staminaUpdatedAt == now.addingTimeInterval(180))
+        #expect(GameEngine.wakeUp(&value, now: now.addingTimeInterval(360)).kind == .none)
         _ = GameEngine.startWork(&value, now: now.addingTimeInterval(360))
         #expect(value.player.stamina == 90)
         #expect(value.player.staminaUpdatedAt == now.addingTimeInterval(360))

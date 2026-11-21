@@ -106,7 +106,7 @@ struct BazaarTests {
         state.craft.appearance = [:]
         // A piece that doesn't fit the request.
         let other = try #require(CraftCatalog.craftableBlueprints.first { definition in
-            !request.want.accepts(piece("handmade-3", blueprint: definition.id, durability: request.want == .fragile ? 1 : 20))
+            !request.want.accepts(piece("handmade-3", blueprint: definition.id))
         })
         state.craft.handmade.append(piece("handmade-3", blueprint: other.id))
         before = state

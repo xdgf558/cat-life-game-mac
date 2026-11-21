@@ -55,6 +55,16 @@ struct TownMapStatus {
         guard let snapshot else { return 0 }
         return ExchangeCatalog.offers.filter { ExchangeCatalog.eligibility(of: $0, in: snapshot) == nil }.count
     }
+    /// 3.2: today's neighbour requests that one of your free handmade pieces fits.
+    var wantedHandmade: Int {
+        guard let snapshot, let today = snapshot.tasks.dailyDayKey else { return 0 }
+        let craft = snapshot.craft
+        return BazaarCatalog.requests(day: today).filter { request in
+            !craft.bazaar.hasTraded(request.neighborID, today: today) && craft.handmade.contains {
+                BazaarCatalog.blocker($0, in: craft) == nil && request.want.accepts($0)
+            }
+        }.count
+    }
     var exhaustedExchanges: Bool {
         guard let snapshot else { return false }
         return CommunityCatalog.neighbors.allSatisfy { snapshot.community.exchangeCount(for: $0.id).remainingToday == 0 }
@@ -89,18 +99,12 @@ struct TownMapStatus {
             if snapshot?.napUsedToday == true { return GameStrings.text("cafe.badge.napped") }
             return GameStrings.text("cafe.badge.nap")
         case .bazaar:
-            guard let snapshot, let today = snapshot.tasks.dailyDayKey else { return nil }
-            let craft = snapshot.craft
-            let open = BazaarCatalog.requests(day: today).filter { request in
-                !craft.bazaar.hasTraded(request.neighborID, today: today) && craft.handmade.contains {
-                    BazaarCatalog.blocker($0, in: craft) == nil && request.want.accepts($0)
-                }
-            }
+            guard snapshot?.tasks.dailyDayKey != nil else { return nil }
             // 3.2: the bazaar holds the supplies swaps too, so one badge counts both.
-            let swaps = availableExchanges
-            if swaps > 0, !open.isEmpty { return GameStrings.format("bazaar.badge.both", swaps, open.count) }
+            let swaps = availableExchanges, wanted = wantedHandmade
+            if swaps > 0, wanted > 0 { return GameStrings.format("bazaar.badge.both", swaps, wanted) }
             if swaps > 0 { return GameStrings.format("market.availableCount", swaps) }
-            if !open.isEmpty { return GameStrings.format("bazaar.badge.wanted", open.count) }
+            if wanted > 0 { return GameStrings.format("bazaar.badge.wanted", wanted) }
             return exhaustedExchanges ? GameStrings.text("townMap.exchangedToday") : nil
         case .magic:
             guard let snapshot else { return nil }
@@ -120,8 +124,9 @@ struct TownMapStatus {
         case .cafe: return RoomTheme.lilac
         case .garden: return snapshot?.outing.trip != nil ? RoomTheme.coral : RoomTheme.friendship
         case .magic: return RoomTheme.coral
-        case .market where exhaustedExchanges, .bazaar where exhaustedExchanges: return RoomTheme.secondary
-        case .bazaar: return RoomTheme.friendship
+        case .market where exhaustedExchanges: return RoomTheme.secondary
+        // 3.2: grey only when both kinds of swap are done for today.
+        case .bazaar: return exhaustedExchanges && wantedHandmade == 0 ? RoomTheme.secondary : RoomTheme.friendship
         default: return RoomTheme.mint
         }
     }

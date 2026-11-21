@@ -328,35 +328,36 @@ struct MacBazaarView: View {
 
     private var suppliesPanel: some View {
         column(step: 3, offer.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("bazaar.step.confirm")) {
-            if let offer, let snapshot {
-                let problem = failure(offer)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(GameStrings.text("bazaar.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
-                    ForEach(Array(offer.inputs.enumerated()), id: \.offset) { _, stack in
-                        let have = stack.item.count(in: snapshot.inventory)
-                        gainRow(ExchangeItemIcon(item: stack.item, size: 26), ExchangePresentation.quantity(stack),
-                                "\(have) → \(max(0, have - stack.quantity))", alert: have < stack.quantity)
+            scrolling {
+                if let offer, let snapshot {
+                    let problem = failure(offer)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(GameStrings.text("bazaar.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
+                        ForEach(Array(offer.inputs.enumerated()), id: \.offset) { _, stack in
+                            let have = stack.item.count(in: snapshot.inventory)
+                            gainRow(ExchangeItemIcon(item: stack.item, size: 26), ExchangePresentation.quantity(stack),
+                                    "\(have) → \(max(0, have - stack.quantity))", alert: have < stack.quantity)
+                        }
                     }
-                }
-                .padding(12).background(RoomTheme.cream.opacity(0.85), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .combine)
-                Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.mint)
-                    .frame(maxWidth: .infinity).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(GameStrings.text("bazaar.get")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
-                    ForEach(Array(offer.outputs.enumerated()), id: \.offset) { _, stack in
-                        let have = stack.item.count(in: snapshot.inventory)
-                        gainRow(ExchangeItemIcon(item: stack.item, size: 26), ExchangePresentation.quantity(stack),
-                                "\(have) → \(ExchangePresentation.countAfterTrade(stack.item, offer: offer, inventory: snapshot.inventory))")
+                    .padding(12).background(RoomTheme.cream.opacity(0.85), in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityElement(children: .combine)
+                    Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.mint)
+                        .frame(maxWidth: .infinity).accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(GameStrings.text("bazaar.get")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                        ForEach(Array(offer.outputs.enumerated()), id: \.offset) { _, stack in
+                            let have = stack.item.count(in: snapshot.inventory)
+                            gainRow(ExchangeItemIcon(item: stack.item, size: 26), ExchangePresentation.quantity(stack),
+                                    "\(have) → \(ExchangePresentation.countAfterTrade(stack.item, offer: offer, inventory: snapshot.inventory))")
+                        }
                     }
+                    .padding(12).background(RoomTheme.paleMint.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityElement(children: .combine)
+                    if let problem { supplyFix(offer, problem) }
+                } else {
+                    hint(GameStrings.text("bazaar.supplies.pick"))
                 }
-                .padding(12).background(RoomTheme.paleMint.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .combine)
-                if let problem { supplyFix(offer, problem) }
-            } else {
-                hint(GameStrings.text("bazaar.supplies.pick"))
             }
-            Spacer(minLength: 0)
             if let stallID {
                 Text(GameStrings.format("bazaar.supplies.left", neighborName(stallID), remaining(stallID)))
                     .font(.system(size: 11.5, weight: .bold)).foregroundStyle(RoomTheme.secondary)
@@ -522,7 +523,7 @@ struct MacBazaarView: View {
 
     private func fitText(_ request: BazaarRequest, _ item: HandmadeItem) -> String {
         let deal = BazaarCatalog.deal(request, for: item)
-        let piece = name(item) + "（" + GameStrings.text(item.quality.titleKey) + "）"
+        let piece = GameStrings.format("bazaar.pieceQuality", name(item), GameStrings.text(item.quality.titleKey))
         var extras: [String] = []
         if deal.materialChange > 0, let first = request.materials.first {
             extras.append(GameStrings.text(first.material.titleKey) + " ×\(deal.materialChange)")
@@ -538,41 +539,42 @@ struct MacBazaarView: View {
 
     private var tradePanel: some View {
         column(step: 3, request.map { GameStrings.format("bazaar.trade.title", neighborName($0.neighborID)) } ?? GameStrings.text("bazaar.step.confirm")) {
-            if let item, let request, dealReady {
-                let deal = BazaarCatalog.deal(request, for: item)
-                Text(GameStrings.text("bazaar.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
-                pieceCard(item)
-                Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.friendship)
-                    .frame(maxWidth: .infinity).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(GameStrings.text("bazaar.get")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
-                    ForEach(deal.materials, id: \.material) { cost in
-                        let before = craft.count(of: cost.material)
-                        gainRow(MacMaterialArt(material: cost.material, size: 26), GameStrings.text(cost.material.titleKey) + " ×\(cost.count)",
-                                "\(before) → \(min(CraftCatalog.maximumMaterial, before + cost.count))")
+            scrolling {
+                if let item, let request, dealReady {
+                    let deal = BazaarCatalog.deal(request, for: item)
+                    Text(GameStrings.text("bazaar.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
+                    pieceCard(item)
+                    Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.friendship)
+                        .frame(maxWidth: .infinity).accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(GameStrings.text("bazaar.get")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.darkMint)
+                        ForEach(deal.materials, id: \.material) { cost in
+                            let before = craft.count(of: cost.material)
+                            gainRow(MacMaterialArt(material: cost.material, size: 26), GameStrings.text(cost.material.titleKey) + " ×\(cost.count)",
+                                    "\(before) → \(min(CraftCatalog.maximumMaterial, before + cost.count))")
+                        }
+                        if deal.gold > 0 {
+                            let gold = snapshot?.player.gold ?? 0
+                            gainRow(coin(26), GameStrings.format("bazaar.gold", deal.gold), "\(gold) → \(min(GameSnapshot.maximumGold, gold + deal.gold))")
+                        }
+                        if let id = deal.blueprintID, let definition = CraftCatalog.blueprint(id: id) {
+                            let uses = craft.usesLeft(id)
+                            gainRow(Image(systemName: "scroll.fill").foregroundStyle(RoomTheme.gold).frame(width: 26, height: 26),
+                                    GameStrings.format("bazaar.blueprint", GameStrings.text(definition.nameKey)),
+                                    GameStrings.format("bazaar.uses", uses, min(definition.tier.maximumUses, uses + definition.tier.usesPerCopy)))
+                        }
+                        gainRow(Image(systemName: "heart.fill").foregroundStyle(RoomTheme.coral).frame(width: 26, height: 26),
+                                GameStrings.format("bazaar.friendship", neighborName(request.neighborID), BazaarCatalog.tradeFriendship), nil)
                     }
-                    if deal.gold > 0 {
-                        let gold = snapshot?.player.gold ?? 0
-                        gainRow(coin(26), GameStrings.format("bazaar.gold", deal.gold), "\(gold) → \(gold + deal.gold)")
-                    }
-                    if let id = deal.blueprintID, let definition = CraftCatalog.blueprint(id: id) {
-                        let uses = craft.usesLeft(id)
-                        gainRow(Image(systemName: "scroll.fill").foregroundStyle(RoomTheme.gold).frame(width: 26, height: 26),
-                                GameStrings.format("bazaar.blueprint", GameStrings.text(definition.nameKey)),
-                                GameStrings.format("bazaar.uses", uses, min(definition.tier.maximumUses, uses + definition.tier.usesPerCopy)))
-                    }
-                    gainRow(Image(systemName: "heart.fill").foregroundStyle(RoomTheme.coral).frame(width: 26, height: 26),
-                            GameStrings.format("bazaar.friendship", neighborName(request.neighborID), BazaarCatalog.tradeFriendship), nil)
+                    .padding(12).background(RoomTheme.paleMint.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityElement(children: .combine)
+                    warning(GameStrings.text("bazaar.trade.warning"))
+                } else if wornPicked {
+                    wornHint
+                } else {
+                    hint(GameStrings.text("bazaar.trade.pick"))
                 }
-                .padding(12).background(RoomTheme.paleMint.opacity(0.35), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .combine)
-                warning(GameStrings.text("bazaar.trade.warning"))
-            } else if wornPicked {
-                wornHint
-            } else {
-                hint(GameStrings.text("bazaar.trade.pick"))
             }
-            Spacer(minLength: 0)
             progress
             confirmButton(GameStrings.text("bazaar.trade.confirm"), symbol: "arrow.left.arrow.right", tint: RoomTheme.friendship,
                           enabled: dealReady, id: "bazaarConfirmTrade")
@@ -583,30 +585,31 @@ struct MacBazaarView: View {
 
     private var priceColumn: some View {
         column(step: 2, GameStrings.text("bazaar.sell.how")) {
-            HStack(spacing: 12) {
-                GameIcon(asset: "shopkeeper-chestnut", symbol: "person.fill", size: 58, tint: RoomTheme.gold)
-                    .frame(width: 58, height: 58).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(GameStrings.text("bazaar.shop.name")).font(.system(size: 16, weight: .heavy))
-                        Text(GameStrings.text("bazaar.shop.role")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            scrolling {
+                HStack(spacing: 12) {
+                    GameIcon(asset: "shopkeeper-chestnut", symbol: "person.fill", size: 58, tint: RoomTheme.gold)
+                        .frame(width: 58, height: 58).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(GameStrings.text("bazaar.shop.name")).font(.system(size: 16, weight: .heavy))
+                            Text(GameStrings.text("bazaar.shop.role")).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                        }
+                        Text(GameStrings.text("bazaar.shop.line")).font(.system(size: 12.5, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
                     }
-                    Text(GameStrings.text("bazaar.shop.line")).font(.system(size: 12.5, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoomTheme.gold.opacity(0.1), in: RoundedRectangle(cornerRadius: 16))
+                if let item, itemOpen {
+                    breakdown(item)
+                    Text(GameStrings.text("bazaar.sell.compare")).font(.system(size: 12.5, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                    if let best = bestRequest(for: item) { requestCard(best, compact: true) }
+                    else { hint(GameStrings.text("bazaar.sell.noCompare")) }
+                    Text(GameStrings.text("bazaar.sell.compareNote")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    hint(GameStrings.text("bazaar.sell.pick"))
                 }
-            }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoomTheme.gold.opacity(0.1), in: RoundedRectangle(cornerRadius: 16))
-            if let item, itemOpen {
-                breakdown(item)
-                Text(GameStrings.text("bazaar.sell.compare")).font(.system(size: 12.5, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
-                if let best = bestRequest(for: item) { requestCard(best, compact: true) }
-                else { hint(GameStrings.text("bazaar.sell.noCompare")) }
-                Text(GameStrings.text("bazaar.sell.compareNote")).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(RoomTheme.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                hint(GameStrings.text("bazaar.sell.pick"))
             }
-            Spacer(minLength: 0)
             note(GameStrings.text("bazaar.sell.footer"))
         }
     }
@@ -648,31 +651,32 @@ struct MacBazaarView: View {
 
     private var sellPanel: some View {
         column(step: 3, GameStrings.text("bazaar.sell.title")) {
-            if let item, itemOpen {
-                let quote = BazaarCatalog.saleQuote(for: item)
-                let gold = snapshot?.player.gold ?? 0
-                Text(GameStrings.text("bazaar.sell.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
-                pieceCard(item)
-                Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.gold)
-                    .frame(maxWidth: .infinity).accessibilityHidden(true)
-                HStack(spacing: 12) {
-                    coin(40)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(GameStrings.format("bazaar.gold", quote.price)).font(.system(size: 22, weight: .heavy, design: .rounded))
-                            .foregroundStyle(Self.goldInk)
-                        Text("\(gold) → \(gold + quote.price)").font(.system(size: 12, weight: .bold).monospacedDigit()).foregroundStyle(RoomTheme.secondary)
+            scrolling {
+                if let item, itemOpen {
+                    let quote = BazaarCatalog.saleQuote(for: item)
+                    let gold = snapshot?.player.gold ?? 0
+                    Text(GameStrings.text("bazaar.sell.give")).font(.system(size: 12, weight: .heavy)).foregroundStyle(RoomTheme.coralDeep)
+                    pieceCard(item)
+                    Image(systemName: "arrow.down").font(.system(size: 14, weight: .heavy)).foregroundStyle(RoomTheme.gold)
+                        .frame(maxWidth: .infinity).accessibilityHidden(true)
+                    HStack(spacing: 12) {
+                        coin(40)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(GameStrings.format("bazaar.gold", quote.price)).font(.system(size: 22, weight: .heavy, design: .rounded))
+                                .foregroundStyle(Self.goldInk)
+                            Text("\(gold) → \(min(GameSnapshot.maximumGold, gold + quote.price))").font(.system(size: 12, weight: .bold).monospacedDigit()).foregroundStyle(RoomTheme.secondary)
+                        }
                     }
+                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoomTheme.gold.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+                    .accessibilityElement(children: .combine)
+                    warning(GameStrings.text("bazaar.sell.warning"))
+                } else if wornPicked {
+                    wornHint
+                } else {
+                    hint(GameStrings.text("bazaar.sell.pick"))
                 }
-                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoomTheme.gold.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
-                .accessibilityElement(children: .combine)
-                warning(GameStrings.text("bazaar.sell.warning"))
-            } else if wornPicked {
-                wornHint
-            } else {
-                hint(GameStrings.text("bazaar.sell.pick"))
             }
-            Spacer(minLength: 0)
             Button {
                 if let item, let best = bestRequest(for: item) { neighborID = best.neighborID }
                 switchTab(to: .trade)
@@ -714,12 +718,22 @@ struct MacBazaarView: View {
 
     // MARK: Pieces of UI
 
+    /// A column's body scrolls on short windows, so the note or confirm button under it stays in view.
+    private func scrolling<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) { content() }
+                .frame(maxWidth: .infinity, alignment: .leading).padding(2)
+        }
+        .scrollIndicators(.never).scrollBounceBehavior(.basedOnSize)
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
     private func confirmButton(_ title: String, symbol: String, tint: Color, enabled: Bool, id: String) -> some View {
         Button { confirm() } label: {
             Label(title, systemImage: symbol).font(.system(size: 15, weight: .heavy)).frame(maxWidth: .infinity).padding(.vertical, 6)
         }
         .buttonStyle(.borderedProminent).tint(tint).controlSize(.large)
-        .disabled(!enabled || working).help("↩").accessibilityIdentifier(id)
+        .disabled(!enabled || working || store.isBusy).help("↩").accessibilityIdentifier(id)
     }
 
     private func fixButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
@@ -884,7 +898,7 @@ struct MacBazaarView: View {
     }
 
     private func confirm() {
-        guard !working else { return }
+        guard !working, !store.isBusy else { return }
         switch tab {
         case .supplies:
             guard let offer, failure(offer) == nil else { return }

@@ -689,7 +689,7 @@ public enum GameEngine {
 }
 
 extension GameSnapshot {
-    static let maximumGold = 1_000_000_000
+    public static let maximumGold = 1_000_000_000
     public static let maximumStock = 1_000_000
 
     var isValid: Bool {

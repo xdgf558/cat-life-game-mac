@@ -80,8 +80,9 @@ public enum CraftRules {
         case .cafeNaps(let count): return state.craft.cafeNaps >= count
         case .townEvent(let id): return state.community.events.letters.contains { $0.eventID == id }
         case .craftLevel(let level): return state.craft.skillLevel.level >= level
+        case .bazaarTrades(let count): return state.craft.bazaar.totalTrades >= count
         // Granted where they happen (the outing's settlement), or not yet open.
-        case .gardenWalk, .rainyOuting, .bazaarTrades, .shares, .shopShelf, .luck: return false
+        case .gardenWalk, .rainyOuting, .shares, .shopShelf, .luck: return false
         }
     }
 

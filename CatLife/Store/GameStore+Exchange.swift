@@ -1,7 +1,8 @@
 import CatGameCore
 
 extension GameStore {
-    func openExchangeMarket() {
+    /// `neighborID` opens on that neighbour's stall (the Mac bazaar's supplies tab).
+    func openExchangeMarket(neighborID: String? = nil) {
         guard !isBusy, !isDecorating, snapshot != nil else { return }
         inspectedCatID = nil
         isShowingSettings = false
@@ -10,6 +11,7 @@ extension GameStore {
         adoptionCatID = nil
         isShowingNeighbors = false
         isShowingTownBoard = false
+        marketNeighborID = neighborID
         isShowingMarket = true
     }
 

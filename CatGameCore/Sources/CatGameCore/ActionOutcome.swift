@@ -123,6 +123,10 @@ public enum ActionFailure: String, Equatable, Sendable {
     case craftSlotMismatch = "craft.error.slot"
     case craftRepairNotNeeded = "gear.error.repairNotNeeded"
     case craftRepairMaterials = "gear.error.repairMaterials"
+    case bazaarTradedToday = "bazaar.error.tradedToday"
+    case bazaarWorn = "bazaar.error.worn"
+    case bazaarNotTradable = "bazaar.error.notTradable"
+    case bazaarNotWanted = "bazaar.error.notWanted"
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
@@ -191,6 +195,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
     case blueprintGrantsSeen = "craft.grants.seen"
     case handmadeRepaired = "gear.repaired"
     case handmadeNoticesSeen = "gear.noticesSeen"
+    case bazaarTraded = "bazaar.traded"
+    case bazaarSold = "bazaar.sold"
 
     public var kind: ActionKind {
         switch self {
@@ -206,7 +212,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
              .outingDuplicateResolved, .outingShelfUpdated, .outingPuzzleSolved, .outingPuzzleSkipped,
              .stationCatCaught, .stationCatLeft, .stationCatNoticeSeen: return .none
         case .wheelSpun, .stardustExchanged, .crafted, .craftMissed, .craftGoalSet, .appearanceWorn, .appearanceCleared,
-             .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen: return .none
+             .appearanceSettingSaved, .blueprintGrantsSeen, .handmadeRepaired, .handmadeNoticesSeen,
+             .bazaarTraded, .bazaarSold: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

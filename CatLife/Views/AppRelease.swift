@@ -19,6 +19,11 @@ struct AppRelease: Identifiable, Sendable {
 
     // Keep release history as data. Only the latest three entries for this
     // installed binary are rendered; older entries have no hidden UI elements.
+    #if APP_STORE
+    private static let history: [AppRelease] = [
+        .init(build: 137, version: "1.0.0", date: "2026-11-26")
+    ]
+    #else
     private static let history: [AppRelease] = [
         .init(build: 135, version: "3.14", date: "2026-11-20"),
         .init(build: 134, version: "3.13", date: "2026-11-20"),
@@ -139,6 +144,7 @@ struct AppRelease: Identifiable, Sendable {
         .init(build: 11, version: "0.1.0", date: "2026-11-01"),
         .init(build: 10, version: "0.1.0", date: "2026-10-31")
     ]
+    #endif
     static var recent: [AppRelease] {
         Array(history.filter { $0.build <= AppVersion.current.buildNumber }
             .sorted { $0.build > $1.build }.prefix(3))

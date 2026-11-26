@@ -1,8 +1,8 @@
-# 打工养猫日记 · Mac：隐私政策
+# 养猫日记本：隐私政策
 
 生效日期：2026 年 11 月 13 日
 
-本政策适用于 Station Cat 通过 Mac App Store 提供的《打工养猫日记 · Mac》。其他平台和发行渠道可能使用不同的存储方式和隐私政策。隐私与支持联系邮箱：[brodstem@protonmail.com](mailto:brodstem@protonmail.com)。
+本政策适用于 Station Cat 通过 Mac App Store 提供的《养猫日记本》。其他平台和发行渠道可能使用不同的存储方式和隐私政策。隐私与支持联系邮箱：[brodstem@protonmail.com](mailto:brodstem@protonmail.com)。
 
 ## 保存在这台 Mac 上的数据
 
@@ -24,11 +24,11 @@
 
 ---
 
-# 打工養貓日記 · Mac：隱私政策
+# 養貓日記本：隱私政策
 
 生效日期：2026 年 11 月 13 日
 
-本政策適用於 Station Cat 透過 Mac App Store 提供的《打工養貓日記 · Mac》。其他平台和發行管道可能使用不同的儲存方式和隱私政策。隱私與支援聯絡信箱：[brodstem@protonmail.com](mailto:brodstem@protonmail.com)。
+本政策適用於 Station Cat 透過 Mac App Store 提供的《養貓日記本》。其他平台和發行管道可能使用不同的儲存方式和隱私政策。隱私與支援聯絡信箱：[brodstem@protonmail.com](mailto:brodstem@protonmail.com)。
 
 ## 儲存在這台 Mac 上的資料
 
@@ -50,11 +50,11 @@
 
 ---
 
-# Cat Life Diary for Mac: Privacy Policy
+# Cat Diary: Cat Life — Privacy Policy
 
 Effective date: November 13, 2026
 
-This policy applies to the Mac App Store edition of Cat Life Diary for Mac, provided by Station Cat. Other platforms and distribution channels may use different storage and privacy practices. For privacy or support questions, contact [brodstem@protonmail.com](mailto:brodstem@protonmail.com).
+This policy applies to the Mac App Store edition of Cat Diary: Cat Life, provided by Station Cat. Other platforms and distribution channels may use different storage and privacy practices. For privacy or support questions, contact [brodstem@protonmail.com](mailto:brodstem@protonmail.com).
 
 ## Data on your Mac
 

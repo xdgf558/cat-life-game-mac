@@ -6,7 +6,7 @@ import SwiftUI
 struct CatLifeMacApp: App {
     @NSApplicationDelegateAdaptor(MacApplicationDelegate.self) private var delegate
     var body: some Scene {
-        Window("打工养猫日记", id: "main") {
+        Window("养猫日记本", id: "main") {
             MacDesktopRoot(delegate: delegate).frame(minWidth: 1280, minHeight: 720)
         }
         .defaultSize(width: 1440, height: 900)

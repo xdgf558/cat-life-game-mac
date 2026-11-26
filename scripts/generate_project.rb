@@ -85,6 +85,7 @@ mac.build_configurations.each do |config|
     'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME' => 'AccentColor', 'SWIFT_EMIT_LOC_STRINGS' => 'NO'
   })
   if app_store
+    config.build_settings['INFOPLIST_FILE'] = 'CatLifeMac/Info-AppStore.plist'
     config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CatLifeMac/CatLifeMac-AppStore.entitlements'
     config.build_settings['DEVELOPMENT_TEAM'] = '2AM5S7BM2N'
     config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = '$(inherited) APP_STORE'

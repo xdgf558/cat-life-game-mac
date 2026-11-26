@@ -40,7 +40,7 @@ struct WelcomeView: View {
                         VStack(spacing: 0) {
                             HomeNamePlaque(name: GameStrings.text("home.name"), height: compact ? 88 : 108)
                                 .accessibilityIdentifier("welcomeTitle")
-                            Text("Cat Life Diary").font(.system(size: 12, weight: .heavy))
+                            Text("Cat Diary: Cat Life").font(.system(size: 12, weight: .heavy))
                                 .foregroundStyle(RoomTheme.secondary).padding(.top, -14)
                         }
                         .rotationEffect(.degrees(-1.5))
